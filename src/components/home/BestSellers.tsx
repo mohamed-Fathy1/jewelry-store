@@ -10,36 +10,43 @@ const bestSellers = [
   {
     id: "1",
     name: "Classic Diamond Ring",
-    price: 2499.99,
-    image: "/images/products/ring-2.jpg",
+    originalPrice: 2999.99,
+    salePrice: 2499.99,
+    image: "/images/IMG_1858.JPG",
     category: "Rings",
     href: "/product/1",
+    badge: "Best Seller",
   },
   {
     id: "2",
     name: "Pearl Necklace",
-    price: 899.99,
-    image: "/images/products/necklace-2.jpg",
+    originalPrice: 1299.99,
+    salePrice: 899.99,
+    image: "/images/IMG_2950.JPG",
     category: "Necklaces",
     href: "/product/2",
+    badge: "Limited Time",
   },
   {
     id: "3",
     name: "Diamond Studs",
-    price: 1299.99,
-    image: "/images/products/earrings-2.jpg",
+    originalPrice: 1599.99,
+    salePrice: 1299.99,
+    image: "/images/IMG_3177.PNG",
     category: "Earrings",
     href: "/product/3",
+    badge: "Sale",
   },
   {
     id: "4",
     name: "Gold Bangle",
-    price: 699.99,
-    image: "/images/products/bracelet-2.jpg",
+    originalPrice: 899.99,
+    salePrice: 699.99,
+    image: "/images/IMG_3176.PNG",
     category: "Bracelets",
     href: "/product/4",
+    badge: "Trending",
   },
-  // Add more products as needed
 ];
 
 export default function BestSellers() {
@@ -47,9 +54,22 @@ export default function BestSellers() {
     toast.success(`${productName} added to cart`);
   };
 
+  const calculateDiscount = (original: number, sale: number) => {
+    return Math.round(((original - sale) / original) * 100);
+  };
+
+  const formatPrice = (price: number) => {
+    return price.toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <h2 className="text-3xl font-light text-center mb-12">Best Sellers</h2>
+      <h2 className="text-3xl font-light text-center mb-12">Special Offers</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {bestSellers.map((product) => (
           <motion.div key={product.id} whileHover={{ y: -5 }} className="group">
@@ -61,6 +81,13 @@ export default function BestSellers() {
                 height={500}
                 className="w-full h-full object-cover"
               />
+              <div className="absolute top-4 left-4 bg-red-600 text-white px-2 py-1 rounded-md text-sm font-medium">
+                {calculateDiscount(product.originalPrice, product.salePrice)}%
+                OFF
+              </div>
+              <div className="absolute top-4 right-4 bg-black text-white px-2 py-1 rounded-md text-sm font-medium">
+                {product.badge}
+              </div>
               <motion.button
                 initial={{ opacity: 0 }}
                 whileHover={{ scale: 1.1 }}
@@ -73,11 +100,22 @@ export default function BestSellers() {
             </div>
             <Link href={product.href}>
               <div className="mt-4 space-y-1">
-                <h3 className="text-lg font-medium text-gray-900">
+                <h3 className="text-lg font-medium text-gray-100">
                   {product.name}
                 </h3>
-                <p className="text-sm text-gray-500">{product.category}</p>
-                <p className="text-lg font-semibold">${product.price}</p>
+                <p className="text-sm text-gray-300">{product.category}</p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-lg font-semibold text-red-600">
+                    {formatPrice(product.salePrice)}
+                  </p>
+                  <p className="text-sm text-gray-400 line-through">
+                    {formatPrice(product.originalPrice)}
+                  </p>
+                  <p className="text-sm text-green-600">
+                    Save{" "}
+                    {formatPrice(product.originalPrice - product.salePrice)}
+                  </p>
+                </div>
               </div>
             </Link>
           </motion.div>
@@ -88,7 +126,7 @@ export default function BestSellers() {
           href="/shop"
           className="inline-block bg-black text-white px-8 py-3 rounded-md hover:bg-gray-800 transition-colors duration-200"
         >
-          View All Products
+          View All Offers
         </Link>
       </div>
     </section>

@@ -7,15 +7,21 @@ import { motion, AnimatePresence } from "framer-motion";
 const slides = [
   {
     id: 1,
-    image: "/images/hero-1.jpg",
+    image: "/images/IMG_0297.JPG",
     title: "Timeless Elegance",
     subtitle: "Discover our new collection of fine jewelry",
   },
   {
     id: 2,
-    image: "/images/hero-2.jpg",
+    image: "/images/IMG_1839.JPG",
     title: "Luxury Defined",
     subtitle: "Handcrafted pieces for every occasion",
+  },
+  {
+    id: 3,
+    image: "/images/IMG_1853.JPG",
+    title: "Modern Classics",
+    subtitle: "Explore our signature collection",
   },
 ];
 
@@ -30,7 +36,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <div className="relative h-[80vh] overflow-hidden">
+    <div className="relative h-[90vh] overflow-hidden">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentSlide}

@@ -7,9 +7,9 @@ export default function Home() {
   return (
     <div className="space-y-16">
       <Hero />
+      <BestSellers />
       <FeaturedCategories />
       <NewArrivals />
-      <BestSellers />
     </div>
   );
 }

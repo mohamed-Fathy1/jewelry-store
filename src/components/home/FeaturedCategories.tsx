@@ -8,25 +8,25 @@ const categories = [
   {
     id: 1,
     name: "Necklaces",
-    image: "/images/categories/necklaces.jpg",
+    image: "/images/IMG_2953.JPG",
     href: "/shop?category=necklaces",
   },
   {
     id: 2,
     name: "Rings",
-    image: "/images/categories/rings.jpg",
+    image: "/images/IMG_1859.JPG",
     href: "/shop?category=rings",
   },
   {
     id: 3,
     name: "Earrings",
-    image: "/images/categories/earrings.jpg",
+    image: "/images/IMG_3758.JPG",
     href: "/shop?category=earrings",
   },
   {
     id: 4,
     name: "Bracelets",
-    image: "/images/categories/bracelets.jpg",
+    image: "/images/IMG_3095.JPG",
     href: "/shop?category=bracelets",
   },
 ];
@@ -53,12 +53,14 @@ export default function FeaturedCategories() {
                 height={500}
                 className="object-cover w-full h-full"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-30 transition-opacity group-hover:bg-opacity-40" />
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-                <h3 className="text-2xl font-light mb-4">{category.name}</h3>
+              <div className="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-50 transition-all duration-300" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <h3 className="text-2xl font-medium mb-4 text-white drop-shadow-lg">
+                  {category.name}
+                </h3>
                 <Link
                   href={category.href}
-                  className="bg-white text-black px-6 py-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
+                  className="bg-white text-gray-800 px-6 py-2 rounded-md hover:bg-gray-50 font-medium transition-colors duration-200"
                 >
                   Shop Now
                 </Link>

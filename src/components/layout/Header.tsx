@@ -8,6 +8,7 @@ import {
   MagnifyingGlassIcon as SearchIcon,
 } from "@heroicons/react/24/outline";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -27,7 +28,13 @@ export default function Header() {
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
           <Link href="/" className="text-2xl font-semibold text-gray-900">
-            LUXE
+            <Image
+              src="logo.jpg"
+              alt="Luxury Jewelry Store Logo"
+              width={60}
+              height={60}
+              className="h-8 w-auto"
+            />
           </Link>
 
           {/* Navigation */}

@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function Footer() {
   const footerSections = [
     {
@@ -31,7 +33,15 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <h3 className="text-2xl font-semibold text-gray-900">LUXE</h3>
+            <h3 className="text-2xl font-semibold text-gray-900">
+              <Image
+                src="logo.jpg"
+                alt="Luxury Jewelry Store Logo"
+                width={60}
+                height={60}
+                className="h-8 w-auto"
+              />
+            </h3>
             <p className="mt-4 text-gray-600">
               Crafting timeless elegance through exceptional jewelry pieces.
             </p>

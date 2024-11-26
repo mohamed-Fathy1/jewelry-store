@@ -18,8 +18,9 @@ export default function ProductDetails({ productId }: { productId: string }) {
     description:
       "Elegant diamond pendant crafted in 18k gold. This stunning piece features a brilliant-cut diamond suspended from a delicate gold chain.",
     images: [
-      "/images/products/necklace-1.jpg",
-      "/images/products/necklace-2.jpg",
+      "/images/products/necklaces/necklace-1.jpg",
+      "/images/products/necklaces/necklace-2.jpg",
+      "/images/products/necklaces/necklace-3.jpg",
     ],
     sizes: ['16"', '18"', '20"', '22"'],
     rating: 4.5,
@@ -59,7 +60,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
       {/* Product info */}
       <div className="space-y-6">
-        <h1 className="text-3xl font-light">{product.name}</h1>
+        <h1 className="text-3xl font-light text-gray-800">{product.name}</h1>
         <div className="flex items-center space-x-2">
           <div className="flex items-center">
             {[...Array(5)].map((_, i) => (
@@ -73,20 +74,20 @@ export default function ProductDetails({ productId }: { productId: string }) {
               />
             ))}
           </div>
-          <span className="text-gray-500">({product.reviews} reviews)</span>
+          <span className="text-gray-600">({product.reviews} reviews)</span>
         </div>
-        <p className="text-2xl font-medium">${product.price}</p>
-        <p className="text-gray-600">{product.description}</p>
+        <p className="text-2xl font-medium text-gray-900">${product.price}</p>
+        <p className="text-gray-700 text-lg">{product.description}</p>
 
         {/* Material */}
         <div>
-          <h3 className="text-sm font-medium text-gray-900">Material</h3>
-          <p className="mt-2 text-gray-600">{product.material}</p>
+          <h3 className="text-base font-medium text-gray-800">Material</h3>
+          <p className="mt-2 text-gray-700">{product.material}</p>
         </div>
 
         {/* Size selector */}
         <div>
-          <h3 className="text-sm font-medium text-gray-900">Size</h3>
+          <h3 className="text-base font-medium text-gray-800">Size</h3>
           <div className="grid grid-cols-4 gap-4 mt-2">
             {product.sizes.map((size) => (
               <button
