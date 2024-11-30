@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { motion } from "framer-motion";
+import { colors } from "@/constants/colors";
 
 const newArrivals = [
   {
@@ -79,13 +80,26 @@ export default function NewArrivals() {
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 overflow-hidden">
-      <h2 className="text-3xl font-light mb-8">New Arrivals</h2>
+    <section
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
+      style={{ backgroundColor: colors.background }}
+    >
+      <h2
+        className="text-3xl font-light mb-8"
+        style={{ color: colors.textPrimary }}
+      >
+        New Arrivals
+      </h2>
       <div className="relative">
         {/* Left Chevron */}
         <button
           onClick={() => scroll("left")}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 p-2 rounded-full bg-white border border-gray-200 hover:border-gray-300 text-gray-700 hover:text-black z-10 shadow-md transition-all duration-200"
+          className="absolute z-10 left-0 top-1/2 -translate-y-1/2 -translate-x-5 p-2 rounded-full shadow-md transition-all duration-200"
+          style={{
+            backgroundColor: colors.background,
+            borderColor: colors.border,
+            color: colors.textPrimary,
+          }}
         >
           <ChevronLeftIcon className="w-5 h-5" />
         </button>
@@ -93,16 +107,21 @@ export default function NewArrivals() {
         {/* Right Chevron */}
         <button
           onClick={() => scroll("right")}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 p-2 rounded-full border border-gray-300 hover:border-gray-400 bg-white z-10 shadow-md"
+          className="absolute z-10 right-0 top-1/2 -translate-y-1/2 translate-x-5 p-2 rounded-full shadow-md transition-all duration-200"
+          style={{
+            backgroundColor: colors.background,
+            borderColor: colors.border,
+            color: colors.textPrimary,
+          }}
         >
-          <ChevronRightIcon className="w-5 h-5 text-black" />
+          <ChevronRightIcon className="w-5 h-5" />
         </button>
 
         {/* Products Container */}
         <div
           ref={scrollContainerRef}
-          className="flex space-x-6 overflow-x-hidden scrollbar-hide pb-4 px-4"
-          style={{ scrollBehavior: "smooth" }}
+          className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4 px-4"
+          style={{ scrollBehavior: "smooth", scrollbarWidth: "none" }}
         >
           {newArrivals.map((product) => (
             <motion.div
@@ -111,7 +130,10 @@ export default function NewArrivals() {
               className="flex-none w-64"
             >
               <Link href={product.href} className="group">
-                <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                <div
+                  className="aspect-square rounded-lg overflow-hidden"
+                  style={{ backgroundColor: colors.background }}
+                >
                   <Image
                     src={product.image}
                     alt={product.name}
@@ -121,10 +143,18 @@ export default function NewArrivals() {
                   />
                 </div>
                 <div className="mt-4">
-                  <h3 className="text-lg font-medium text-gray-100 group-hover:text-gray-200 transition-colors">
+                  <h3
+                    className="text-lg font-medium transition-colors"
+                    style={{
+                      color: colors.textPrimary,
+                    }}
+                  >
                     {product.name}
                   </h3>
-                  <p className="mt-1 text-lg font-semibold text-gray-400">
+                  <p
+                    className="mt-1 text-lg font-semibold"
+                    style={{ color: colors.textSecondary }}
+                  >
                     ${product.price.toLocaleString()}
                   </p>
                 </div>

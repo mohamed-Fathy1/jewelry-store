@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ShoppingBagIcon } from "@heroicons/react/24/outline";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import { colors } from "@/constants/colors";
 
 const bestSellers = [
   {
@@ -68,12 +69,20 @@ export default function BestSellers() {
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <h2 className="text-3xl font-light text-center mb-12">Special Offers</h2>
+    <section
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
+      style={{ backgroundColor: colors.background }}
+    >
+      <h2
+        className="text-3xl font-light text-center mb-12"
+        style={{ color: colors.textPrimary }}
+      >
+        Special Offers
+      </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {bestSellers.map((product) => (
           <motion.div key={product.id} whileHover={{ y: -5 }} className="group">
-            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
+            <div className="aspect-square rounded-lg overflow-hidden relative">
               <Image
                 src={product.image}
                 alt={product.name}
@@ -81,11 +90,23 @@ export default function BestSellers() {
                 height={500}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute top-4 left-4 bg-red-600 text-white px-2 py-1 rounded-md text-sm font-medium">
+              <div
+                className="absolute top-4 left-4 px-2 py-1 rounded-md text-sm font-medium"
+                style={{
+                  backgroundColor: colors.brown,
+                  color: colors.textLight,
+                }}
+              >
                 {calculateDiscount(product.originalPrice, product.salePrice)}%
                 OFF
               </div>
-              <div className="absolute top-4 right-4 bg-black text-white px-2 py-1 rounded-md text-sm font-medium">
+              <div
+                className="absolute top-4 right-4 px-2 py-1 rounded-md text-sm font-medium"
+                style={{
+                  backgroundColor: colors.gold,
+                  color: colors.textLight,
+                }}
+              >
                 {product.badge}
               </div>
               <motion.button
@@ -93,25 +114,40 @@ export default function BestSellers() {
                 whileHover={{ scale: 1.1 }}
                 animate={{ opacity: 1 }}
                 onClick={() => addToCart(product.name)}
-                className="absolute bottom-4 right-4 p-2 rounded-full bg-black text-white shadow-lg hover:bg-gray-800 transition-colors duration-200"
+                className="absolute bottom-4 right-4 p-2 rounded-full shadow-lg transition-colors duration-200"
+                style={{
+                  backgroundColor: colors.brown,
+                  color: colors.textLight,
+                }}
               >
                 <ShoppingBagIcon className="w-5 h-5" />
               </motion.button>
             </div>
             <Link href={product.href}>
               <div className="mt-4 space-y-1">
-                <h3 className="text-lg font-medium text-gray-100">
+                <h3
+                  className="text-lg font-medium"
+                  style={{ color: colors.textPrimary }}
+                >
                   {product.name}
                 </h3>
-                <p className="text-sm text-gray-300">{product.category}</p>
+                <p style={{ color: colors.textSecondary }}>
+                  {product.category}
+                </p>
                 <div className="flex items-center space-x-2">
-                  <p className="text-lg font-semibold text-red-600">
+                  <p
+                    className="text-lg font-semibold"
+                    style={{ color: colors.brown }}
+                  >
                     {formatPrice(product.salePrice)}
                   </p>
-                  <p className="text-sm text-gray-400 line-through">
+                  <p
+                    className="text-sm line-through"
+                    style={{ color: colors.textSecondary }}
+                  >
                     {formatPrice(product.originalPrice)}
                   </p>
-                  <p className="text-sm text-green-600">
+                  <p className="text-sm" style={{ color: colors.gold }}>
                     Save{" "}
                     {formatPrice(product.originalPrice - product.salePrice)}
                   </p>
@@ -124,7 +160,11 @@ export default function BestSellers() {
       <div className="text-center mt-12">
         <Link
           href="/shop"
-          className="inline-block bg-black text-white px-8 py-3 rounded-md hover:bg-gray-800 transition-colors duration-200"
+          className="inline-block px-8 py-3 rounded-md transition-colors duration-200"
+          style={{
+            backgroundColor: colors.brown,
+            color: colors.textLight,
+          }}
         >
           View All Offers
         </Link>
