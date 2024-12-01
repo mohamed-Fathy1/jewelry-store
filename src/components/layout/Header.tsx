@@ -6,12 +6,17 @@ import {
   ShoppingBagIcon,
   UserIcon,
   MagnifyingGlassIcon as SearchIcon,
+  Bars3Icon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { colors } from "@/constants/colors";
+import Search from "./Search";
 
 export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
   const navigation = [
@@ -23,13 +28,26 @@ export default function Header() {
   ];
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
+    <header className="sticky top-0 z-50 shadow-sm bg-white">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            style={{ color: colors.textPrimary }}
+          >
+            {isMobileMenuOpen ? (
+              <XMarkIcon className="h-6 w-6" />
+            ) : (
+              <Bars3Icon className="h-6 w-6" />
+            )}
+          </button>
+
           {/* Logo */}
-          <Link href="/" className="text-2xl font-semibold text-gray-900">
+          <Link href="/" className="text-2xl font-semibold">
             <Image
-              src="logo.jpg"
+              src="/logo.jpg"
               alt="Luxury Jewelry Store Logo"
               width={60}
               height={60}
@@ -37,17 +55,19 @@ export default function Header() {
             />
           </Link>
 
-          {/* Navigation */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex space-x-8">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`${
-                  pathname === item.href
-                    ? "text-black"
-                    : "text-gray-500 hover:text-gray-900"
-                } transition-colors duration-300`}
+                className="transition-colors duration-300"
+                style={{
+                  color:
+                    pathname === item.href
+                      ? colors.textPrimary
+                      : colors.textSecondary,
+                }}
               >
                 {item.name}
               </Link>
@@ -58,30 +78,56 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="text-gray-500 hover:text-gray-900"
+              className="transition-colors duration-200"
+              style={{ color: colors.textSecondary }}
             >
               <SearchIcon className="h-6 w-6" />
             </button>
-            <Link href="/cart" className="text-gray-500 hover:text-gray-900">
+            <Link
+              href="/cart"
+              className="transition-colors duration-200"
+              style={{ color: colors.textSecondary }}
+            >
               <ShoppingBagIcon className="h-6 w-6" />
             </Link>
-            <Link href="/account" className="text-gray-500 hover:text-gray-900">
+            <Link
+              href="/account"
+              className="transition-colors duration-200"
+              style={{ color: colors.textSecondary }}
+            >
               <UserIcon className="h-6 w-6" />
             </Link>
           </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
+          <div
+            className="md:hidden py-4 border-t"
+            style={{ borderColor: colors.border }}
+          >
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="block py-2 transition-colors duration-200"
+                style={{
+                  color:
+                    pathname === item.href
+                      ? colors.textPrimary
+                      : colors.textSecondary,
+                }}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+        )}
       </nav>
 
       {/* Search Bar */}
-      {isSearchOpen && (
-        <div className="border-t border-gray-200 py-4 px-4 sm:px-6 lg:px-8">
-          <input
-            type="text"
-            placeholder="Search for jewelry..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
-      )}
+      <Search isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
   );
 }

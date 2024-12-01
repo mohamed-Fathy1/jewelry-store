@@ -85,7 +85,7 @@ export default function NewArrivals() {
       style={{ backgroundColor: colors.background }}
     >
       <h2
-        className="text-3xl font-light mb-8"
+        className="text-3xl font-light mb-4"
         style={{ color: colors.textPrimary }}
       >
         New Arrivals
@@ -94,7 +94,7 @@ export default function NewArrivals() {
         {/* Left Chevron */}
         <button
           onClick={() => scroll("left")}
-          className="absolute z-10 left-0 top-1/2 -translate-y-1/2 -translate-x-5 p-2 rounded-full shadow-md transition-all duration-200"
+          className="absolute z-10 left-0 top-1/2 -translate-y-1/2 -translate-x-5 p-2 rounded-full border border-gray-300 shadow-md transition-all duration-200"
           style={{
             backgroundColor: colors.background,
             borderColor: colors.border,
@@ -107,7 +107,7 @@ export default function NewArrivals() {
         {/* Right Chevron */}
         <button
           onClick={() => scroll("right")}
-          className="absolute z-10 right-0 top-1/2 -translate-y-1/2 translate-x-5 p-2 rounded-full shadow-md transition-all duration-200"
+          className="absolute z-10 right-0 top-1/2 -translate-y-1/2 translate-x-5 p-2 rounded-full border border-gray-300 shadow-md transition-all duration-200"
           style={{
             backgroundColor: colors.background,
             borderColor: colors.border,
@@ -120,7 +120,7 @@ export default function NewArrivals() {
         {/* Products Container */}
         <div
           ref={scrollContainerRef}
-          className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4 px-4"
+          className="flex space-x-6 overflow-x-auto scrollbar-hide py-4 px-4"
           style={{ scrollBehavior: "smooth", scrollbarWidth: "none" }}
         >
           {newArrivals.map((product) => (

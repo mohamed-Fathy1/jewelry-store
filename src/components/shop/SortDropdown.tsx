@@ -3,6 +3,7 @@
 import { Fragment, useState } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
+import { colors } from "@/constants/colors";
 
 const sortOptions = [
   { name: "Most Popular", value: "popular" },
@@ -16,10 +17,14 @@ export default function SortDropdown() {
 
   return (
     <Menu as="div" className="relative inline-block text-left">
-      <Menu.Button className="group inline-flex justify-center text-sm font-medium text-gray-700 hover:text-gray-900">
+      <Menu.Button
+        className="group inline-flex justify-center text-sm font-medium transition-colors duration-200 hover:text-[--text-secondary]"
+        style={{ color: colors.textPrimary }}
+      >
         Sort by: {selectedSort.name}
         <ChevronDownIcon
-          className="flex-shrink-0 -mr-1 ml-1 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+          className="flex-shrink-0 -mr-1 ml-1 h-5 w-5 transition-colors duration-200 hover:text-[--text-primary]"
+          style={{ color: colors.textSecondary }}
           aria-hidden="true"
         />
       </Menu.Button>
@@ -33,16 +38,28 @@ export default function SortDropdown() {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-2xl bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-          <div className="py-1">
+        <Menu.Items
+          className="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-2xl ring-1 focus:outline-none"
+          style={{
+            backgroundColor: colors.background,
+            borderColor: colors.border,
+          }}
+        >
+          <div>
             {sortOptions.map((option) => (
               <Menu.Item key={option.value}>
                 {({ active }) => (
                   <button
                     onClick={() => setSelectedSort(option)}
                     className={`${
-                      active ? "bg-gray-100" : ""
-                    } block w-full text-left px-4 py-2 text-sm text-gray-900`}
+                      active ? "bg-opacity-10" : ""
+                    } block w-full text-left px-4 py-2 text-sm
+                    first:rounded-t-md last:rounded-b-md
+                    transition-colors duration-200`}
+                    style={{
+                      backgroundColor: active ? colors.brown : "transparent",
+                      color: active ? colors.textLight : colors.textPrimary,
+                    }}
                   >
                     {option.name}
                   </button>

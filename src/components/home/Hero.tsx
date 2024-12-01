@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { colors } from "@/constants/colors";
 
 const slides = [
   {
@@ -53,14 +54,37 @@ export default function Hero() {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-black bg-opacity-30">
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: `${colors.accentDark}50` }}
+          >
             <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
-              <div className="text-white space-y-6">
-                <h1 className="text-5xl font-light">
+              <div className="space-y-6">
+                <motion.h1
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="text-5xl font-light text-shadow-strong"
+                  style={{ color: colors.textLight }}
+                >
                   {slides[currentSlide].title}
-                </h1>
-                <p className="text-xl">{slides[currentSlide].subtitle}</p>
-                <button className="bg-white text-black px-8 py-3 rounded-md hover:bg-gray-100 transition-colors duration-300">
+                </motion.h1>
+                <motion.p
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  className="text-xl text-shadow-light"
+                  style={{ color: colors.textLight }}
+                >
+                  {slides[currentSlide].subtitle}
+                </motion.p>
+                <button
+                  className="px-8 py-3 rounded-md transition-all duration-300 hover:scale-105"
+                  style={{
+                    backgroundColor: colors.background,
+                    color: colors.textPrimary,
+                  }}
+                >
                   Shop Now
                 </button>
               </div>
@@ -70,14 +94,18 @@ export default function Hero() {
       </AnimatePresence>
 
       {/* Slide indicators */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2">
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3">
         {slides.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}
-            className={`w-2 h-2 rounded-full ${
-              currentSlide === index ? "bg-white" : "bg-white/50"
-            }`}
+            className="w-2 h-2 rounded-full transition-colors duration-200"
+            style={{
+              backgroundColor:
+                currentSlide === index
+                  ? colors.textLight
+                  : `${colors.textLight}80`,
+            }}
           />
         ))}
       </div>
