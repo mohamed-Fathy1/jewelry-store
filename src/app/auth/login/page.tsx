@@ -4,8 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { colors } from "@/constants/colors";
 import toast from "react-hot-toast";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const needsActivation = searchParams.get("needsActivation");
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -15,9 +20,9 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    router.push("/activate-account");
 
     try {
-      // Replace with your actual login endpoint
       const response = await fetch(
         "http://localhost:5000/authentication/login",
         {
@@ -35,7 +40,12 @@ export default function LoginPage() {
         toast.success("Login successful!");
         // Handle successful login (e.g., redirect, store token)
       } else {
-        toast.error(data.message || "Login failed");
+        if (data.message?.includes("not activated")) {
+          toast.error("Please activate your account first");
+          setTimeout(() => {}, 2000);
+        } else {
+          toast.error(data.message || "Login failed");
+        }
       }
     } catch (error) {
       console.error(error);
@@ -63,6 +73,18 @@ export default function LoginPage() {
           <p className="mt-2 text-sm" style={{ color: colors.textSecondary }}>
             Sign in to your account to continue
           </p>
+          {needsActivation && (
+            <p className="mt-2 text-sm" style={{ color: colors.brown }}>
+              Please check your email and{" "}
+              <Link
+                href="/activate-account"
+                className="underline hover:opacity-80"
+              >
+                activate your account
+              </Link>{" "}
+              first
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">

@@ -64,7 +64,7 @@ export default function Hero() {
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
-                  className="text-5xl font-light text-shadow-strong"
+                  className="text-5xl font-light"
                   style={{ color: colors.textLight }}
                 >
                   {slides[currentSlide].title}

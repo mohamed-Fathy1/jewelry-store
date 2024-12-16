@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { colors } from "@/constants/colors";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     phone: "",
@@ -30,8 +32,13 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success("Registration successful! Please check your email.");
-        // You can redirect to login or verification page here
+        toast.success(
+          "Registration successful! Please check your email for activation code."
+        );
+        // Redirect to activation page
+        setTimeout(() => {
+          router.push("/activate-account");
+        }, 2000);
       } else {
         toast.error(data.message || "Registration failed");
       }
