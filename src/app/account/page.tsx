@@ -17,6 +17,8 @@ export default function AccountPage() {
     { id: "wishlist", label: "Wishlist" },
   ];
 
+  if (typeof window === undefined) return;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1

@@ -1,58 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { colors } from "@/constants/colors";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
+  const [email, setEmail] = useState("");
+  const { registerEmail, isLoading } = useAuth();
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    email: "",
-    phone: "",
-  });
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
     try {
-      const response = await fetch(
-        "http://localhost:5000/authentication/register-email",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success(
-          "Registration successful! Please check your email for activation code."
-        );
-        // Redirect to activation page
-        setTimeout(() => {
-          router.push("/activate-account");
-        }, 2000);
+      const response = await registerEmail(email);
+      if (response.success) {
+        toast.success(response.message);
+        router.push(`/activate-account?email=${encodeURIComponent(email)}`);
       } else {
-        toast.error(data.message || "Registration failed");
+        toast.error(response.message);
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
+      toast.error("Failed to register. Please try again.", error);
     }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -85,8 +56,8 @@ export default function RegisterPage() {
                 name="email"
                 type="email"
                 required
-                value={formData.email}
-                onChange={handleChange}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 w-full px-4 py-3 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
                 style={{
                   backgroundColor: colors.background,
@@ -94,31 +65,6 @@ export default function RegisterPage() {
                   color: colors.textPrimary,
                 }}
                 placeholder="Enter your email"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium"
-                style={{ color: colors.textPrimary }}
-              >
-                Phone Number
-              </label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                required
-                value={formData.phone}
-                onChange={handleChange}
-                className="mt-1 w-full px-4 py-3 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                }}
-                placeholder="Enter your phone number"
               />
             </div>
           </div>

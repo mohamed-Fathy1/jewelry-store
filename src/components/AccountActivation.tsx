@@ -1,11 +1,16 @@
 "use client";
-import { useState, useRef, KeyboardEvent } from "react";
+
+import { useState, useRef, KeyboardEvent, useEffect } from "react";
 import { colors } from "@/constants/colors";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/contexts/UserContext";
+import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
 
 const AccountActivation = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState([
     "",
     "",
@@ -14,8 +19,16 @@ const AccountActivation = () => {
     "",
     "",
   ]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { activateAccount, isLoading } = useAuth();
+  const { getProfile } = useUser();
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    const emailParam = searchParams.get("email");
+    if (emailParam) {
+      setEmail(emailParam);
+    }
+  }, [searchParams]);
 
   const handleChange = (index: number, value: string) => {
     if (value.length <= 1) {
@@ -39,42 +52,24 @@ const AccountActivation = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const activationCode = verificationCode.join("");
+    const activeCode = verificationCode.join("");
 
-    if (activationCode.length !== 6) {
+    if (activeCode.length !== 6) {
       toast.error("Please enter the complete verification code");
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      const response = await fetch(
-        "http://localhost:5000/authentication/active-account",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ activationCode }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success("Account activated successfully!");
-        setTimeout(() => {
-          router.push("/auth/login");
-        }, 2000);
+      const response = await activateAccount(email, activeCode);
+      if (response.success) {
+        toast.success(response.message);
+        await getProfile();
+        router.push("/");
       } else {
-        toast.error(data.message || "Activation failed");
+        toast.error(response.message);
       }
     } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
+      toast.error("Failed to activate account. Please try again.", error);
     }
   };
 
@@ -102,6 +97,7 @@ const AccountActivation = () => {
                 ref={(el) => (inputRefs.current[index] = el)}
                 type="text"
                 inputMode="numeric"
+                autoFocus={index === 0} // auto focus on the first input
                 maxLength={1}
                 value={digit}
                 onChange={(e) => handleChange(index, e.target.value)}

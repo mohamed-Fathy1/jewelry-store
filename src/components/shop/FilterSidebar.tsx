@@ -10,51 +10,54 @@ type FilterOption = {
   value?: string;
 };
 
-type Filters = {
-  price: FilterOption[];
-  material: FilterOption[];
-  style: FilterOption[];
-};
+interface FilterSidebarProps {
+  activeFilters: {
+    material: string[];
+    style: string[];
+    priceRange: string;
+  };
+  onFilterChange: (filters: FilterSidebarProps["activeFilters"]) => void;
+}
 
-const filterOptions: Filters = {
+const filterOptions = {
   price: [
-    { id: "under-100", name: "Under $100", value: "0-100" },
-    { id: "100-500", name: "$100 - $500", value: "100-500" },
-    { id: "500-1000", name: "$500 - $1000", value: "500-1000" },
-    { id: "over-1000", name: "Over $1000", value: "1000+" },
-  ],
-  material: [
-    { id: "gold", name: "Gold" },
-    { id: "silver", name: "Silver" },
-    { id: "platinum", name: "Platinum" },
-    { id: "diamond", name: "Diamond" },
-  ],
-  style: [
-    { id: "classic", name: "Classic" },
-    { id: "modern", name: "Modern" },
-    { id: "vintage", name: "Vintage" },
-    { id: "minimalist", name: "Minimalist" },
+    { id: "under-100", name: "Under $100", value: "Under $100" },
+    { id: "100-500", name: "$100 - $500", value: "$100 - $500" },
+    { id: "500-1000", name: "$500 - $1000", value: "$500 - $1000" },
+    { id: "over-1000", name: "Over $1000", value: "Over $1000" },
   ],
 };
 
-export default function FilterSidebar() {
-  const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({
-    price: [],
-    material: [],
-    style: [],
-  });
+export default function FilterSidebar({
+  activeFilters,
+  onFilterChange,
+}: FilterSidebarProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(
     "price"
   );
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
-  const toggleFilter = (category: string, value: string) => {
-    setActiveFilters((prev) => ({
-      ...prev,
-      [category]: prev[category].includes(value)
-        ? prev[category].filter((item) => item !== value)
-        : [...prev[category], value],
-    }));
+  const toggleFilter = (category: "material" | "style", value: string) => {
+    const currentFilters = [...activeFilters[category]];
+    const index = currentFilters.indexOf(value);
+
+    if (index === -1) {
+      currentFilters.push(value);
+    } else {
+      currentFilters.splice(index, 1);
+    }
+
+    onFilterChange({
+      ...activeFilters,
+      [category]: currentFilters,
+    });
+  };
+
+  const handlePriceRangeChange = (value: string) => {
+    onFilterChange({
+      ...activeFilters,
+      priceRange: activeFilters.priceRange === value ? "" : value,
+    });
   };
 
   const toggleSection = (category: string) => {
@@ -62,9 +65,10 @@ export default function FilterSidebar() {
   };
 
   const getActiveFiltersCount = () => {
-    return Object.values(activeFilters).reduce(
-      (sum, filters) => sum + filters.length,
-      0
+    return (
+      activeFilters.material.length +
+      activeFilters.style.length +
+      (activeFilters.priceRange ? 1 : 0)
     );
   };
 
@@ -142,21 +146,25 @@ export default function FilterSidebar() {
                   <input
                     type="checkbox"
                     className="h-4 w-4 rounded"
+                    checked={
+                      category === "price"
+                        ? activeFilters.priceRange === option.value
+                        : activeFilters[
+                            category as "material" | "style"
+                          ].includes(option.name)
+                    }
+                    onChange={() =>
+                      category === "price"
+                        ? handlePriceRangeChange(option.value!)
+                        : toggleFilter(
+                            category as "material" | "style",
+                            option.name
+                          )
+                    }
                     style={{
                       borderColor: colors.border,
-                      color: colors.brown,
-                      backgroundColor: activeFilters[category].includes(
-                        option.value || option.name
-                      )
-                        ? colors.brown
-                        : colors.background,
+                      backgroundColor: colors.background,
                     }}
-                    checked={activeFilters[category].includes(
-                      option.value || option.name
-                    )}
-                    onChange={() =>
-                      toggleFilter(category, option.value || option.name)
-                    }
                   />
                   <span
                     className="ml-3"
@@ -171,7 +179,11 @@ export default function FilterSidebar() {
         ))}
         <button
           onClick={() =>
-            setActiveFilters({ price: [], material: [], style: [] })
+            onFilterChange({
+              material: [],
+              style: [],
+              priceRange: "",
+            })
           }
           className="text-sm hover:underline transition-all duration-200 w-full text-left"
           style={{ color: colors.textSecondary }}

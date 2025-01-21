@@ -3,33 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 import { MagnifyingGlassIcon as SearchIcon } from "@heroicons/react/24/outline";
 import { colors } from "@/constants/colors";
+import { searchService } from "@/services/search.service";
+import { Product } from "@/types/product.types";
 import Link from "next/link";
 import Image from "next/image";
-
-// Mock data - replace with actual API call
-const mockProducts = [
-  {
-    id: "1",
-    name: "Diamond Pendant Necklace",
-    price: 999.99,
-    category: "Necklaces",
-    image: "/images/IMG_2953.JPG",
-  },
-  {
-    id: "2",
-    name: "Gold Bracelet",
-    price: 599.99,
-    category: "Bracelets",
-    image: "/images/IMG_3176.PNG",
-  },
-  {
-    id: "3",
-    name: "Pearl Earrings",
-    price: 399.99,
-    category: "Earrings",
-    image: "/images/IMG_3177.PNG",
-  },
-];
+import { useDebounce } from "@/hooks/useDebounce";
+import { productService } from "@/services/product.service";
 
 interface SearchProps {
   isOpen: boolean;
@@ -38,10 +17,11 @@ interface SearchProps {
 
 export default function Search({ isOpen, onClose }: SearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [results, setResults] = useState<typeof mockProducts>([]);
+  const [results, setResults] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const debouncedSearch = useDebounce(searchTerm, 200);
 
-  // Close search when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -56,20 +36,28 @@ export default function Search({ isOpen, onClose }: SearchProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
-  // Handle search input
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    if (value.length > 0) {
-      const filtered = mockProducts.filter(
-        (product) =>
-          product.name.toLowerCase().includes(value.toLowerCase()) ||
-          product.category.toLowerCase().includes(value.toLowerCase())
-      );
-      setResults(filtered);
-    } else {
-      setResults([]);
-    }
-  };
+  useEffect(() => {
+    const searchProducts = async () => {
+      if (debouncedSearch.length < 1) {
+        setResults([]);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const response = await productService.searchProducts(debouncedSearch);
+        if (response.success) {
+          setResults(response.data.products);
+        }
+      } catch (error) {
+        console.error("Search failed:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    searchProducts();
+  }, [debouncedSearch]);
 
   if (!isOpen) return null;
 
@@ -83,7 +71,6 @@ export default function Search({ isOpen, onClose }: SearchProps) {
         className="w-full max-w-2xl mx-4 rounded-lg shadow-xl"
         style={{ backgroundColor: colors.background }}
       >
-        {/* Search Input */}
         <div
           className="p-4 flex items-center gap-3 border-b"
           style={{ borderColor: colors.border }}
@@ -96,7 +83,7 @@ export default function Search({ isOpen, onClose }: SearchProps) {
             type="text"
             placeholder="Search for jewelry..."
             value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="flex-1 outline-none text-lg"
             style={{
               backgroundColor: colors.background,
@@ -113,38 +100,51 @@ export default function Search({ isOpen, onClose }: SearchProps) {
           </button>
         </div>
 
-        {/* Search Results */}
         <div className="max-h-96 overflow-y-auto">
-          {results.length > 0 ? (
+          {isLoading ? (
+            <div className="p-4 space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gray-200 rounded-md"></div>
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : results.length > 0 ? (
             <div className="p-2">
               {results.map((product) => (
                 <Link
-                  key={product.id}
-                  href={`/product/${product.id}`}
+                  key={product._id}
+                  href={`/product/${product._id}`}
                   onClick={onClose}
                   className="flex items-center gap-4 p-2 rounded-md hover:bg-opacity-50 transition-colors duration-200"
                   style={{ backgroundColor: colors.background }}
                 >
                   <Image
-                    src={product.image}
-                    alt={product.name}
+                    src={product.defaultImage.mediaUrl}
+                    alt={product.productName}
                     width={50}
                     height={50}
                     className="rounded-md object-cover"
                   />
                   <div className="flex-1">
                     <h4 style={{ color: colors.textPrimary }}>
-                      {product.name}
+                      {product.productName}
                     </h4>
                     <p style={{ color: colors.textSecondary }}>
-                      {product.category}
+                      {typeof product.category === "object"
+                        ? product.category.categoryName
+                        : ""}
                     </p>
                   </div>
                   <p
                     className="font-medium"
                     style={{ color: colors.textPrimary }}
                   >
-                    ${product.price}
+                    EGP {product.price.toLocaleString()}
                   </p>
                 </Link>
               ))}

@@ -1,27 +1,37 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { colors } from "@/constants/colors";
 
 const sortOptions = [
-  { name: "Most Popular", value: "popular" },
-  { name: "Newest", value: "newest" },
-  { name: "Price: Low to High", value: "price-asc" },
-  { name: "Price: High to Low", value: "price-desc" },
+  { name: "Newest", value: "Newest" },
+  { name: "Price: Low to High", value: "Low to High" },
+  { name: "Price: High to Low", value: "High to Low" },
+  { name: "Most Popular", value: "Most Popular" },
 ];
 
-export default function SortDropdown() {
-  const [selectedSort, setSelectedSort] = useState(sortOptions[0]);
+interface SortDropdownProps {
+  value: {
+    sortBy: string;
+  };
+  onChange: (sortBy: string) => void;
+}
+
+export default function SortDropdown({ value, onChange }: SortDropdownProps) {
+  const getCurrentSortName = () => {
+    const option = sortOptions.find((opt) => opt.value === value.sortBy);
+    return option?.name || "";
+  };
 
   return (
-    <Menu as="div" className="relative inline-block text-left">
+    <Menu as="div" className="relative inline-block text-left z-10">
       <Menu.Button
         className="group inline-flex justify-center text-sm font-medium transition-colors duration-200 hover:text-[--text-secondary]"
         style={{ color: colors.textPrimary }}
       >
-        Sort by: {selectedSort.name}
+        Sort by: {getCurrentSortName()}
         <ChevronDownIcon
           className="flex-shrink-0 -mr-1 ml-1 h-5 w-5 transition-colors duration-200 hover:text-[--text-primary]"
           style={{ color: colors.textSecondary }}
@@ -50,7 +60,7 @@ export default function SortDropdown() {
               <Menu.Item key={option.value}>
                 {({ active }) => (
                   <button
-                    onClick={() => setSelectedSort(option)}
+                    onClick={() => onChange(option.value)}
                     className={`${
                       active ? "bg-opacity-10" : ""
                     } block w-full text-left px-4 py-2 text-sm

@@ -6,6 +6,8 @@ import ShippingForm from "@/components/checkout/ShippingForm";
 import PaymentForm from "@/components/checkout/PaymentForm";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import OrderConfirmation from "@/components/checkout/OrderConfirmation";
+import ShippingAddressSelector from "@/components/checkout/ShippingAddressSelector";
+import { Address } from "@/types/address.types";
 
 interface ShippingFormData {
   firstName: string;
@@ -32,6 +34,7 @@ export default function CheckoutPage() {
     null
   );
   const [paymentData, setPaymentData] = useState<PaymentFormData | null>(null);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
   const handleShippingSubmit = (data: ShippingFormData) => {
     setShippingData(data);
@@ -41,6 +44,11 @@ export default function CheckoutPage() {
   const handlePaymentSubmit = (data: PaymentFormData) => {
     setPaymentData(data);
     setCurrentStep("confirmation");
+  };
+
+  const handleAddressSelect = (address: Address) => {
+    setSelectedAddress(address);
+    // You can use this address data for your checkout process
   };
 
   return (
@@ -162,6 +170,18 @@ export default function CheckoutPage() {
         {/* Order Summary */}
         <div className="lg:col-span-4">
           <OrderSummary />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Shipping Section */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold">Shipping Information</h2>
+
+          <ShippingAddressSelector
+            onAddressSelect={handleAddressSelect}
+            selectedAddressId={selectedAddress?._id}
+          />
         </div>
       </div>
     </div>
