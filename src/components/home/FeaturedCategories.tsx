@@ -4,39 +4,49 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { colors } from "@/constants/colors";
+import { useEffect } from "react";
+import { categoryService } from "@/services/category.service";
+import { Category } from "@/types/category.types";
+import { useCategory } from "@/contexts/CategoryContext";
 
-const categories = [
-  {
-    id: 1,
-    name: "Necklaces",
-    image: "/images/IMG_2953.JPG",
-    href: "/shop?category=necklaces",
-    description: "Elegant chains and pendants",
-  },
-  {
-    id: 2,
-    name: "Rings",
-    image: "/images/IMG_1859.JPG",
-    href: "/shop?category=rings",
-    description: "Stunning statement pieces",
-  },
-  {
-    id: 3,
-    name: "Earrings",
-    image: "/images/IMG_3758.JPG",
-    href: "/shop?category=earrings",
-    description: "Classic and modern styles",
-  },
-  {
-    id: 4,
-    name: "Bracelets",
-    image: "/images/IMG_3095.JPG",
-    href: "/shop?category=bracelets",
-    description: "Timeless elegance",
-  },
-];
+function CategorySkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
+      {[...Array(4)].map((_, index) => (
+        <div
+          key={index}
+          className="relative aspect-square rounded-lg overflow-hidden bg-gray-200"
+        >
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+            <div className="h-6 w-32 bg-gray-300 rounded mb-4"></div>
+            <div className="h-8 w-24 bg-gray-300 rounded"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function FeaturedCategories() {
+  const { categories, getAllCategories, isLoading } = useCategory();
+  useEffect(() => {
+    getAllCategories();
+  }, [getAllCategories]);
+  if (isLoading) {
+    return (
+      <section
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
+        style={{ backgroundColor: colors.background }}
+      >
+        <div className="text-center mb-8">
+          <div className="h-8 w-48 bg-gray-200 rounded mx-auto mb-4"></div>
+          <div className="h-4 w-64 bg-gray-200 rounded mx-auto"></div>
+        </div>
+        <CategorySkeleton />
+      </section>
+    );
+  }
+
   return (
     <section
       className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
@@ -54,17 +64,17 @@ export default function FeaturedCategories() {
         </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {categories.map((category) => (
+        {categories?.map((category: Category) => (
           <motion.div
-            key={category.id}
+            key={category._id}
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.3 }}
             className="relative group"
           >
             <div className="relative aspect-square rounded-lg overflow-hidden">
               <Image
-                src={category.image}
-                alt={category.name}
+                src={category.image.mediaUrl}
+                alt={category.categoryName}
                 width={500}
                 height={500}
                 className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-500 overflow-hidden"
@@ -78,11 +88,11 @@ export default function FeaturedCategories() {
                   className="text-2xl font-medium mb-4 text-white text-shadow-mid group-hover:text-shadow-strong transition-all duration-300"
                   style={{ color: colors.textLight }}
                 >
-                  {category.name}
+                  {category.categoryName}
                 </h3>
 
                 <Link
-                  href={category.href}
+                  href={`/shop?category=${category.slug}`}
                   className="px-6 py-2 rounded-md font-medium transform transition-all duration-300 hover:scale-105"
                   style={{
                     backgroundColor: colors.background,
@@ -96,7 +106,7 @@ export default function FeaturedCategories() {
                 className="absolute bottom-[5%] left-1/2 -translate-x-1/2 text-center text-sm mb-4 text-shadow-light opacity-0 group-hover:opacity-100 transition-all duration-300"
                 style={{ color: colors.textLight }}
               >
-                {category.description}
+                {category.slug}
               </p>
             </div>
           </motion.div>

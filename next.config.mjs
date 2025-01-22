@@ -4,13 +4,26 @@
  *
  */
 const nextConfig = {
-  images: { unoptimized: true },
+  output: "standalone",
+  images: {
+    unoptimized: true,
+    domains: [
+      // ... your image domains
+    ],
+  },
   reactStrictMode: false,
   typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /\.css$/,
+      use: ["style-loader", "css-loader"],
+    });
+    return config;
   },
 };
 

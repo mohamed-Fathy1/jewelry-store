@@ -10,6 +10,7 @@ import { UserProvider } from "@/contexts/UserContext";
 import { ProductProvider } from "@/contexts/ProductContext";
 import { CategoryProvider } from "@/contexts/CategoryContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { useEffect } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,6 +19,18 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  useEffect(() => {
+    // Suppress hydration warnings
+    const originalError = console.error;
+    console.error = (...args) => {
+      if (/Warning.*Content.*match/.test(args[0])) return;
+      originalError.call(console, ...args);
+    };
+    return () => {
+      console.error = originalError;
+    };
+  }, []);
+
   return (
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning>

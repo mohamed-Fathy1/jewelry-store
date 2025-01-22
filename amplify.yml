@@ -6,6 +6,7 @@ frontend:
         - npm install
     build:
       commands:
+        - env | grep -e NODE_ENV -e NEXT_PUBLIC_ >> .env.production
         - npm run build
   artifacts:
     baseDirectory: .next
@@ -15,3 +16,16 @@ frontend:
     paths:
       - node_modules/**/*
       - .next/cache/**/*
+  customHeaders:
+    - pattern: "**/*"
+      headers:
+        - key: "Cache-Control"
+          value: "public, max-age=0, must-revalidate"
+    - pattern: "_next/static/**/*"
+      headers:
+        - key: "Cache-Control"
+          value: "public, max-age=31536000, immutable"
+    - pattern: "static/**/*"
+      headers:
+        - key: "Cache-Control"
+          value: "public, max-age=31536000, immutable"

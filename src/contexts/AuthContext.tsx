@@ -23,7 +23,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (response.success) {
           const userData = { email, id: response.data.id };
           setAuthUser(userData);
-          localStorage.setItem("authUser", JSON.stringify(userData));
+          try {
+            localStorage.setItem("authUser", JSON.stringify(userData));
+          } catch (error) {
+            console.error("Failed to store user data:", error);
+          }
         }
         return response;
       } finally {
@@ -44,8 +48,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             accessToken: response.data.accessToken,
           };
           setAuthUser(userData);
-          localStorage.setItem("authUser", JSON.stringify(userData));
-          localStorage.setItem("accessToken", response.data.accessToken);
+          try {
+            localStorage.setItem("authUser", JSON.stringify(userData));
+            localStorage.setItem("accessToken", response.data.accessToken);
+          } catch (error) {
+            console.error("Failed to store user data:", error);
+          }
         }
         return response;
       } finally {
@@ -74,7 +82,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedToken = localStorage.getItem("accessToken");
 
     if (storedUser && storedToken) {
-      setAuthUser(JSON.parse(storedUser));
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setAuthUser(parsedUser);
+      } catch (error) {
+        console.error("Failed to parse stored user data:", error);
+        // Clear invalid data from localStorage
+        localStorage.removeItem("authUser");
+        localStorage.removeItem("accessToken");
+      }
     }
     setIsLoading(false);
   }, [logout]);
@@ -94,6 +110,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    // Move any initialization logic here
+    const initAuth = async () => {
+      // Your auth initialization code
+      setIsLoading(false);
+    };
+
+    initAuth();
+  }, []);
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Or your loading component
+  }
 
   const value = {
     authUser,
