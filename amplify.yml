@@ -4,6 +4,7 @@ frontend:
     preBuild:
       commands:
         - npm install
+        - npm install -D tailwindcss postcss autoprefixer
     build:
       commands:
         - env | grep -e NODE_ENV -e NEXT_PUBLIC_ >> .env.production
