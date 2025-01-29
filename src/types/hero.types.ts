@@ -1,10 +1,13 @@
-interface Media {
+export interface Media {
   mediaUrl: string;
   mediaId: string;
+  mediaType: string;
 }
 
+export type ImageSize = "image1" | "image2";
+
 interface ImageSlider {
-  image: Media;
+  images: Record<ImageSize, Media>;
   _id: string;
   createdBy: string;
 }

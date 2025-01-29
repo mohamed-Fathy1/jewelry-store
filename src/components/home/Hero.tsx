@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { colors } from "@/constants/colors";
 import { heroService } from "@/services/hero.service";
+import { ImageSize, Media } from "@/types/hero.types";
 
 function HeroSkeleton() {
   return (
@@ -18,7 +19,7 @@ function HeroSkeleton() {
 
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [images, setImages] = useState<{ mediaUrl: string }[]>([]);
+  const [images, setImages] = useState<Record<ImageSize, Media>[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function Hero() {
       try {
         const response = await heroService.getHeroImages();
         if (response.success) {
-          setImages(response.data.imageSlider.map((item) => item.image));
+          setImages(response.data.imageSlider.map((item) => item.images));
         }
       } catch (error) {
         console.error("Failed to fetch hero images:", error);
@@ -70,15 +71,23 @@ export default function Hero() {
           transition={{ duration: 0.5 }}
           className="relative h-full"
         >
-          {images.length ? (
+          <picture>
+            <source
+              media="(max-width: 640px)"
+              srcSet={images[currentSlide]?.image1.mediaUrl}
+            />
+            <source
+              media="(min-width: 641px)"
+              srcSet={images[currentSlide]?.image2.mediaUrl}
+            />
             <Image
-              src={images[currentSlide].mediaUrl}
+              src={images[currentSlide]?.image1.mediaUrl}
               alt={`Hero Slide ${currentSlide + 1}`}
               fill
               priority
               className="object-cover"
             />
-          ) : null}
+          </picture>
           <div className="absolute inset-0 bg-black bg-opacity-30">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
               <div className="max-w-xl">
