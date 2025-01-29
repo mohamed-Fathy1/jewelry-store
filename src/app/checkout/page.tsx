@@ -8,6 +8,7 @@ import OrderSummary from "@/components/checkout/OrderSummary";
 import OrderConfirmation from "@/components/checkout/OrderConfirmation";
 import ShippingAddressSelector from "@/components/checkout/ShippingAddressSelector";
 import { Address } from "@/types/address.types";
+import CheckoutShipping from "@/components/checkout/CheckoutShipping";
 
 interface ShippingFormData {
   firstName: string;
@@ -151,7 +152,9 @@ export default function CheckoutPage() {
         {/* Forms */}
         <div className="lg:col-span-8">
           {currentStep === "shipping" && (
-            <ShippingForm onSubmit={handleShippingSubmit} />
+            <div className="container mx-auto py-8">
+              <CheckoutShipping onSubmit={handleShippingSubmit} />
+            </div>
           )}
           {currentStep === "payment" && (
             <PaymentForm
@@ -170,18 +173,6 @@ export default function CheckoutPage() {
         {/* Order Summary */}
         <div className="lg:col-span-4">
           <OrderSummary />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Shipping Section */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold">Shipping Information</h2>
-
-          <ShippingAddressSelector
-            onAddressSelect={handleAddressSelect}
-            selectedAddressId={selectedAddress?._id}
-          />
         </div>
       </div>
     </div>

@@ -165,11 +165,15 @@ export default function Header() {
                       }}
                     >
                       <p
-                        className="text-sm font-medium capitalize"
+                        className="text-sm font-medium capitalize text-ellipsis whitespace-nowrap w-full overflow-clip"
                         style={{ color: colors.textPrimary }}
                       >
                         {isAuthenticated && Array.isArray(user)
-                          ? `Welcome, ${user[0]?.firstName} ${user[0]?.lastName}`
+                          ? `Welcome, ${
+                              user[0]?.firstName
+                                ? user[0]?.firstName + " " + user[0]?.lastName
+                                : authUser?.email
+                            }`
                           : "Welcome to LUXE"}
                       </p>
                     </div>
