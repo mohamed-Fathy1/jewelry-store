@@ -175,12 +175,13 @@ export default function CartPage() {
               </span>
             </div>
 
-            <button
-              className="w-full py-3 px-4 rounded-md transition-colors duration-200"
+            <Link
+              href="/checkout"
+              className="w-full block text-center py-3 px-4 rounded-md transition-colors duration-200"
               style={{ backgroundColor: colors.brown, color: colors.textLight }}
             >
               Proceed to Checkout
-            </button>
+            </Link>
           </div>
         </div>
       </div>

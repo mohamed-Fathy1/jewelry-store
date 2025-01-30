@@ -78,6 +78,7 @@ export default function PaymentForm({ onSubmit, onBack }: Props) {
           <button
             onClick={handleSubmit}
             className="flex-1 px-6 py-3 rounded-md transition-colors duration-200 order-1 sm:order-2"
+            type="button"
             style={{
               backgroundColor: colors.brown,
               color: colors.textLight,

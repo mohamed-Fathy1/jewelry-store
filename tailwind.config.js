@@ -8,7 +8,7 @@ module.exports = {
   theme: {
     extend: {
       textShadow: {
-        light: "1px 1px 1px rgba(0,0,0,1)",
+        light: "1px 0px rgba(0,0,0,.5)",
         mid: "1px 1px 1px rgba(0,0,0,1), -1px -1px 1px rgba(0,0,0,1)",
         strong:
           "1px 1px 1px rgba(0,0,0,1), -1px -1px 1px rgba(0,0,0,1), 1px -1px 1px rgba(0,0,0,1), -1px 1px 1px rgba(0,0,0,1)",

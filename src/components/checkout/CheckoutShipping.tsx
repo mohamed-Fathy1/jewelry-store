@@ -7,6 +7,7 @@ import { Address } from "@/types/address.types";
 import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCheckout } from "@/contexts/CheckoutContext";
 
 interface ShippingRegion {
   _id: string;
@@ -17,15 +18,19 @@ interface ShippingRegion {
 export default function CheckoutShipping({ onSubmit }) {
   const [isAddressPopupOpen, setIsAddressPopupOpen] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [shippingRegions, setShippingRegions] = useState<ShippingRegion[]>([]);
-  const [selectedShipping, setSelectedShipping] = useState<string>("");
   const [isAccountOpen, setIsAccountOpen] = useState(true);
   const [isShipToOpen, setIsShipToOpen] = useState(true);
   const [isShippingOpen, setIsShippingOpen] = useState(true);
   const { authUser } = useAuth();
   const { getProfile } = useUser();
+  const {
+    selectedAddress,
+    setSelectedAddress,
+    selectedShipping,
+    setSelectedShipping,
+  } = useCheckout();
 
   useEffect(() => {
     fetchAddresses();
@@ -64,6 +69,10 @@ export default function CheckoutShipping({ onSubmit }) {
   const handleEditAddress = (address: Address) => {
     setEditingAddress(address);
     setIsAddressPopupOpen(true);
+  };
+
+  const handleAddressSelect = (address: Address) => {
+    setCheckoutSelectedAddress(address);
   };
 
   return (
@@ -191,7 +200,7 @@ export default function CheckoutShipping({ onSubmit }) {
                 className="flex items-center justify-between p-3 mb-2 cursor-pointer rounded transition-colors duration-200"
                 style={{
                   backgroundColor:
-                    selectedShipping === region._id
+                    selectedShipping._id === region._id
                       ? colors.shadow
                       : colors.background,
                   color: colors.textPrimary,
@@ -201,9 +210,9 @@ export default function CheckoutShipping({ onSubmit }) {
                   <input
                     type="radio"
                     name="shipping"
-                    value={region._id}
-                    checked={selectedShipping === region._id}
-                    onChange={(e) => setSelectedShipping(e.target.value)}
+                    value={region.cost}
+                    checked={selectedShipping._id === region._id}
+                    onChange={(e) => setSelectedShipping(region)}
                     className="mr-3 invisible"
                   />
                   <span>{region.category}</span>

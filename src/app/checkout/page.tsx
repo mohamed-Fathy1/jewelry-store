@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { colors } from "@/constants/colors";
 import ShippingForm from "@/components/checkout/ShippingForm";
 import PaymentForm from "@/components/checkout/PaymentForm";
@@ -9,6 +9,10 @@ import OrderConfirmation from "@/components/checkout/OrderConfirmation";
 import ShippingAddressSelector from "@/components/checkout/ShippingAddressSelector";
 import { Address } from "@/types/address.types";
 import CheckoutShipping from "@/components/checkout/CheckoutShipping";
+import { useCheckout } from "@/contexts/CheckoutContext";
+import { createOrder, orderService } from "@/services/order.service";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 
 interface ShippingFormData {
   firstName: string;
@@ -30,27 +34,64 @@ interface PaymentFormData {
 type CheckoutStep = "shipping" | "payment" | "confirmation";
 
 export default function CheckoutPage() {
+  const {
+    shippingData,
+    setShippingData,
+    paymentData,
+    setPaymentData,
+    selectedAddress,
+    setSelectedAddress,
+    selectedShipping,
+  } = useCheckout();
+  const { cart } = useCart();
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("shipping");
-  const [shippingData, setShippingData] = useState<ShippingFormData | null>(
-    null
-  );
-  const [paymentData, setPaymentData] = useState<PaymentFormData | null>(null);
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [orderMessage, setOrderMessage] = useState("");
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentStep]);
 
   const handleShippingSubmit = (data: ShippingFormData) => {
     setShippingData(data);
     setCurrentStep("payment");
   };
 
-  const handlePaymentSubmit = (data: PaymentFormData) => {
+  const handlePaymentSubmit = async (data: PaymentFormData) => {
     setPaymentData(data);
-    setCurrentStep("confirmation");
+    setLoading(true);
+    console.log(selectedAddress);
+    console.log(cart);
+
+    // Prepare order data
+    const orderData = {
+      userId: selectedAddress._id,
+      shippingId: selectedShipping._id,
+      products: cart.items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      })),
+    };
+
+    try {
+      const result = await orderService.createOrder(orderData);
+      if (result.success) {
+        setOrderMessage(result.message);
+        setCurrentStep("confirmation");
+      } else {
+        setOrderMessage("Failed to create order. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error creating order:", error);
+      setOrderMessage("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAddressSelect = (address: Address) => {
-    setSelectedAddress(address);
-    // You can use this address data for your checkout process
-  };
+  // const handleAddressSelect = (address: Address) => {
+  //   setSelectedAddress(address);
+  // };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -148,7 +189,7 @@ export default function CheckoutPage() {
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <div className="relative h-fit overflow-visible grid grid-cols-1 lg:grid-cols-12 gap-12">
         {/* Forms */}
         <div className="lg:col-span-8">
           {currentStep === "shipping" && (
@@ -171,10 +212,22 @@ export default function CheckoutPage() {
         </div>
 
         {/* Order Summary */}
-        <div className="lg:col-span-4">
+        <div className="sticky top-0 lg:col-span-4 z-10 h-full">
           <OrderSummary />
         </div>
       </div>
+
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+          <div className="text-white">Processing your order...</div>
+        </div>
+      )}
+
+      {orderMessage && (
+        <div className="mt-4 text-center text-lg text-green-600">
+          {orderMessage}
+        </div>
+      )}
     </div>
   );
 }

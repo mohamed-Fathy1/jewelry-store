@@ -2,35 +2,37 @@
 
 import Image from "next/image";
 import { colors } from "@/constants/colors";
-
-// Mock cart data - replace with actual cart state management
-const cartItems = [
-  {
-    id: "1",
-    name: "Diamond Pendant Necklace",
-    price: 999.99,
-    image: "/images/IMG_2953.JPG",
-    quantity: 1,
-    size: '18"',
-  },
-  {
-    id: "2",
-    name: "Gold Bracelet",
-    price: 599.99,
-    image: "/images/IMG_3176.PNG",
-    quantity: 2,
-    size: '7"',
-  },
-];
+import { useCheckout } from "@/contexts/CheckoutContext";
+import { useCart } from "@/contexts/CartContext";
+import { color } from "framer-motion";
 
 export default function OrderSummary() {
-  const subtotal = cartItems.reduce(
+  const { shippingData, paymentData, selectedShipping } = useCheckout();
+  const { cart } = useCart();
+
+  const subtotal = cart.items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const shipping = 15.0;
+
+  const shipping = selectedShipping ? selectedShipping.cost : 15.0;
   const tax = subtotal * 0.1; // 10% tax
   const total = subtotal + shipping + tax;
+
+  // Discount logic
+  const itemCount = cart.items.reduce(
+    (count, item) => count + item.quantity,
+    0
+  );
+  let discount = 0;
+
+  if (itemCount >= 3) {
+    discount = total * 0.2; // 20% discount for 3 or more items
+  } else if (total >= 500) {
+    discount = total * 0.1; // 10% discount for total price of $500 or more
+  }
+
+  const finalTotal = total - discount;
 
   return (
     <div
@@ -46,12 +48,12 @@ export default function OrderSummary() {
 
       {/* Cart Items */}
       <div className="space-y-4 mb-6">
-        {cartItems.map((item) => (
-          <div key={item.id} className="flex gap-4">
+        {cart.items.map((item) => (
+          <div key={item.productId} className="flex gap-4">
             <div className="w-20 h-20 flex-shrink-0">
               <Image
-                src={item.image}
-                alt={item.name}
+                src={item.productImage}
+                alt={item.productName}
                 width={80}
                 height={80}
                 className="w-full h-full object-cover rounded-md"
@@ -62,11 +64,8 @@ export default function OrderSummary() {
                 className="text-sm font-medium"
                 style={{ color: colors.textPrimary }}
               >
-                {item.name}
+                {item.productName}
               </h3>
-              <p className="text-sm" style={{ color: colors.textSecondary }}>
-                Size: {item.size}
-              </p>
               <div className="flex justify-between mt-1">
                 <p className="text-sm" style={{ color: colors.textSecondary }}>
                   Qty: {item.quantity}
@@ -97,19 +96,44 @@ export default function OrderSummary() {
         <div className="flex justify-between">
           <span style={{ color: colors.textSecondary }}>Shipping</span>
           <span style={{ color: colors.textPrimary }}>
-            ${shipping.toFixed(2)}
+            ${selectedShipping._id && selectedShipping.cost}
           </span>
         </div>
         <div className="flex justify-between">
           <span style={{ color: colors.textSecondary }}>Tax</span>
           <span style={{ color: colors.textPrimary }}>${tax.toFixed(2)}</span>
         </div>
+        {discount > 0 && (
+          <div className="flex justify-between">
+            <span className="text-shadow-light" style={{ color: colors.gold }}>
+              Discount ({itemCount >= 3 ? "20%" : "10%"})
+            </span>
+            <span className="text-shadow-light" style={{ color: colors.gold }}>
+              -${discount.toFixed(2)}
+            </span>
+          </div>
+        )}
         <div
           className="flex justify-between pt-3 font-medium"
           style={{ borderTop: `1px solid ${colors.border}` }}
         >
           <span style={{ color: colors.textPrimary }}>Total</span>
-          <span style={{ color: colors.textPrimary }}>${total.toFixed(2)}</span>
+          <span style={{ color: colors.textPrimary }}>
+            <span
+              style={{ textDecoration: discount > 0 ? "line-through" : "none" }}
+            >
+              ${total.toFixed(2)}
+            </span>
+            <span
+              className={discount > 0 && "text-shadow-light"}
+              style={{
+                marginLeft: "10px",
+                color: discount > 0 ? colors.gold : colors.textPrimary,
+              }}
+            >
+              ${finalTotal.toFixed(2)}
+            </span>
+          </span>
         </div>
       </div>
 
