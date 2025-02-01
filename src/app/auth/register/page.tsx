@@ -8,12 +8,14 @@ import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
-  const { registerEmail, isLoading } = useAuth();
+  const { registerEmail } = useAuth();
+  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setIsRegisterLoading(true);
       const response = await registerEmail(email);
       if (response.success) {
         toast.success(response.message);
@@ -23,6 +25,8 @@ export default function RegisterPage() {
       }
     } catch (error) {
       toast.error("Failed to register. Please try again.", error);
+    } finally {
+      setIsRegisterLoading(false);
     }
   };
 
@@ -71,14 +75,14 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isRegisterLoading}
             className="w-full py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
             style={{
               backgroundColor: colors.brown,
               color: colors.textLight,
             }}
           >
-            {isLoading ? "Registering..." : "Register"}
+            {isRegisterLoading ? "Registering..." : "Register"}
           </button>
 
           <p className="text-center" style={{ color: colors.textSecondary }}>

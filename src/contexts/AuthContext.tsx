@@ -18,7 +18,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const registerEmail = useCallback(
     async (email: string): Promise<AuthResponse> => {
-      setIsLoading(true);
+      // setIsLoading(true);
       try {
         const response = await authService.registerEmail(email);
         if (response.success) {
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const activateAccount = useCallback(
     async (email: string, activeCode: string): Promise<AuthResponse> => {
-      setIsLoading(true);
+      // setIsLoading(true);
       try {
         const response = await authService.activateAccount(email, activeCode);
         if (response.success && response.data.accessToken) {

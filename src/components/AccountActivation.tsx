@@ -19,9 +19,10 @@ const AccountActivation = () => {
     "",
     "",
   ]);
-  const { activateAccount, isLoading } = useAuth();
+  const { activateAccount } = useAuth();
   const { getProfile } = useUser();
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [gettingActiveCode, setGettingActiveCode] = useState(false);
 
   useEffect(() => {
     const emailParam = searchParams.get("email");
@@ -52,9 +53,11 @@ const AccountActivation = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setGettingActiveCode(true);
     const activeCode = verificationCode.join("");
 
     if (activeCode.length !== 6) {
+      setGettingActiveCode(false);
       toast.error("Please enter the complete verification code");
       return;
     }
@@ -70,6 +73,8 @@ const AccountActivation = () => {
       }
     } catch (error) {
       toast.error("Failed to activate account. Please try again.", error);
+    } finally {
+      setGettingActiveCode(false);
     }
   };
 
@@ -115,14 +120,14 @@ const AccountActivation = () => {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={gettingActiveCode}
             className="w-full py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
             style={{
               backgroundColor: colors.brown,
               color: colors.textLight,
             }}
           >
-            {isLoading ? "Verifying..." : "Verify Account"}
+            {gettingActiveCode ? "Verifying..." : "Verify Account"}
           </button>
 
           <p

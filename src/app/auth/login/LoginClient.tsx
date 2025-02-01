@@ -11,11 +11,14 @@ export function LoginClient() {
   const searchParams = useSearchParams();
   const needsActivation = searchParams.get("needsActivation");
   const [email, setEmail] = useState("");
-  const { registerEmail, isLoading } = useAuth();
+  const { registerEmail } = useAuth();
+  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsRegisterLoading(true);
     try {
       const response = await registerEmail(email);
       if (response.success) {
@@ -26,6 +29,8 @@ export function LoginClient() {
       }
     } catch (error) {
       toast.error("Failed to send login email. Please try again.", error);
+    } finally {
+      setIsRegisterLoading(false);
     }
   };
 
@@ -86,14 +91,14 @@ export function LoginClient() {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isRegisterLoading}
             className="w-full py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
             style={{
               backgroundColor: colors.brown,
               color: colors.textLight,
             }}
           >
-            {isLoading ? "Sending..." : "Send login link"}
+            {isRegisterLoading ? "Sending..." : "Send login link"}
           </button>
 
           <p className="text-center" style={{ color: colors.textSecondary }}>
