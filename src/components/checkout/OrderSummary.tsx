@@ -6,12 +6,14 @@ import { useCheckout } from "@/contexts/CheckoutContext";
 import { useCart } from "@/contexts/CartContext";
 import { useEffect, useState } from "react";
 
-export default function OrderSummary() {
+export default function OrderSummary({ orderSummaryPreview }) {
   const { shippingData, paymentData, selectedShipping } = useCheckout();
   const { cart } = useCart();
   const [isShippingFree, setIsShippingFree] = useState(false);
 
-  const subtotal = cart.items.reduce(
+  const cartData = cart.items.length ? cart.items : orderSummaryPreview.items;
+
+  const subtotal = cartData.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
@@ -25,7 +27,7 @@ export default function OrderSummary() {
 
   useEffect(() => {
     if (
-      cart.items.reduce((sum, item) => sum + item.quantity, 0) >= 3 ||
+      cartData.reduce((sum, item) => sum + item.quantity, 0) >= 3 ||
       total >= 1500
     ) {
       // Free shipping if 3 or more items
@@ -59,7 +61,7 @@ export default function OrderSummary() {
 
       {/* Cart Items */}
       <div className="space-y-4 mb-6">
-        {cart.items.map((item) => (
+        {cartData.map((item) => (
           <div key={item.productId} className="flex gap-4">
             <div className="w-20 h-20 flex-shrink-0">
               <Image

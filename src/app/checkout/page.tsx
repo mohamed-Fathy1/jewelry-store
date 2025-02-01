@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
 import LoadingSpinner from "../../components/LoadingSpinner"; // Import the new loading component
+import { useRouter } from "next/navigation";
 
 interface ShippingFormData {
   firstName: string;
@@ -45,10 +46,30 @@ export default function CheckoutPage() {
     setSelectedAddress,
     selectedShipping,
   } = useCheckout();
-  const { cart } = useCart();
+  const { cart, clearCart } = useCart();
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("shipping");
   const [loading, setLoading] = useState(false);
   const [orderMessage, setOrderMessage] = useState("");
+  const [isClient, setIsClient] = useState(false);
+  const [orderSummaryPreview, setOrderSummaryPreview] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    console.log(cart);
+    if (!cart.items.length && !orderSummaryPreview?.items.length && isClient) {
+      router.push("/");
+    }
+  }, [cart.items, isClient]);
+
+  useEffect(() => {
+    if (cart.items.length) {
+      setOrderSummaryPreview(cart);
+    }
+  }, [currentStep]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -59,6 +80,7 @@ export default function CheckoutPage() {
       toast.error("please select a shpping method");
       return;
     }
+    setShippingData(data);
     setCurrentStep("payment");
   };
 
@@ -83,6 +105,7 @@ export default function CheckoutPage() {
       if (result.success) {
         setOrderMessage(result.message);
         toast.success(result.message);
+        clearCart();
         setCurrentStep("confirmation");
       } else {
         toast.error(result.message);
@@ -100,15 +123,11 @@ export default function CheckoutPage() {
   //   setSelectedAddress(address);
   // };
 
-  if (loading) {
-    return <LoadingSpinner />; // Updated loading return
-  }
-
-  return (
+  return cart.items.length || orderSummaryPreview?.items.length ? (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Checkout Progress */}
       <div className="mb-12">
-        <div className="flex items-center justify-center space-x-4">
+        <div className="flex items-center justify-center">
           {["shipping", "payment", "confirmation"].map((step, index) => (
             <div key={step} className="flex items-center">
               <div
@@ -150,7 +169,7 @@ export default function CheckoutPage() {
               </div>
               {index < 2 && (
                 <div
-                  className="w-24 h-0.5 mx-2"
+                  className="w-16 md:w-24 h-0.5 mx-3"
                   style={{
                     backgroundColor:
                       index <
@@ -224,9 +243,15 @@ export default function CheckoutPage() {
 
         {/* Order Summary */}
         <div className="sticky top-0 lg:col-span-4 z-10 h-full">
-          <OrderSummary />
+          <OrderSummary orderSummaryPreview={orderSummaryPreview} />
         </div>
       </div>
+
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+          <div className="text-white">Processing your order...</div>
+        </div>
+      )}
 
       {orderMessage && (
         <div className="mt-4 text-center text-lg text-green-600">
@@ -234,5 +259,5 @@ export default function CheckoutPage() {
         </div>
       )}
     </div>
-  );
+  ) : null;
 }
