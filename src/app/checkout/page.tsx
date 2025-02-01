@@ -54,7 +54,10 @@ export default function CheckoutPage() {
   }, [currentStep]);
 
   const handleShippingSubmit = (data: ShippingFormData) => {
-    setShippingData(data);
+    if (!selectedShipping) {
+      toast.error("please select a shpping method");
+      return;
+    }
     setCurrentStep("payment");
   };
 

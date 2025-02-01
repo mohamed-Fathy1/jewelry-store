@@ -78,51 +78,55 @@ export default function BestSellers() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 }}
               >
-                <div className="aspect-square rounded-lg overflow-hidden relative">
-                  <Image
-                    src={product.defaultImage.mediaUrl}
-                    alt={product.productName}
-                    width={500}
-                    height={500}
-                    className="w-full h-full object-cover"
-                  />
-                  {product.discountPercentage > 0 && (
-                    <div
-                      className="absolute top-4 left-4 px-2 py-1 rounded-md text-sm font-medium"
+                <Link href={`/product/${product._id}`}>
+                  <div className="aspect-square rounded-lg overflow-hidden relative">
+                    <Image
+                      src={product.defaultImage.mediaUrl}
+                      alt={product.productName}
+                      width={500}
+                      height={500}
+                      className="w-full h-full object-cover"
+                    />
+                    {product.discountPercentage > 0 && (
+                      <div
+                        className="absolute top-4 left-4 px-2 py-1 rounded-md text-sm font-medium"
+                        style={{
+                          backgroundColor: colors.brown,
+                          color: colors.textLight,
+                        }}
+                      >
+                        {product.discountPercentage}% OFF
+                      </div>
+                    )}
+                    {product.isSale && (
+                      <div
+                        className="absolute top-4 right-4 px-2 py-1 rounded-md text-sm font-medium"
+                        style={{
+                          backgroundColor: colors.gold,
+                          color: colors.textLight,
+                        }}
+                      >
+                        Sale
+                      </div>
+                    )}
+                    <motion.button
+                      initial={{ opacity: 0 }}
+                      whileHover={{ scale: 1.1 }}
+                      animate={{ opacity: 1 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleAddToCart(product);
+                      }}
+                      className="absolute bottom-4 right-4 p-2 rounded-full shadow-lg transition-colors duration-200"
                       style={{
                         backgroundColor: colors.brown,
                         color: colors.textLight,
                       }}
                     >
-                      {product.discountPercentage}% OFF
-                    </div>
-                  )}
-                  {product.isSale && (
-                    <div
-                      className="absolute top-4 right-4 px-2 py-1 rounded-md text-sm font-medium"
-                      style={{
-                        backgroundColor: colors.gold,
-                        color: colors.textLight,
-                      }}
-                    >
-                      Sale
-                    </div>
-                  )}
-                  <motion.button
-                    initial={{ opacity: 0 }}
-                    whileHover={{ scale: 1.1 }}
-                    animate={{ opacity: 1 }}
-                    onClick={() => handleAddToCart(product)}
-                    className="absolute bottom-4 right-4 p-2 rounded-full shadow-lg transition-colors duration-200"
-                    style={{
-                      backgroundColor: colors.brown,
-                      color: colors.textLight,
-                    }}
-                  >
-                    <ShoppingBagIcon className="w-5 h-5" />
-                  </motion.button>
-                </div>
-                <Link href={`/product/${product._id}`}>
+                      <ShoppingBagIcon className="w-5 h-5" />
+                    </motion.button>
+                  </div>
                   <div className="mt-4 space-y-1">
                     <h3
                       className="text-lg font-medium"

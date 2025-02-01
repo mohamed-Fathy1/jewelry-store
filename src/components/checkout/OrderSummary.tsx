@@ -16,7 +16,7 @@ export default function OrderSummary() {
     0
   );
 
-  const shipping = selectedShipping ? selectedShipping.cost : 15.0; // Default shipping cost
+  const shipping = selectedShipping ? selectedShipping.cost : 0; // Default shipping cost
   const tax = subtotal * 0.1; // 10% tax
   const total = subtotal + shipping + tax;
 
@@ -111,10 +111,15 @@ export default function OrderSummary() {
             <span
               style={{
                 color: colors.textPrimary,
-                textDecoration: isShippingFree ? "line-through" : "",
+                textDecoration:
+                  isShippingFree && selectedShipping ? "line-through" : "",
               }}
             >
-              ${selectedShipping ? selectedShipping.cost : "15.00"}
+              {selectedShipping
+                ? "$" + selectedShipping.cost
+                : isShippingFree
+                ? ""
+                : "Select Shipping Method"}
             </span>
             {isShippingFree ? (
               <span
