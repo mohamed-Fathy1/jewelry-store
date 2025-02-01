@@ -8,6 +8,8 @@ import { colors } from "@/constants/colors";
 import { Product } from "@/types/product.types";
 import { useCart } from "@/contexts/CartContext";
 import { CartItem } from "@/types/cart.types";
+import { HeartIcon } from "lucide-react";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 interface ProductCardProps {
   product: Product;
@@ -28,6 +30,7 @@ function ProductCardSkeleton() {
 
 function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
+  const { wishlist, toggleWishlist } = useWishlist();
 
   const handleAddToCart = () => {
     const cartItem: CartItem = {
@@ -42,41 +45,50 @@ function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <motion.div whileHover={{ y: -5 }} className="group">
-      <div className="aspect-square rounded-lg overflow-hidden relative">
-        <Image
-          src={product.defaultImage.mediaUrl}
-          alt={product.productName}
-          fill
-          className="object-cover"
-        />
-        {product.discountPercentage > 0 && (
-          <div
-            className="absolute top-4 left-4 px-2 py-1 rounded-md text-sm font-medium"
-            style={{
-              backgroundColor: colors.brown,
-              color: colors.textLight,
-            }}
-          >
-            {product.discountPercentage}% OFF
-          </div>
-        )}
-        <motion.button
-          initial={{ opacity: 0 }}
-          whileHover={{ scale: 1.1 }}
-          animate={{ opacity: 1 }}
-          onClick={handleAddToCart}
-          className="absolute bottom-4 right-4 p-2 rounded-full shadow-lg transition-colors duration-200"
-          style={{
-            backgroundColor: colors.brown,
-            color: colors.textLight,
-          }}
-        >
-          <ShoppingBagIcon className="w-5 h-5" />
-        </motion.button>
-      </div>
-
+    <motion.div whileHover={{ y: -5 }} className="group relative">
       <Link href={`/product/${product._id}`}>
+        <div className="aspect-square rounded-lg overflow-hidden relative">
+          <Image
+            src={product.defaultImage.mediaUrl}
+            alt={product.productName}
+            fill
+            className="object-cover"
+          />
+          <div className="absolute top-4 right-4 space-y-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                toggleWishlist(product._id);
+              }}
+              className="p-2 rounded-full shadow-md hover:scale-110 transition-transform duration-200"
+              style={{
+                backgroundColor: colors.background,
+                color: wishlist.includes(product._id)
+                  ? colors.brown
+                  : colors.textSecondary,
+              }}
+            >
+              <HeartIcon
+                className={`w-5 h-5 ${
+                  wishlist.includes(product._id) ? "fill-current" : ""
+                }`}
+              />
+            </button>
+          </div>
+          {product.discountPercentage > 0 && (
+            <div
+              className="absolute top-4 left-4 px-2 py-1 rounded-md text-sm font-medium"
+              style={{
+                backgroundColor: colors.brown,
+                color: colors.textLight,
+              }}
+            >
+              {product.discountPercentage}% OFF
+            </div>
+          )}
+        </div>
+
         <div className="mt-4 space-y-1">
           <h3
             className="text-lg font-medium"
@@ -89,7 +101,7 @@ function ProductCard({ product }: ProductCardProps) {
               ? product.category.categoryName
               : ""}
           </p>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-between space-x-2">
             <p
               className="text-lg font-semibold"
               style={{ color: colors.brown }}
@@ -105,6 +117,23 @@ function ProductCard({ product }: ProductCardProps) {
               </p>
             )}
           </div>
+          <motion.button
+            initial={{ opacity: 0 }}
+            whileHover={{ scale: 1.1 }}
+            animate={{ opacity: 1 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              handleAddToCart();
+            }}
+            className="absolute right-2 bottom-2 p-2 rounded-full shadow-lg transition-colors duration-200"
+            style={{
+              backgroundColor: colors.brown,
+              color: colors.textLight,
+            }}
+          >
+            <ShoppingBagIcon className="w-5 h-5" />
+          </motion.button>
         </div>
       </Link>
     </motion.div>

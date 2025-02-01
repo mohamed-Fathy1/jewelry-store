@@ -4,32 +4,43 @@ import Image from "next/image";
 import { colors } from "@/constants/colors";
 import { useCheckout } from "@/contexts/CheckoutContext";
 import { useCart } from "@/contexts/CartContext";
-import { color } from "framer-motion";
+import { useEffect, useState } from "react";
 
 export default function OrderSummary() {
   const { shippingData, paymentData, selectedShipping } = useCheckout();
   const { cart } = useCart();
+  const [isShippingFree, setIsShippingFree] = useState(false);
 
   const subtotal = cart.items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
-  const shipping = selectedShipping ? selectedShipping.cost : 15.0;
+  const shipping = selectedShipping ? selectedShipping.cost : 15.0; // Default shipping cost
   const tax = subtotal * 0.1; // 10% tax
   const total = subtotal + shipping + tax;
 
-  // Discount logic
-  const itemCount = cart.items.reduce(
-    (count, item) => count + item.quantity,
-    0
-  );
+  // New Discount Logic
   let discount = 0;
 
-  if (itemCount >= 3) {
-    discount = total * 0.2; // 20% discount for 3 or more items
-  } else if (total >= 500) {
-    discount = total * 0.1; // 10% discount for total price of $500 or more
+  useEffect(() => {
+    if (
+      cart.items.reduce((sum, item) => sum + item.quantity, 0) >= 3 ||
+      total >= 1500
+    ) {
+      // Free shipping if 3 or more items
+      setIsShippingFree(true);
+    } else {
+      setIsShippingFree(false);
+    }
+  }, [selectedShipping]);
+
+  if (isShippingFree) {
+    discount += shipping; // Remove shipping cost
+  }
+
+  if (total >= 1500) {
+    discount += total * 0.1; // 10% discount for total price of 1500 EGP or more
   }
 
   const finalTotal = total - discount;
@@ -95,9 +106,26 @@ export default function OrderSummary() {
         </div>
         <div className="flex justify-between">
           <span style={{ color: colors.textSecondary }}>Shipping</span>
-          <span style={{ color: colors.textPrimary }}>
-            ${selectedShipping._id && selectedShipping.cost}
-          </span>
+
+          <div>
+            <span
+              style={{
+                color: colors.textPrimary,
+                textDecoration: isShippingFree ? "line-through" : "",
+              }}
+            >
+              ${selectedShipping ? selectedShipping.cost : "15.00"}
+            </span>
+            {isShippingFree ? (
+              <span
+                className="text-shadow-light"
+                style={{ color: colors.gold }}
+              >
+                {" "}
+                Free
+              </span>
+            ) : null}
+          </div>
         </div>
         <div className="flex justify-between">
           <span style={{ color: colors.textSecondary }}>Tax</span>
@@ -106,7 +134,7 @@ export default function OrderSummary() {
         {discount > 0 && (
           <div className="flex justify-between">
             <span className="text-shadow-light" style={{ color: colors.gold }}>
-              Discount ({itemCount >= 3 ? "20%" : "10%"})
+              Discount {total >= 1500 && "(10%)"}
             </span>
             <span className="text-shadow-light" style={{ color: colors.gold }}>
               -${discount.toFixed(2)}
@@ -119,11 +147,11 @@ export default function OrderSummary() {
         >
           <span style={{ color: colors.textPrimary }}>Total</span>
           <span style={{ color: colors.textPrimary }}>
-            <span
-              style={{ textDecoration: discount > 0 ? "line-through" : "none" }}
-            >
-              ${total.toFixed(2)}
-            </span>
+            {discount > 0 ? (
+              <span style={{ textDecoration: "line-through" }}>
+                ${total.toFixed(2)}
+              </span>
+            ) : null}
             <span
               className={discount > 0 && "text-shadow-light"}
               style={{

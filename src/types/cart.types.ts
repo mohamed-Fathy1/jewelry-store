@@ -4,6 +4,7 @@ export interface CartItem {
   price: number;
   productName: string;
   productImage: string;
+  availableItems: number;
 }
 
 export interface Cart {

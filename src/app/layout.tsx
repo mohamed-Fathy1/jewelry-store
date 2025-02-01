@@ -13,6 +13,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { useEffect } from "react";
 import { CheckoutProvider } from "@/contexts/CheckoutContext";
 import CheckoutPage from "./checkout/page";
+import { WishlistProvider } from "@/contexts/WishlistContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,11 +43,13 @@ export default function RootLayout({
               <ProductProvider>
                 <CartProvider>
                   <CheckoutProvider>
-                    <div className="min-h-screen flex flex-col">
-                      <Header />
-                      <main className="flex-grow">{children}</main>
-                      <Footer />
-                    </div>
+                    <WishlistProvider>
+                      <div className="min-h-screen flex flex-col">
+                        <Header />
+                        <main className="flex-grow">{children}</main>
+                        <Footer />
+                      </div>
+                    </WishlistProvider>
                   </CheckoutProvider>
                 </CartProvider>
               </ProductProvider>

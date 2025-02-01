@@ -13,6 +13,7 @@ import { useCheckout } from "@/contexts/CheckoutContext";
 import { createOrder, orderService } from "@/services/order.service";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
+import toast from "react-hot-toast";
 
 interface ShippingFormData {
   firstName: string;
@@ -77,8 +78,10 @@ export default function CheckoutPage() {
       const result = await orderService.createOrder(orderData);
       if (result.success) {
         setOrderMessage(result.message);
+        toast.success(result.message);
         setCurrentStep("confirmation");
       } else {
+        toast.error(result.message);
         setOrderMessage("Failed to create order. Please try again.");
       }
     } catch (error) {

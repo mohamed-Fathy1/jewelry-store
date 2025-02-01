@@ -1,4 +1,5 @@
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -29,6 +30,16 @@ export const orderService = {
     } catch (error) {
       console.error("Error creating order:", error);
       throw new Error("Failed to create order");
+    }
+  },
+  async getUserOrders(): Promise<any> {
+    try {
+      const response = await axiosInstance.get(`/order/get-user-orders`);
+      return response.data;
+    } catch (error) {
+      toast.error(error);
+      console.error("Error fetching user orders:", error);
+      throw new Error("Failed to fetch user orders");
     }
   },
   // ... existing code ...

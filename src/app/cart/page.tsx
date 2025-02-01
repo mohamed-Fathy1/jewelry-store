@@ -105,6 +105,7 @@ export default function CartPage() {
                     }
                     className="p-2 transition-colors hover:bg-gray-100"
                     style={{ color: colors.textPrimary }}
+                    disabled={item.quantity >= item.availableItems}
                   >
                     <PlusIcon className="w-4 h-4" />
                   </button>

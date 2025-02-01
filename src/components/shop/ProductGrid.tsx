@@ -7,6 +7,7 @@ import { Product } from "@/types";
 import { HeartIcon, ShoppingBagIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { colors } from "@/constants/colors";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 // This would typically come from an API
 const products: Product[] = [
@@ -38,16 +39,7 @@ const products: Product[] = [
 ];
 
 export default function ProductGrid() {
-  const [wishlist, setWishlist] = useState<string[]>([]);
-
-  const toggleWishlist = (productId: string) => {
-    setWishlist((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
-    );
-    toast.success("Wishlist updated");
-  };
+  const { wishlist, toggleWishlist } = useWishlist();
 
   const addToCart = (productName: string) => {
     toast.success(`${productName} added to cart`);

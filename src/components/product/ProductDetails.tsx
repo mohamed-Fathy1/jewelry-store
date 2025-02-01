@@ -1,14 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useProduct } from "@/contexts/ProductContext";
 import { useCart } from "@/contexts/CartContext";
 import { colors } from "@/constants/colors";
 import { ShoppingBagIcon } from "@heroicons/react/24/outline";
 import { CartItem } from "@/types/cart.types";
-import { Button } from "../ui/Button";
 import { useRouter } from "next/navigation";
+import {
+  ChevronLeft,
+  ChevronRight,
+  HeartIcon,
+  Pause,
+  Play,
+} from "lucide-react";
+import { wishlistService } from "@/services/wishlist.service";
+import toast from "react-hot-toast";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 export default function ProductDetails({ productId }: { productId: string }) {
   const { currentProduct, getOneProduct, isLoading } = useProduct();
@@ -16,6 +25,11 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const router = useRouter();
   const [selectedImage, setSelectedImage] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [activeImage, setActiveImage] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(true);
+  const sliderRef = useRef<NodeJS.Timeout | null>(null);
+  const { wishlist, toggleWishlist } = useWishlist();
+  const [isInWishlist, setIsInWishlist] = useState(false);
 
   useEffect(() => {
     getOneProduct(productId);
@@ -27,6 +41,28 @@ export default function ProductDetails({ productId }: { productId: string }) {
     }
   }, [currentProduct]);
 
+  useEffect(() => {
+    const checkWishlist = () => {
+      if (!currentProduct) return;
+      setIsInWishlist(wishlist.includes(currentProduct._id));
+    };
+
+    checkWishlist();
+  }, [currentProduct, wishlist]);
+
+  // Auto-rotate images every 3 seconds if autoPlay is true
+  useEffect(() => {
+    if (!autoPlay) return;
+
+    sliderRef.current = setInterval(() => {
+      setActiveImage((current) =>
+        current === currentProduct.albumImages.length - 1 ? 0 : current + 1
+      );
+    }, 3000);
+
+    return () => clearInterval(sliderRef.current);
+  }, [autoPlay, currentProduct?.albumImages.length]);
+
   const handleAddToCart = () => {
     if (!currentProduct) return;
 
@@ -36,6 +72,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
       price: currentProduct.salePrice || currentProduct.price,
       productName: currentProduct.productName,
       productImage: currentProduct.defaultImage.mediaUrl,
+      availableItems: currentProduct.availableItems,
     };
 
     addToCart(cartItem);
@@ -68,45 +105,88 @@ export default function ProductDetails({ productId }: { productId: string }) {
     }
   };
 
+  const addToWishlist = () => {
+    if (!currentProduct) return;
+
+    toggleWishlist(currentProduct._id);
+  };
+
   if (isLoading || !currentProduct) {
     return <div>Loading...</div>;
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div className="space-y-4">
-        <div className="aspect-square rounded-lg overflow-hidden">
+      {/* Image gallery */}
+      <div className="space-y-2">
+        {/* Main image */}
+        <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
           <Image
-            src={selectedImage}
-            alt={currentProduct.productName}
-            width={600}
-            height={600}
-            className="w-full h-full object-cover"
+            src={currentProduct.albumImages[activeImage].mediaUrl}
+            alt={`${currentProduct.productName} - Main View`}
+            width={1000}
+            height={1000}
+            className="w-full h-full object-cover transition-opacity duration-500"
+            priority
           />
+
+          {/* Previous/Next buttons */}
+          <button
+            onClick={() => {
+              clearInterval(sliderRef.current);
+              setAutoPlay(false);
+              setActiveImage((prev) =>
+                prev === 0 ? currentProduct.albumImages.length - 1 : prev - 1
+              );
+            }}
+            className="absolute flex justify-center items-center h-10 w-10 left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"
+          >
+            <ChevronLeft />
+          </button>
+          <button
+            onClick={() => {
+              clearInterval(sliderRef.current);
+              setAutoPlay(false);
+              setActiveImage((next) =>
+                next === currentProduct.albumImages.length - 1 ? 0 : next + 1
+              );
+            }}
+            className="absolute flex justify-center items-center h-10 w-10 right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"
+          >
+            <ChevronRight />
+          </button>
+
+          {/* Auto-play toggle */}
+          <button
+            onClick={() => setAutoPlay((prev) => !prev)}
+            className="absolute flex justify-center items-center w-10 h-10 bottom-2 right-2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"
+          >
+            {autoPlay ? <Pause size={16} /> : <Play size={16} />}
+          </button>
         </div>
-        <div className="grid grid-cols-4 gap-2">
-          {currentProduct.albumImages.map((image) => (
+
+        {/* Thumbnail strip */}
+        <div className="flex gap-2 overflow-x-auto p-2">
+          {currentProduct.albumImages.map((image, index) => (
             <button
-              key={image._id}
-              onClick={() => setSelectedImage(image.mediaUrl)}
-              className={`aspect-square rounded-lg overflow-hidden border-2 transition-colors ${
-                selectedImage === image.mediaUrl
-                  ? "border-brown"
-                  : "border-transparent"
-              }`}
+              key={index}
+              onClick={() => setActiveImage(index)}
+              className={`flex-none relative aspect-square w-20 rounded-md overflow-hidden 
+                ${
+                  activeImage === index ? "ring-2 ring-blue-500" : "opacity-70"
+                }`}
             >
               <Image
                 src={image.mediaUrl}
-                alt={currentProduct.productName}
-                width={150}
-                height={150}
+                alt={`${currentProduct.productName} - Thumbnail ${index + 1}`}
+                width={80}
+                height={80}
                 className="w-full h-full object-cover"
               />
             </button>
           ))}
         </div>
       </div>
-
       <div className="space-y-6">
         <h1
           className="text-3xl font-light"
@@ -150,7 +230,13 @@ export default function ProductDetails({ productId }: { productId: string }) {
             </button>
             <span
               className="px-4 py-1 border-x"
-              style={{ borderColor: colors.border }}
+              style={{
+                borderColor: colors.border,
+                color:
+                  quantity >= currentProduct.availableItems
+                    ? colors.textSecondary
+                    : colors.accentDark,
+              }}
             >
               {quantity}
             </span>
@@ -158,19 +244,36 @@ export default function ProductDetails({ productId }: { productId: string }) {
               onClick={incrementQuantity}
               className="px-3 py-1 transition-colors hover:bg-gray-100"
               style={{ color: colors.textPrimary }}
+              disabled={quantity >= currentProduct.availableItems}
             >
               +
             </button>
           </div>
         </div>
 
-        <div>
+        <div className="flex items-center justify-between">
           <p style={{ color: colors.textSecondary }}>
             Availability:{" "}
             {currentProduct.availableItems > 0
               ? `${currentProduct.availableItems} in stock`
               : "Out of Stock"}
           </p>
+
+          <button
+            onClick={addToWishlist}
+            className="p-3 border rounded-md transition-colors duration-200"
+            style={{
+              borderColor: colors.border,
+              color: colors.textPrimary,
+              backgroundColor: colors.background,
+            }}
+          >
+            <HeartIcon
+              className={`w-6 h-6 ${
+                isInWishlist ? "text-red-500 fill-red-500" : ""
+              }`}
+            />
+          </button>
         </div>
 
         <div className="flex flex-col">
