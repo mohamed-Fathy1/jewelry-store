@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
 import AddressPopup from "@/components/profile/AddressPopup";
 import { useUser } from "@/contexts/UserContext";
+import { userService } from "@/services/user.service";
 
 export default function AddressManager({ addresses }) {
   // const [addresses, setAddresses] = useState<Address[]>([]);
@@ -67,10 +68,13 @@ export default function AddressManager({ addresses }) {
 
     setIsLoading(true);
     try {
-      const response = await addressService.deleteAddress(addressId);
-      if (response.success) {
+      // Replace with the actual user ID as needed
+      const deleteUserResponse = await userService.deleteUserInformation(
+        addressId
+      );
+      if (deleteUserResponse.success) {
         toast.success("Address deleted successfully");
-        // fetchAddresses();
+        getProfile();
       }
     } catch (error) {
       toast.error("Failed to delete address");

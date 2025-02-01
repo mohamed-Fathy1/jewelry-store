@@ -117,4 +117,11 @@ export const userService = {
       }
     );
   },
+
+  async deleteUserInformation(id: string): Promise<UserResponse> {
+    const response = await axiosInstance.delete<UserResponse>(
+      `/user/delete-user-information/${id}`
+    );
+    return response.data;
+  },
 };
