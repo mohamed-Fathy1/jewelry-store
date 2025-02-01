@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { colors } from "@/constants/colors"; // Adjust the import based on your color constants
-import LoadingSpinner from "../../components/LoadingSpinner"; // Import the new loading component
 
 const offers = [
   {
@@ -13,8 +12,7 @@ const offers = [
   },
 ];
 
-const PromoBanner: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(true);
+const HomePromoSection: React.FC = () => {
   const [currentOfferIndex, setCurrentOfferIndex] = useState(0);
   const [fade, setFade] = useState(false);
 
@@ -32,11 +30,9 @@ const PromoBanner: React.FC = () => {
     return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 
-  if (!isVisible) return null; // Don't render if not visible
-
   return (
     <div
-      className="flex justify-between items-center p-4 md:px-6 lg:px-7 xl:px-10 z-10"
+      className="flex justify-center items-center p-4"
       style={{
         backgroundColor: colors.brown,
         color: colors.textLight,
@@ -49,19 +45,8 @@ const PromoBanner: React.FC = () => {
       >
         {offers[currentOfferIndex].message}
       </span>
-      <button
-        className="text-lg font-semibold"
-        style={{
-          backgroundColor: "transparent",
-          border: "none",
-          color: colors.textLight,
-        }}
-        onClick={() => setIsVisible(false)} // Close the banner
-      >
-        &times; {/* Close icon */}
-      </button>
     </div>
   );
 };
 
-export default PromoBanner;
+export default HomePromoSection;

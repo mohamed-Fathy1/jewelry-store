@@ -14,6 +14,7 @@ import { createOrder, orderService } from "@/services/order.service";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
+import LoadingSpinner from "../../components/LoadingSpinner"; // Import the new loading component
 
 interface ShippingFormData {
   firstName: string;
@@ -98,6 +99,10 @@ export default function CheckoutPage() {
   // const handleAddressSelect = (address: Address) => {
   //   setSelectedAddress(address);
   // };
+
+  if (loading) {
+    return <LoadingSpinner />; // Updated loading return
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -222,12 +227,6 @@ export default function CheckoutPage() {
           <OrderSummary />
         </div>
       </div>
-
-      {loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
-          <div className="text-white">Processing your order...</div>
-        </div>
-      )}
 
       {orderMessage && (
         <div className="mt-4 text-center text-lg text-green-600">

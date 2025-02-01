@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { AuthContextType, User, AuthResponse } from "@/types/auth.types";
 import { authService } from "@/services/auth.service";
+import LoadingSpinner from "../components/LoadingSpinner"; // Import the new loading component
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -122,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (isLoading) {
-    return <div>Loading...</div>; // Or your loading component
+    return <LoadingSpinner />; // Updated loading return
   }
 
   const value = {

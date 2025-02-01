@@ -18,6 +18,7 @@ import {
 import { wishlistService } from "@/services/wishlist.service";
 import toast from "react-hot-toast";
 import { useWishlist } from "@/contexts/WishlistContext";
+import LoadingSpinner from "../../components/LoadingSpinner"; // Import the new loading component
 
 export default function ProductDetails({ productId }: { productId: string }) {
   const { currentProduct, getOneProduct, isLoading } = useProduct();
@@ -112,7 +113,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
   };
 
   if (isLoading || !currentProduct) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner />; // Updated loading return
   }
 
   return (

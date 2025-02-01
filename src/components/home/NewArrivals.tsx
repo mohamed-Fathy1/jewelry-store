@@ -7,6 +7,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { motion } from "framer-motion";
 import { colors } from "@/constants/colors";
 import { useProduct } from "@/contexts/ProductContext";
+import LoadingSpinner from "../../components/LoadingSpinner"; // Import the new loading component
 
 export default function NewArrivals() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -27,7 +28,7 @@ export default function NewArrivals() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner />; // Updated loading return
   }
 
   return (
