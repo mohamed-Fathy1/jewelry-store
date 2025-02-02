@@ -6,6 +6,58 @@ import { userService } from "@/services/user.service";
 import { Button } from "@/components/ui/Button";
 import { toast } from "react-hot-toast";
 import { useUser } from "@/contexts/UserContext";
+import { ChevronDownIcon } from "@heroicons/react/24/solid";
+import { ChevronsDown, LucideChevronDown } from "lucide-react";
+
+// Define the governorate enum
+enum Governorate {
+  Fayoum = "Fayoum",
+  Minya = "Minya",
+  Sohag = "Sohag",
+  BeniSuef = "Beni Suef",
+  Assiut = "Assiut",
+  Qena = "Qena",
+  Aswan = "Aswan",
+  Luxor = "Luxor",
+  Qalyubia = "Qalyubia",
+  Dakahlia = "Dakahlia",
+  Monufia = "Monufia",
+  Sharqia = "Sharqia",
+  KafrElSheikh = "Kafr El Sheikh",
+  Beheira = "Beheira",
+  Gharbia = "Gharbia",
+  PortSaid = "Port Said",
+  Suez = "Suez",
+  Ismailia = "Ismailia",
+  Damietta = "Damietta",
+  AlSaf = "Al Saf",
+  AlBadrashein = "Al Badrashein",
+  AlAyat = "Al Ayat",
+  Atfih = "Atfih",
+  Oseem = "Oseem",
+  AbuNomros = "Abu Nomros",
+  Hawamdeya = "Hawamdeya",
+  ElMonib = "El Monib",
+  Tanashe = "Tanashe",
+  ManshaatAlQanater = "Mansha'at Al Qanater",
+  ElBaragil = "El Baragil",
+  Bashteel = "Bashteel",
+  Kerdasa = "Kerdasa",
+  ShubraMant = "Shubra Mant",
+  SaftAlLaban = "Saft Al Laban",
+  AlOmraniya = "Al Omraniya",
+  AlMariouteya = "Al Mariouteya",
+  Cairo = "Cairo",
+  Giza = "Giza",
+  ElShorouk = "El Shorouk",
+  ElMostakbal = "El Mostakbal",
+  ElRehab = "El Rehab",
+  Madinaty = "Madinaty",
+  October = "October",
+  SheikhZayed = "Sheikh Zayed",
+  NewCairo = "New Cairo (El Tagamoat)",
+  Other = "Other",
+}
 
 interface AddressPopupProps {
   isOpen: boolean;
@@ -64,7 +116,10 @@ export default function AddressPopup({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 my-0! flex items-center justify-center z-50"
+      style={{ margin: "0px" }}
+    >
       <div className="bg-white rounded-lg p-6 shadow-lg">
         <h2 className="text-xl font-medium mb-4">
           {address ? "Edit Address" : "Add Address"}
@@ -128,19 +183,30 @@ export default function AddressPopup({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block mb-1">Governorate</label>
-              <input
-                type="text"
-                placeholder="Governorate"
-                value={formData.governorate}
-                onChange={(e) =>
-                  setFormData({ ...formData, governorate: e.target.value })
-                }
-                className="border rounded-md p-2 w-full"
-                required
-              />
+              <div className="flex justify-between border rounded-md p-2 relative w-full">
+                <select
+                  value={formData.governorate}
+                  onChange={(e) =>
+                    setFormData({ ...formData, governorate: e.target.value })
+                  }
+                  className="absolute inset-0 opacity-0 border rounded-md p-2"
+                  required
+                >
+                  <option value="" disabled>
+                    Select Governorate
+                  </option>
+                  {Object.values(Governorate).map((gov) => (
+                    <option key={gov} value={gov}>
+                      {gov}
+                    </option>
+                  ))}
+                </select>
+                <span>{formData.governorate || "Governate"}</span>
+                <LucideChevronDown />
+              </div>
             </div>
             <div>
-              <label className="block mb-1">Postal Code</label>
+              <label className="block mb-1">Postal Code (Opt)</label>
               <input
                 type="text"
                 placeholder="Postal Code"
@@ -149,7 +215,6 @@ export default function AddressPopup({
                   setFormData({ ...formData, postalCode: e.target.value })
                 }
                 className="border rounded-md p-2 w-full"
-                required
               />
             </div>
           </div>

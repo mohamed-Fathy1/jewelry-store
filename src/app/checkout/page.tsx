@@ -219,11 +219,11 @@ export default function CheckoutPage() {
       </div>
 
       {/* Main Content */}
-      <div className="relative h-fit overflow-visible grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <div className="relative h-fit overflow-visible grid grid-cols-1 lg:grid-cols-12 md:gap-12">
         {/* Forms */}
         <div className="lg:col-span-8">
           {currentStep === "shipping" && (
-            <div className="container mx-auto py-8">
+            <div className="container mx-auto py-4 md:py-8">
               <CheckoutShipping onSubmit={handleShippingSubmit} />
             </div>
           )}
@@ -242,14 +242,16 @@ export default function CheckoutPage() {
         </div>
 
         {/* Order Summary */}
-        <div className="sticky top-0 lg:col-span-4 z-10 h-full">
+        <div className="sticky top-0 lg:col-span-4 z-10">
           <OrderSummary orderSummaryPreview={orderSummaryPreview} />
         </div>
       </div>
 
       {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
-          <div className="text-white">Processing your order...</div>
+          <div className="text-white text-shadow-light">
+            Processing your order...
+          </div>
         </div>
       )}
 

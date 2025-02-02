@@ -5,6 +5,7 @@ import NewArrivals from "@/components/home/NewArrivals";
 import FeaturedCategories from "@/components/home/FeaturedCategories";
 import HomePromoSection from "@/components/home/HomePromoSection";
 import TarnishingPromo from "@/components/home/TarnishingPromo";
+import WhatsAppIcon from "@/components/home/WhatsAppIcon";
 
 export default function HomePage() {
   return (
@@ -15,6 +16,7 @@ export default function HomePage() {
       <FeaturedCategories />
       <HomePromoSection />
       <NewArrivals />
+      <WhatsAppIcon />
     </div>
   );
 }
