@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   ShoppingBagIcon,
@@ -17,8 +17,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUser } from "@/contexts/UserContext";
 import { useCart } from "@/contexts/CartContext";
 import PromoBanner from "./PromoBanner";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
+  const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -28,10 +30,76 @@ export default function Header() {
   const { cart } = useCart();
   const [isClient, setIsClient] = useState(false);
 
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      mobileMenuRef.current &&
+      !mobileMenuRef.current.contains(event.target as Node)
+    ) {
+      setIsMobileMenuOpen(false);
+    }
+  };
+
+  const handleScroll = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  useEffect(() => {
+    setIsClient(true);
+    document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  const isFeaturedCategoriesInPath =
+    window.location.hash === "#featured-categories";
+
+  useEffect(() => {
+    // Only run this effect when we're on the home page
+    console.log(isFeaturedCategoriesInPath);
+    if (pathname === "/" && isFeaturedCategoriesInPath) {
+      const navbarHeight = 64; // Adjust this value based on your navbar height
+      const section = document.getElementById("featured-categories");
+      if (section) {
+        const top =
+          section.getBoundingClientRect().top + window.scrollY - navbarHeight;
+        window.scrollTo({ top, behavior: "smooth" });
+      }
+    }
+  }, [pathname, isLoading]);
+
+  const handleScrollToFeaturedCategories = (event: React.MouseEvent) => {
+    event.preventDefault();
+    const section = document.getElementById("featured-categories");
+    const navbarHeight = 64; // Adjust this value based on your navbar height
+
+    if (pathname !== "/") {
+      // If not on the home page, redirect to home
+      router.push("/#featured-categories");
+    } else if (section) {
+      // If already on the home page, just scroll
+      const top =
+        section.getBoundingClientRect().top + window.scrollY - navbarHeight;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  };
+
+  // Check if the hash is present in the URL
+
+  // Update the navigation array
   const navigation = [
     { name: "Home", href: "/" },
     { name: "Shop", href: "/shop" },
-    { name: "Collections", href: "/collections" },
+    {
+      name: "Collections",
+      href: "/#featured-categories",
+      onClick: handleScrollToFeaturedCategories,
+    },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ];
@@ -86,6 +154,7 @@ export default function Header() {
                   <Link
                     key={item.name}
                     href={item.href}
+                    onClick={item.onClick}
                     className="transition-colors duration-300"
                     style={{
                       color:
@@ -177,7 +246,7 @@ export default function Header() {
                                   ? user[0]?.firstName + " " + user[0]?.lastName
                                   : authUser?.email
                               }`
-                            : "Welcome to LUXE"}
+                            : "Welcome to atozaccessory"}
                         </p>
                       </div>
 
@@ -330,6 +399,7 @@ export default function Header() {
             {/* Mobile Navigation */}
             {isMobileMenuOpen && (
               <div
+                ref={mobileMenuRef}
                 className="md:hidden py-4 border-t"
                 style={{ borderColor: colors.border }}
               >

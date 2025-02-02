@@ -6,7 +6,7 @@ import { colors } from "@/constants/colors"; // Adjust the import based on your 
 
 const TarnishingPromo: React.FC = () => {
   return (
-    <div className="max-w-5xl min-h-screen flex items-center mx-auto px-4 py-12 md:py-20">
+    <div className="max-w-5xl md:min-h-screen flex overflow-clip items-center mx-auto px-4 py-12 md:py-20">
       <div className="grid md:grid-cols-5 gap-8 md:gap-2 items-center">
         <div className="order-2 text-center md:text-start md:order-2  md:col-span-3 flex flex-col items-start">
           <h2

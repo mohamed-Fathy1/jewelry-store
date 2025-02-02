@@ -9,6 +9,14 @@
   --foreground: #171717;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 30px;
+}
+::-webkit-scrollbar-track {
+  padding-top: 20px;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
