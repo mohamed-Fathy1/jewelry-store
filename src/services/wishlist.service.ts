@@ -1,13 +1,8 @@
-import axios from "axios";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-const axiosInstance = axios.create({
-  baseURL: API_URL,
-});
+import api from "@/lib/axios";
+import { WishlistResponse } from "@/types/wishlist.types"; // You might need to create this type
 
 // Add a request interceptor to include the access token
-axiosInstance.interceptors.request.use(
+api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken"); // Retrieve token from local storage
     if (token) {
@@ -21,11 +16,9 @@ axiosInstance.interceptors.request.use(
 );
 
 export const wishlistService = {
-  async getAllWishlist(page: number = 1): Promise<any> {
+  async getAllWishlist(page: number = 1): Promise<WishlistResponse> {
     try {
-      const response = await axiosInstance.get(
-        `/wishlist/get-all-wishlist?page=${page}`
-      );
+      const response = await api.get(`/wishlist/get-all-wishlist?page=${page}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching wishlist:", error);
@@ -33,9 +26,9 @@ export const wishlistService = {
     }
   },
 
-  async deleteFavoriteProduct(productId: string): Promise<any> {
+  async deleteFavoriteProduct(productId: string): Promise<WishlistResponse> {
     try {
-      const response = await axiosInstance.delete(
+      const response = await api.delete(
         `/wishlist/delete-favorite-product/${productId}`
       );
       return response.data;
@@ -45,12 +38,11 @@ export const wishlistService = {
     }
   },
 
-  async addFavoriteProduct(productId: string): Promise<any> {
+  async addFavoriteProduct(productId: string): Promise<WishlistResponse> {
     try {
-      const response = await axiosInstance.post(
-        `/wishlist/add-to-wishlist`,
-        { productId } // Sending the productId in the request body
-      );
+      const response = await api.post(`/wishlist/add-to-wishlist`, {
+        productId,
+      });
       return response.data;
     } catch (error) {
       console.error("Error adding favorite product:", error);

@@ -31,7 +31,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } catch (error) {
       console.error("Error fetching wishlist:", error);
-      toast.error("Failed to fetch wishlist");
+      // toast.error("Failed to fetch wishlist");
     }
   };
 
@@ -50,7 +50,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } catch (error) {
       console.error("Failed to update wishlist:", error);
-      toast.error("Failed to update wishlist");
+      // toast.error("Failed to update wishlist");
     }
   };
 

@@ -52,8 +52,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }
       return response;
     } catch (error) {
-      toast.error("Failed to fetch user profile");
-      throw error;
+      // toast.error("Failed to fetch user profile");
+      console.log(error);
     } finally {
       setIsLoading(false);
     }

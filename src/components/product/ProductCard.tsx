@@ -32,7 +32,11 @@ function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { wishlist, toggleWishlist } = useWishlist();
 
+  const isOutOfStock = product.availableItems === 0;
+
   const handleAddToCart = () => {
+    if (isOutOfStock) return;
+
     const cartItem: CartItem = {
       productId: product._id,
       quantity: 1,
@@ -45,15 +49,31 @@ function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <motion.div whileHover={{ y: -5 }} className="group relative">
+    <motion.div
+      whileHover={{ y: isOutOfStock ? 0 : -5 }}
+      className="group relative"
+    >
       <Link href={`/product/${product._id}`}>
         <div className="aspect-square rounded-lg overflow-hidden relative">
           <Image
             src={product.defaultImage.mediaUrl}
             alt={product.productName}
             fill
-            className="object-cover"
+            className={`object-cover ${isOutOfStock ? "opacity-50" : ""}`}
           />
+          {isOutOfStock && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div
+                className="px-4 py-2 rounded-md text-lg font-bold transform -rotate-12"
+                style={{
+                  backgroundColor: colors.brown,
+                  color: colors.textLight,
+                }}
+              >
+                SOLD OUT
+              </div>
+            </div>
+          )}
           <div className="absolute top-4 right-4 space-y-2">
             <button
               onClick={(e) => {
@@ -101,7 +121,7 @@ function ProductCard({ product }: ProductCardProps) {
               ? product.category.categoryName
               : ""}
           </p>
-          <div className="flex items-center justify-between space-x-2">
+          <div className="flex items-center gap-1 space-x-2">
             <p
               className="text-lg font-semibold"
               style={{ color: colors.brown }}
@@ -117,23 +137,25 @@ function ProductCard({ product }: ProductCardProps) {
               </p>
             )}
           </div>
-          <motion.button
-            initial={{ opacity: 0 }}
-            whileHover={{ scale: 1.1 }}
-            animate={{ opacity: 1 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              handleAddToCart();
-            }}
-            className="absolute right-2 bottom-2 p-2 rounded-full shadow-lg transition-colors duration-200"
-            style={{
-              backgroundColor: colors.brown,
-              color: colors.textLight,
-            }}
-          >
-            <ShoppingBagIcon className="w-5 h-5" />
-          </motion.button>
+          {!isOutOfStock && (
+            <motion.button
+              initial={{ opacity: 0 }}
+              whileHover={{ scale: 1.1 }}
+              animate={{ opacity: 1 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                handleAddToCart();
+              }}
+              className="absolute right-2 bottom-2 p-2 rounded-full shadow-lg transition-colors duration-200"
+              style={{
+                backgroundColor: colors.brown,
+                color: colors.textLight,
+              }}
+            >
+              <ShoppingBagIcon className="w-5 h-5" />
+            </motion.button>
+          )}
         </div>
       </Link>
     </motion.div>

@@ -39,6 +39,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
   useEffect(() => {
     if (currentProduct?.defaultImage) {
       setSelectedImage(currentProduct.defaultImage.mediaUrl);
+      if (currentProduct.isSoldOut) setQuantity(0);
     }
   }, [currentProduct]);
 
@@ -277,6 +278,21 @@ export default function ProductDetails({ productId }: { productId: string }) {
           </button>
         </div>
 
+        {currentProduct.availableItems === 0 && (
+          <div
+            className="text-center p-4 rounded-md"
+            style={{
+              backgroundColor: colors.background,
+              border: `1px solid ${colors.border}`,
+            }}
+          >
+            <p style={{ color: colors.textSecondary }}>
+              This product is currently sold out. Add it to your wishlist to be
+              notified when it's back in stock!
+            </p>
+          </div>
+        )}
+
         <div className="flex flex-col">
           <button
             onClick={handleAddToCart}
@@ -285,7 +301,9 @@ export default function ProductDetails({ productId }: { productId: string }) {
             style={{ backgroundColor: colors.brown, color: colors.textLight }}
           >
             <ShoppingBagIcon className="w-5 h-5" />
-            <span>Add to Cart</span>
+            <span>
+              {currentProduct.availableItems === 0 ? "Sold Out" : "Add to Cart"}
+            </span>
           </button>
 
           <button
@@ -298,7 +316,9 @@ export default function ProductDetails({ productId }: { productId: string }) {
               border: `1px solid ${colors.border}`,
             }}
           >
-            <span>Buy Now</span>
+            <span>
+              {currentProduct.availableItems === 0 ? "Sold Out" : "Buy Now"}
+            </span>
           </button>
         </div>
       </div>
