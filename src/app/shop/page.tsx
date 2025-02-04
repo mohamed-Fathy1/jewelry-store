@@ -76,7 +76,7 @@ export default function ShopPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Filters Sidebar */}
-        <div className="lg:col-span-1">
+        <div className="hidden md:block lg:col-span-1">
           <FilterSidebar
             activeFilters={activeFilters}
             onFilterChange={handleFilterChange}
@@ -86,7 +86,13 @@ export default function ShopPage() {
         {/* Products Grid */}
         <div className="lg:col-span-3">
           {/* Sort Dropdown */}
-          <div className="flex justify-end mb-6">
+          <div className="flex items-center justify-between md:justify-end mb-6">
+            <div className="flex items-center justify-center md:hidden">
+              <FilterSidebar
+                activeFilters={activeFilters}
+                onFilterChange={handleFilterChange}
+                />
+                </div>
             <SortDropdown value={sortConfig} onChange={handleSortChange} />
           </div>
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { colors } from "@/constants/colors";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { FunnelIcon } from "@heroicons/react/24/solid"; // Import the filter icon
 
 type FilterOption = {
   id: string;
@@ -32,10 +33,9 @@ export default function FilterSidebar({
   activeFilters,
   onFilterChange,
 }: FilterSidebarProps) {
-  const [expandedSection, setExpandedSection] = useState<string | null>(
-    "price"
-  );
+  const [expandedSection, setExpandedSection] = useState<string | null>("price");
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [isPricePopupOpen, setIsPricePopupOpen] = useState(false); // State for price popup
 
   const toggleFilter = (category: "material" | "style", value: string) => {
     const currentFilters = [...activeFilters[category]];
@@ -58,6 +58,7 @@ export default function FilterSidebar({
       ...activeFilters,
       priceRange: activeFilters.priceRange === value ? "" : value,
     });
+    setIsPricePopupOpen(false); // Close the price popup after selecting a price range
   };
 
   const toggleSection = (category: string) => {
@@ -76,7 +77,7 @@ export default function FilterSidebar({
     <div className="relative">
       {/* Mobile Filter Button */}
       <button
-        className="md:hidden w-full py-2 px-4 mb-4 rounded-md flex items-center justify-between"
+        className="hidden md:block w-full py-2 px-4 mb-4 rounded-md flex items-center justify-between"
         onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
         style={{
           backgroundColor: colors.background,
@@ -105,11 +106,60 @@ export default function FilterSidebar({
         </div>
       </button>
 
+      {/* Mobile Price Filter Button */}
+      <button
+        className="md:hidden py-2 px-4 rounded-md flex gap-5 items-center justify-between"
+        onClick={() => setIsPricePopupOpen(true)}
+        style={{
+          backgroundColor: colors.background,
+          borderColor: colors.border,
+          color: colors.textPrimary,
+        }}
+      >
+        <span className="font-medium">Filter by Price</span>
+        <FunnelIcon className="w-5 h-5" />
+      </button>
+
+      {/* Price Filter Popup */}
+      {isPricePopupOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-md w-3/4 max-w-md">
+            <h3 className="text-lg font-medium mb-4">Filter by Price</h3>
+            {filterOptions.price.map((option) => (
+              <label key={option.id} className="flex items-center mb-2">
+                <input
+                  type="radio"
+                  name="price"
+                  className="h-4 w-4 rounded"
+                  checked={activeFilters.priceRange === option.value}
+                  onChange={() => handlePriceRangeChange(option.value!)}
+                  style={{
+                    borderColor: colors.border,
+                    backgroundColor: colors.background,
+                  }}
+                />
+                <span className="ml-3" style={{ color: colors.textSecondary }}>
+                  {option.name}
+                </span>
+              </label>
+            ))}
+            <button
+              onClick={() => setIsPricePopupOpen(false)}
+              className="mt-4 py-2 px-4 rounded-md w-full text-center"
+              style={{
+                backgroundColor: colors.brown,
+                color: colors.textLight,
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Filters Content */}
       <div
-        className={`space-y-6 md:block ${
-          isMobileFiltersOpen ? "block" : "hidden"
-        }`}
+        className={`hidden space-y-6 md:block`}
       >
         {Object.entries(filterOptions).map(([category, options]) => (
           <div
@@ -156,10 +206,7 @@ export default function FilterSidebar({
                     onChange={() =>
                       category === "price"
                         ? handlePriceRangeChange(option.value!)
-                        : toggleFilter(
-                            category as "material" | "style",
-                            option.name
-                          )
+                        : toggleFilter(category as "material" | "style", option.name)
                     }
                     style={{
                       borderColor: colors.border,
