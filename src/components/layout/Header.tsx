@@ -31,14 +31,17 @@ export default function Header() {
   const [isClient, setIsClient] = useState(false);
 
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuToggleRef = useRef<HTMLButtonElement>(null);
 
   const handleClickOutside = (event: MouseEvent) => {
-    if (
-      mobileMenuRef.current &&
-      !mobileMenuRef.current.contains(event.target as Node)
-    ) {
-      setIsMobileMenuOpen(false);
-    }
+    // if (
+    //   mobileMenuRef.current &&
+    //   !mobileMenuRef.current.contains(event.target as Node) ||
+    //   mobileMenuToggleRef.current &&
+    //   !mobileMenuToggleRef.current.contains(event.target as Node)
+    // ) {
+    //   setIsMobileMenuOpen(false);
+    // }
   };
 
   const handleScroll = () => {
@@ -128,7 +131,7 @@ export default function Header() {
               {/* Mobile menu button */}
               <button
                 className="md:hidden"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
                 style={{ color: colors.textPrimary }}
               >
                 {isMobileMenuOpen ? (
@@ -202,6 +205,7 @@ export default function Header() {
                   <button
                     className="p-2 rounded-full transition-all duration-200 hover:bg-gray-100 hover:scale-105"
                     style={{ color: colors.textSecondary }}
+                    ref={mobileMenuToggleRef}
                   >
                     {isAuthenticated ? (
                       <div
