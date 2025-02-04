@@ -33,19 +33,28 @@ export default function Header() {
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuToggleRef = useRef<HTMLButtonElement>(null);
 
+  const [lastScrollY, setLastScrollY] = useState(0);
+
   const handleClickOutside = (event: MouseEvent) => {
-    // if (
-    //   mobileMenuRef.current &&
-    //   !mobileMenuRef.current.contains(event.target as Node) ||
-    //   mobileMenuToggleRef.current &&
-    //   !mobileMenuToggleRef.current.contains(event.target as Node)
-    // ) {
-    //   setIsMobileMenuOpen(false);
-    // }
+    if (
+      mobileMenuRef.current &&
+      !mobileMenuRef.current.contains(event.target as Node) &&
+      mobileMenuToggleRef.current &&
+      !mobileMenuToggleRef.current.contains(event.target as Node)
+    ) {
+      setIsMobileMenuOpen(false);
+    }
   };
 
-  const handleScroll = () => {
-    setIsMobileMenuOpen(false);
+  const handleScroll = (e) => {
+    const scrollThreshold = 150;
+    const currentScrollY = window.scrollY;
+
+    // Only close the menu if it's open AND we're actively scrolling past the threshold
+    if (isMobileMenuOpen && currentScrollY > lastScrollY + scrollThreshold) {
+      setIsMobileMenuOpen(false);
+    }
+    setLastScrollY(currentScrollY);
   };
 
   useEffect(() => {
@@ -57,7 +66,7 @@ export default function Header() {
       document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [isMobileMenuOpen]);
 
   const isFeaturedCategoriesInPath =
     window.location.hash === "#featured-categories";
@@ -405,14 +414,17 @@ export default function Header() {
             {isMobileMenuOpen && (
               <div
                 ref={mobileMenuRef}
-                className="md:hidden py-4 border-t"
-                style={{ borderColor: colors.border }}
+                className="md:hidden z-50 absolute left-0 top-full w-full py-4 px-4 border-y"
+                style={{
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                }}
               >
                 {navigation.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="block py-2 transition-colors duration-200"
+                    className="block transition-colors py-2 duration-200"
                     style={{
                       color:
                         pathname === item.href
