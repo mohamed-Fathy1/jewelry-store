@@ -106,6 +106,18 @@ export default function ShopPage() {
             </div>
           ) : (
             <>
+            {products.length === 0 ? (
+              <div className="col-span-full text-center py-20">
+                <h2 className="text-2xl font-bold mb-4" style={{ color: colors.textPrimary }}>
+                  No Products Available
+                </h2>
+                <p className="text-lg" style={{ color: colors.textSecondary }}>
+                  Please check back later or explore other categories.
+                </p>
+              </div>
+            ) : (
+              <>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => (
                   <ProductCard key={product._id} product={product} />
@@ -138,6 +150,8 @@ export default function ShopPage() {
                   )}
                 </div>
               )}
+              </>
+            )}
             </>
           )}
         </div>
