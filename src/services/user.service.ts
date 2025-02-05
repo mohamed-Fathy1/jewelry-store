@@ -16,9 +16,9 @@ export const userService = {
     };
   },
 
-  async updateProfile(data: any): Promise<UserResponse> {
+  async updateProfile(data: any, id: string): Promise<UserResponse> {
     const response = await api.patch<UserResponse>(
-      `/user/update-user-information`,
+      `/user/update-user-information/${id}`,
       data
     );
     return response.data;
