@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Product } from "@/types/product.types";
 import { productService } from "@/services/product.service";
 import { colors } from "@/constants/colors";
@@ -9,6 +10,7 @@ import FilterSidebar from "@/components/shop/FilterSidebar";
 import SortDropdown from "@/components/shop/SortDropdown";
 
 export default function ShopPage() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
@@ -26,12 +28,25 @@ export default function ShopPage() {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const hasActiveFilters = Object.values(activeFilters).some((filter) =>
-          Array.isArray(filter) ? filter.length > 0 : filter !== ""
-        );
-
+        const categoryId = searchParams.get("categoryId");
+        const isSale = searchParams.get("sale");
         let response;
-        if (hasActiveFilters) {
+
+        if (categoryId) {
+          // If we have a category ID, fetch products for that category
+          response = await productService.getProductsByCategoryId(
+            categoryId,
+            currentPage
+          );
+        } else if (isSale === "true") {
+          // If we're viewing sale items
+          response = await productService.getAllSaleProducts(currentPage);
+        } else if (
+          Object.values(activeFilters).some((filter) =>
+            Array.isArray(filter) ? filter.length > 0 : filter !== ""
+          )
+        ) {
+          // If we have active filters
           response = await productService.getFilteredProducts(
             {
               ...activeFilters,
@@ -40,6 +55,7 @@ export default function ShopPage() {
             currentPage
           );
         } else {
+          // Default: fetch all products
           response = await productService.getAllProducts(currentPage);
         }
 
@@ -55,7 +71,7 @@ export default function ShopPage() {
     };
 
     fetchProducts();
-  }, [currentPage, activeFilters, sortConfig]);
+  }, [currentPage, activeFilters, sortConfig, searchParams]);
 
   const handleFilterChange = (filters: typeof activeFilters) => {
     setActiveFilters(filters);
@@ -91,8 +107,8 @@ export default function ShopPage() {
               <FilterSidebar
                 activeFilters={activeFilters}
                 onFilterChange={handleFilterChange}
-                />
-                </div>
+              />
+            </div>
             <SortDropdown value={sortConfig} onChange={handleSortChange} />
           </div>
 
@@ -106,52 +122,59 @@ export default function ShopPage() {
             </div>
           ) : (
             <>
-            {products.length === 0 ? (
-              <div className="col-span-full text-center py-20">
-                <h2 className="text-2xl font-bold mb-4" style={{ color: colors.textPrimary }}>
-                  No Products Available
-                </h2>
-                <p className="text-lg" style={{ color: colors.textSecondary }}>
-                  Please check back later or explore other categories.
-                </p>
-              </div>
-            ) : (
-              <>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product) => (
-                  <ProductCard key={product._id} product={product} />
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-8 flex justify-center space-x-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`px-4 py-2 rounded-md transition-colors ${
-                          currentPage === page ? "bg-brown text-white" : ""
-                        }`}
-                        style={{
-                          backgroundColor:
-                            currentPage === page ? colors.brown : "transparent",
-                          color:
-                            currentPage === page
-                              ? colors.textLight
-                              : colors.textPrimary,
-                        }}
-                      >
-                        {page}
-                      </button>
-                    )
-                  )}
+              {products.length === 0 ? (
+                <div className="col-span-full text-center py-20">
+                  <h2
+                    className="text-2xl font-bold mb-4"
+                    style={{ color: colors.textPrimary }}
+                  >
+                    No Products Available
+                  </h2>
+                  <p
+                    className="text-lg"
+                    style={{ color: colors.textSecondary }}
+                  >
+                    Please check back later or explore other categories.
+                  </p>
                 </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {products.map((product) => (
+                      <ProductCard key={product._id} product={product} />
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="mt-8 flex justify-center space-x-2">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                        (page) => (
+                          <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`px-4 py-2 rounded-md transition-colors ${
+                              currentPage === page ? "bg-brown text-white" : ""
+                            }`}
+                            style={{
+                              backgroundColor:
+                                currentPage === page
+                                  ? colors.brown
+                                  : "transparent",
+                              color:
+                                currentPage === page
+                                  ? colors.textLight
+                                  : colors.textPrimary,
+                            }}
+                          >
+                            {page}
+                          </button>
+                        )
+                      )}
+                    </div>
+                  )}
+                </>
               )}
-              </>
-            )}
             </>
           )}
         </div>

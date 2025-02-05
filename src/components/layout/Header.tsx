@@ -19,6 +19,12 @@ import { useCart } from "@/contexts/CartContext";
 import PromoBanner from "./PromoBanner";
 import { useRouter } from "next/navigation";
 
+const StarIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+    <path d="M12 1.89l2.75 6.6 7.25.79-5.5 4.83 1.65 7-6.15-3.79-6.15 3.79 1.65-7-5.5-4.83 7.25-.79z" />
+  </svg>
+);
+
 export default function Header() {
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -108,12 +114,16 @@ export default function Header() {
     { name: "Home", href: "/" },
     { name: "Shop", href: "/shop" },
     {
+      name: "Sale",
+      href: "/shop?sale=true",
+      isSpecial: true,
+    },
+    {
       name: "Collections",
       href: "/#featured-categories",
       onClick: handleScrollToFeaturedCategories,
     },
     { name: "About", href: "/about" },
-    { name: "Contact", href: "/contact" },
   ];
 
   const handleLogout = async () => {
@@ -168,15 +178,41 @@ export default function Header() {
                     key={item.name}
                     href={item.href}
                     onClick={item.onClick}
-                    className="transition-colors duration-300"
+                    className={`transition-colors duration-300 ${
+                      item.isSpecial ? "relative group flex items-center" : ""
+                    }`}
                     style={{
-                      color:
-                        pathname === item.href
-                          ? colors.textPrimary
-                          : colors.textSecondary,
+                      color: item.isSpecial
+                        ? `${colors.gold}dd`
+                        : pathname === item.href
+                        ? colors.textPrimary
+                        : colors.textSecondary,
                     }}
                   >
+                    {item.isSpecial && (
+                      <StarIcon className="w-3 h-3 absolute -left-1 -top-1 transition-opacity duration-300" />
+                    )}
                     {item.name}
+                    {item.isSpecial && (
+                      <>
+                        <StarIcon className="w-3 h-3 absolute -right-1 -bottom-1 transition-opacity duration-300" />
+                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-200 to-transparent opacity-30 animate-shine-slow" />
+                        <span className="absolute -bottom-0.5 left-0 w-full h-0.5 bg-gradient-to-r from-yellow-400 to-yellow-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+                        <style jsx>{`
+                          @keyframes shine {
+                            from {
+                              transform: translateX(-100%);
+                            }
+                            to {
+                              transform: translateX(100%);
+                            }
+                          }
+                          .animate-shine-slow {
+                            animation: shine 3s infinite linear;
+                          }
+                        `}</style>
+                      </>
+                    )}
                   </Link>
                 ))}
               </div>
@@ -424,16 +460,27 @@ export default function Header() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="block transition-colors py-2 duration-200"
+                    className={`block transition-colors py-2 duration-200 ${
+                      item.isSpecial
+                        ? "relative group overflow-hidden flex items-center"
+                        : ""
+                    }`}
                     style={{
-                      color:
-                        pathname === item.href
-                          ? colors.textPrimary
-                          : colors.textSecondary,
+                      color: item.isSpecial
+                        ? `${colors.gold}dd`
+                        : pathname === item.href
+                        ? colors.textPrimary
+                        : colors.textSecondary,
                     }}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
+                    {item.isSpecial && (
+                      <StarIcon className="w-3 h-3 mr-1 animate-twinkle" />
+                    )}
                     {item.name}
+                    {item.isSpecial && (
+                      <span className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-100 to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
+                    )}
                   </Link>
                 ))}
               </div>

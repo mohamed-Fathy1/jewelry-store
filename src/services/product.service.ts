@@ -49,7 +49,18 @@ export const productService = {
     return response.data;
   },
 
-  // Get products by category
+  // Get products by category ID
+  async getProductsByCategoryId(
+    categoryId: string,
+    page: number = 1
+  ): Promise<ProductsResponse> {
+    const response = await axiosInstance.get<ProductsResponse>(
+      `/public/product/get-category/${categoryId}?page=${page}`
+    );
+    return response.data;
+  },
+
+  // Get products by category slug (keeping for backwards compatibility)
   async getProductsByCategory(
     categorySlug: string,
     page: number = 1
@@ -107,18 +118,6 @@ export const productService = {
 
     const response = await axiosInstance.get<ProductsResponse>(
       `/public/product?${queryParams.toString()}`
-    );
-    return response.data;
-  },
-
-  // Sort products
-  async getSortedProducts(
-    sortBy: string = "createdAt",
-    sortOrder: "asc" | "desc" = "desc",
-    page: number = 1
-  ): Promise<ProductsResponse> {
-    const response = await axiosInstance.get<ProductsResponse>(
-      `/public/product/sort?sortBy=${sortBy}&sortOrder=${sortOrder}&page=${page}`
     );
     return response.data;
   },

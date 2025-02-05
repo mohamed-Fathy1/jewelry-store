@@ -33,7 +33,9 @@ export default function FilterSidebar({
   activeFilters,
   onFilterChange,
 }: FilterSidebarProps) {
-  const [expandedSection, setExpandedSection] = useState<string | null>("price");
+  const [expandedSection, setExpandedSection] = useState<string | null>(
+    "price"
+  );
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isPricePopupOpen, setIsPricePopupOpen] = useState(false); // State for price popup
 
@@ -86,24 +88,6 @@ export default function FilterSidebar({
         }}
       >
         <span className="font-medium">Filters</span>
-        <div className="flex items-center">
-          {getActiveFiltersCount() > 0 && (
-            <span
-              className="mr-2 px-2 py-1 rounded-full text-sm"
-              style={{
-                backgroundColor: colors.brown,
-                color: colors.textLight,
-              }}
-            >
-              {getActiveFiltersCount()}
-            </span>
-          )}
-          <ChevronDownIcon
-            className={`w-5 h-5 transition-transform duration-200 ${
-              isMobileFiltersOpen ? "rotate-180" : ""
-            }`}
-          />
-        </div>
       </button>
 
       {/* Mobile Price Filter Button */}
@@ -144,6 +128,19 @@ export default function FilterSidebar({
               </label>
             ))}
             <button
+              onClick={() =>
+                onFilterChange({
+                  material: [],
+                  style: [],
+                  priceRange: "",
+                })
+              }
+              className="text-sm hover:underline transition-all duration-200 w-full text-left"
+              style={{ color: colors.textSecondary }}
+            >
+              Clear filters
+            </button>
+            <button
               onClick={() => setIsPricePopupOpen(false)}
               className="mt-4 py-2 px-4 rounded-md w-full text-center"
               style={{
@@ -158,9 +155,7 @@ export default function FilterSidebar({
       )}
 
       {/* Filters Content */}
-      <div
-        className={`hidden space-y-6 md:block`}
-      >
+      <div className={`hidden space-y-6 md:block`}>
         {Object.entries(filterOptions).map(([category, options]) => (
           <div
             key={category}
@@ -206,7 +201,10 @@ export default function FilterSidebar({
                     onChange={() =>
                       category === "price"
                         ? handlePriceRangeChange(option.value!)
-                        : toggleFilter(category as "material" | "style", option.name)
+                        : toggleFilter(
+                            category as "material" | "style",
+                            option.name
+                          )
                     }
                     style={{
                       borderColor: colors.border,

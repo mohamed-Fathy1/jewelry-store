@@ -93,7 +93,7 @@ export default function FeaturedCategories() {
                 </h3>
 
                 <Link
-                  href={`/shop?category=${category.slug}`}
+                  href={`/shop?categoryId=${category._id}`}
                   className="py-1 px-4 text-sm md:text-base md:px-6 md:py-2 rounded md:rounded-md font-medium transform transition-all duration-300 hover:scale-105"
                   style={{
                     backgroundColor: colors.background,

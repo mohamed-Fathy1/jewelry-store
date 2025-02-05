@@ -25,7 +25,7 @@ const TarnishingPromo: React.FC = () => {
           <div className="w-fit md:w-full relative">
             {/* Bottom image - Necklaces */}
             {/* Top image - Ring, positioned to overlap */}
-            <div className="w-[300px] md:w-full">
+            <div className="min-w-[250px] md:w-full">
               <div className="absolute -right-1/4 bottom-1/2 aspect-square w-2/3 max-w-[300px]">
                 <Image
                   src="/images/IMG_2953.JPG"

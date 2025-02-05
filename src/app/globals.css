@@ -9,6 +9,10 @@
   --foreground: #171717;
 }
 
+* {
+  /* outline: 1px solid lightgreen; */
+}
+
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 30px;

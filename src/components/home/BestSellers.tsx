@@ -168,7 +168,7 @@ export default function BestSellers() {
       </div>
       <div className="text-center mt-12">
         <Link
-          href="/shop"
+          href="/shop?sale=true"
           className="inline-block px-8 py-3 rounded-md transition-colors duration-200"
           style={{ backgroundColor: colors.brown, color: colors.textLight }}
         >
