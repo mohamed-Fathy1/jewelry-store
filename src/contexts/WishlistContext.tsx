@@ -35,17 +35,22 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const removeFromWishlist = async (id: string) => {
+    setWishlist((prev) => {
+      console.log(prev);
+      return prev.filter((_id) => _id !== id);
+    });
+  };
+
   const toggleWishlist = async (productId: string) => {
     try {
       if (wishlist.includes(productId)) {
-        setWishlist((prev) => prev.filter((id) => id !== productId));
+        removeFromWishlist(productId);
         await wishlistService.deleteFavoriteProduct(productId);
-        setWishlist((prev) => prev.filter((id) => id !== productId));
         toast.success("Item removed from wishlist");
       } else {
         setWishlist((prev) => [...prev, productId]);
         await wishlistService.addFavoriteProduct(productId);
-        setWishlist((prev) => [...prev, productId]);
         toast.success("Item added to wishlist");
       }
     } catch (error) {
