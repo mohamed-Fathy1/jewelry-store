@@ -11,7 +11,20 @@ import AddressPopup from "@/components/profile/AddressPopup";
 import { useUser } from "@/contexts/UserContext";
 import { userService } from "@/services/user.service";
 
-export default function AddressManager({ addresses }) {
+interface IAddress {
+  _id?: string;
+  firstName: string;
+  lastName: string;
+  apartmentSuite?: string;
+  governorate: string;
+  address: string;
+  postalCode: string;
+  primaryPhone: string;
+  secondaryPhone?: string;
+  isDefault?: boolean;
+}
+
+export default function AddressManager({ addresses }: IAddress) {
   // const [addresses, setAddresses] = useState<Address[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -169,9 +182,18 @@ export default function AddressManager({ addresses }) {
             <div className="space-y-2">
               <p style={{ color: colors.textPrimary }}>{address.street}</p>
               <p style={{ color: colors.textSecondary }}>
-                {address.city}, {address.state} {address.postalCode}
+                <p className="truncate">
+                  {address.firstName} {address.lastName} {address.governorate}
+                </p>
+
+                <p className="truncate">
+                  {address.address}, {address.apartmentSuite}{" "}
+                  {address.postalCode}{" "}
+                  <span style={{ color: colors.textSecondary }}>
+                    ,{address.country}
+                  </span>
+                </p>
               </p>
-              <p style={{ color: colors.textSecondary }}>{address.country}</p>
             </div>
             <div className="mt-4 flex space-x-2">
               <Button

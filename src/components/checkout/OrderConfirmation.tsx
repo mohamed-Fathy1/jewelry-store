@@ -4,7 +4,7 @@ import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 import { colors } from "@/constants/colors";
 
-interface ShippingData {
+interface ISelectedAddress {
   _id?: string;
   firstName: string;
   lastName: string;
@@ -17,20 +17,19 @@ interface ShippingData {
   isDefault?: boolean;
 }
 
-interface PaymentData {
-  paymentMethod: string;
-}
-
 interface Props {
-  shippingData: ShippingData;
-  paymentData: PaymentData;
+  selectedAddress: ISelectedAddress;
+  shippingData: any;
 }
 
-export default function OrderConfirmation({ shippingData }: Props) {
-  const orderNumber = `ORD${Math.random()
-    .toString(36)
-    .substr(2, 9)
-    .toUpperCase()}`;
+export default function OrderConfirmation({
+  selectedAddress,
+  shippingData,
+}: Props) {
+  // const orderNumber = `ORD${Math.random()
+  //   .toString(36)
+  //   .substr(2, 9)
+  //   .toUpperCase()}`;
 
   return (
     <div className="text-center space-y-6">
@@ -67,7 +66,7 @@ export default function OrderConfirmation({ shippingData }: Props) {
               className="text-lg font-medium"
               style={{ color: colors.textPrimary }}
             >
-              {orderNumber}
+              {shippingData._id}
             </p>
           </div>
 
@@ -79,13 +78,16 @@ export default function OrderConfirmation({ shippingData }: Props) {
               Shipping Address
             </h3>
             <p className="text-lg" style={{ color: colors.textPrimary }}>
-              {shippingData.firstName} {shippingData.lastName}
+              {selectedAddress.firstName} {selectedAddress.lastName}
               <br />
-              {shippingData.address && `, ${shippingData.apartmentSuite}`}
+              {selectedAddress.address && selectedAddress.address}
+              {selectedAddress.apartmentSuite &&
+                `, ${selectedAddress.apartmentSuite}`}
               <br />
-              {shippingData.governorate}, {shippingData.postalCode}
+              {shippingData.shipping.category}, {selectedAddress.governorate}{" "}
+              {selectedAddress.postalCode && `, ${selectedAddress.postalCode}`}
               <br />
-              {shippingData.primaryPhone}
+              {selectedAddress.primaryPhone}
             </p>
           </div>
 
@@ -115,7 +117,7 @@ export default function OrderConfirmation({ shippingData }: Props) {
           Continue Shopping
         </Link>
         <Link
-          href={`/account/orders/${orderNumber}`}
+          href={`/account/orders/${shippingData._id}`}
           className="px-6 py-3 rounded-md transition-colors duration-200"
           style={{
             backgroundColor: colors.brown,

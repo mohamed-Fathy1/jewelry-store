@@ -80,7 +80,10 @@ export default function CheckoutPage() {
       toast.error("please select a shpping method");
       return;
     }
-    setShippingData(data);
+    if (!selectedAddress) {
+      toast.error("please select a shpping address");
+      return;
+    }
     setCurrentStep("payment");
   };
 
@@ -106,6 +109,7 @@ export default function CheckoutPage() {
         setOrderMessage(result.message);
         toast.success(result.message);
         clearCart();
+        setShippingData(result.data.order);
         setCurrentStep("confirmation");
       } else {
         toast.error(result.message);
@@ -235,8 +239,8 @@ export default function CheckoutPage() {
           )}
           {currentStep === "confirmation" && shippingData && (
             <OrderConfirmation
-              shippingData={selectedAddress}
-              paymentData={paymentData}
+              selectedAddress={selectedAddress}
+              shippingData={shippingData}
             />
           )}
         </div>
