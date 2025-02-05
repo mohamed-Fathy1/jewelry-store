@@ -107,7 +107,7 @@ export default function AccountOrders() {
                 Total
               </p>
               <p className="font-medium" style={{ color: colors.textPrimary }}>
-                ${order.price.toFixed(2)}
+                EGP{order.price.toFixed(2)}
               </p>
             </div>
             <div>
@@ -145,7 +145,7 @@ export default function AccountOrders() {
                     Quantity: {item.quantity}
                   </p>
                   <p className="mt-1" style={{ color: colors.textPrimary }}>
-                    ${item.itemPrice.toFixed(2)}
+                    EGP{item.itemPrice.toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -164,7 +164,7 @@ export default function AccountOrders() {
             >
               Track Order
             </Link>
-            <button
+            {/* <button
               className="px-4 py-2 rounded-md border transition-colors duration-200"
               style={{
                 borderColor: colors.border,
@@ -172,7 +172,7 @@ export default function AccountOrders() {
               }}
             >
               View Invoice
-            </button>
+            </button> */}
           </div>
         </div>
       ))}

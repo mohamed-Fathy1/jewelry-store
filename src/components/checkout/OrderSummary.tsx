@@ -87,7 +87,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
                   className="text-sm font-medium"
                   style={{ color: colors.textPrimary }}
                 >
-                  ${(item.price * item.quantity).toFixed(2)}
+                  EGP{(item.price * item.quantity).toFixed(2)}
                 </p>
               </div>
             </div>
@@ -103,7 +103,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
         <div className="flex justify-between">
           <span style={{ color: colors.textSecondary }}>Subtotal</span>
           <span style={{ color: colors.textPrimary }}>
-            ${subtotal.toFixed(2)}
+            EGP{subtotal.toFixed(2)}
           </span>
         </div>
         <div className="flex justify-between">
@@ -118,7 +118,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
               }}
             >
               {selectedShipping
-                ? "$" + selectedShipping.cost
+                ? "EGP" + selectedShipping.cost
                 : isShippingFree
                 ? ""
                 : "Select Shipping Method"}
@@ -136,7 +136,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
         </div>
         <div className="flex justify-between">
           <span style={{ color: colors.textSecondary }}>Tax</span>
-          <span style={{ color: colors.textPrimary }}>${tax.toFixed(2)}</span>
+          <span style={{ color: colors.textPrimary }}>EGP{tax.toFixed(2)}</span>
         </div>
         {discount > 0 && (
           <div className="flex justify-between">
@@ -144,7 +144,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
               Discount {total >= 1500 && "(10%)"}
             </span>
             <span className="text-shadow-light" style={{ color: colors.gold }}>
-              -${discount.toFixed(2)}
+              -EGP{discount.toFixed(2)}
             </span>
           </div>
         )}
@@ -156,7 +156,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
           <span style={{ color: colors.textPrimary }}>
             {discount > 0 ? (
               <span style={{ textDecoration: "line-through" }}>
-                ${total.toFixed(2)}
+                EGP{total.toFixed(2)}
               </span>
             ) : null}
             <span
@@ -166,7 +166,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
                 color: discount > 0 ? colors.gold : colors.textPrimary,
               }}
             >
-              ${finalTotal.toFixed(2)}
+              EGP{finalTotal.toFixed(2)}
             </span>
           </span>
         </div>

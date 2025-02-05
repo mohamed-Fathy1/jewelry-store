@@ -8,6 +8,7 @@ import { colors } from "@/constants/colors";
 import ProductCard from "@/components/product/ProductCard";
 import FilterSidebar from "@/components/shop/FilterSidebar";
 import SortDropdown from "@/components/shop/SortDropdown";
+import Pagination from "@/components/common/Pagination";
 
 export default function ShopPage() {
   const searchParams = useSearchParams();
@@ -145,34 +146,12 @@ export default function ShopPage() {
                     ))}
                   </div>
 
-                  {/* Pagination */}
-                  {totalPages > 1 && (
-                    <div className="mt-8 flex justify-center space-x-2">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                        (page) => (
-                          <button
-                            key={page}
-                            onClick={() => handlePageChange(page)}
-                            className={`px-4 py-2 rounded-md transition-colors ${
-                              currentPage === page ? "bg-brown text-white" : ""
-                            }`}
-                            style={{
-                              backgroundColor:
-                                currentPage === page
-                                  ? colors.brown
-                                  : "transparent",
-                              color:
-                                currentPage === page
-                                  ? colors.textLight
-                                  : colors.textPrimary,
-                            }}
-                          >
-                            {page}
-                          </button>
-                        )
-                      )}
-                    </div>
-                  )}
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    className="mt-8"
+                  />
                 </>
               )}
             </>

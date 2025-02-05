@@ -123,7 +123,7 @@ export default function Header() {
       href: "/#featured-categories",
       onClick: handleScrollToFeaturedCategories,
     },
-    { name: "About", href: "/about" },
+    { name: "About Us", href: "/about" },
   ];
 
   const handleLogout = async () => {
@@ -164,7 +164,7 @@ export default function Header() {
               <Link href="/" className="text-2xl font-semibold">
                 <Image
                   src="/logo.jpg"
-                  alt="Luxury Jewelry Store Logo"
+                  alt="Atozaccessories Jewelry Store"
                   width={60}
                   height={60}
                   className="h-8 w-auto"

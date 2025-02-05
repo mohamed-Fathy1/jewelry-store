@@ -235,7 +235,7 @@ export default function CheckoutPage() {
           )}
           {currentStep === "confirmation" && shippingData && (
             <OrderConfirmation
-              shippingData={shippingData}
+              shippingData={selectedAddress}
               paymentData={paymentData}
             />
           )}

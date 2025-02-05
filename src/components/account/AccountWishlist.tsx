@@ -8,6 +8,7 @@ import { colors } from "@/constants/colors";
 import toast from "react-hot-toast";
 import { wishlistService } from "@/services/wishlist.service";
 import { useWishlist } from "@/contexts/WishlistContext";
+import Pagination from "@/components/common/Pagination";
 
 export default function AccountWishlist() {
   const { toggleWishlist } = useWishlist();
@@ -155,27 +156,12 @@ export default function AccountWishlist() {
         ))}
       </div>
 
-      <div className="flex justify-between mt-4">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="px-4 py-2 rounded-md bg-gray-300 text-gray-700 disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span>
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
-          disabled={currentPage === totalPages}
-          className="px-4 py-2 rounded-md bg-gray-300 text-gray-700 disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        className="mt-4"
+      />
     </div>
   );
 }

@@ -26,7 +26,10 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
   };
 
   return (
-    <Menu as="div" className="relative inline-block text-left z-10">
+    <Menu
+      as="div"
+      className="relative inline-block text-left z-10 mr-3 md:mr-2"
+    >
       <Menu.Button
         className="group inline-flex justify-center text-sm font-medium transition-colors duration-200 hover:text-[--text-secondary]"
         style={{ color: colors.textPrimary }}

@@ -5,13 +5,16 @@ import Link from "next/link";
 import { colors } from "@/constants/colors";
 
 interface ShippingData {
+  _id?: string;
   firstName: string;
   lastName: string;
+  apartmentSuite?: string;
+  governorate: string;
   address: string;
-  apartment?: string;
-  city: string;
-  state: string;
-  zipCode: string;
+  postalCode: string;
+  primaryPhone: string;
+  secondaryPhone?: string;
+  isDefault?: boolean;
 }
 
 interface PaymentData {
@@ -78,10 +81,11 @@ export default function OrderConfirmation({ shippingData }: Props) {
             <p className="text-lg" style={{ color: colors.textPrimary }}>
               {shippingData.firstName} {shippingData.lastName}
               <br />
-              {shippingData.address}
-              {shippingData.apartment && `, ${shippingData.apartment}`}
+              {shippingData.address && `, ${shippingData.apartmentSuite}`}
               <br />
-              {shippingData.city}, {shippingData.state} {shippingData.zipCode}
+              {shippingData.governorate}, {shippingData.postalCode}
+              <br />
+              {shippingData.primaryPhone}
             </p>
           </div>
 
