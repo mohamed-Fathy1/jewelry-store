@@ -230,6 +230,7 @@ export default function AddressManager({ addresses }: IAddress) {
           onClose={() => setIsPopupOpen(false)}
           address={editingAddress}
           onAddressUpdated={handleEditAddress}
+          makeDefault={setDefaultAddressId}
         />
       ) : null}
     </div>

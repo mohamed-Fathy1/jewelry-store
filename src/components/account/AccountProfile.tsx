@@ -9,7 +9,7 @@ import AddressPopup from "@/components/profile/AddressPopup";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function AccountProfile() {
-  const { user, getProfile, defaultAddressId } = useUser();
+  const { user, getProfile, defaultAddressId, setDefaultAddressId } = useUser();
   const { authUser } = useAuth();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
@@ -77,6 +77,7 @@ export default function AccountProfile() {
             setEditingAddress(null);
             setIsPopupOpen(false);
           }}
+          makeDefault={setDefaultAddressId}
         />
       )}
     </div>

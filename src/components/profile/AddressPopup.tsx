@@ -65,6 +65,7 @@ interface AddressPopupProps {
   address?: Address | null;
   onAddressUpdated: () => void;
   setAddresses: any;
+  makeDefault: (id: string) => void;
 }
 
 export default function AddressPopup({
@@ -73,6 +74,7 @@ export default function AddressPopup({
   address,
   onAddressUpdated,
   setAddresses,
+  makeDefault,
 }: AddressPopupProps) {
   const [formData, setFormData] = useState<Omit<Address, "_id">>({
     firstName: address?.firstName || "",
@@ -84,8 +86,15 @@ export default function AddressPopup({
     primaryPhone: address?.primaryPhone || "",
     secondaryPhone: address?.secondaryPhone || "",
   });
+  const [isDefaultAddress, setIsDefaultAddress] = useState(false);
 
-  const { user } = useUser();
+  const { user, defaultAddressId } = useUser();
+
+  useEffect(() => {
+    if (address?._id === defaultAddressId) {
+      setIsDefaultAddress(true);
+    }
+  }, [address]);
 
   useEffect(() => {
     console.log("address", address);
@@ -98,11 +107,19 @@ export default function AddressPopup({
       if (address?._id) {
         console.log("address.Id", address?._id);
 
+        if (isDefaultAddress) makeDefault(address._id);
+
+        if (!isDefaultAddress && defaultAddressId === address._id) {
+          console.log("yess");
+
+          makeDefault(null);
+        }
         await userService.updateProfile(formData, address._id);
         toast.success("Address updated successfully");
       } else {
         console.log("useriD", user._id);
-        await userService.addProfile(formData);
+        const res = await userService.addProfile(formData);
+        if (isDefaultAddress) makeDefault(res.data.user._id);
         toast.success("Address added successfully");
       }
       // setAddresses((prev) => [...prev, formData]);
@@ -246,14 +263,19 @@ export default function AddressPopup({
             </div>
           </div>
           <div className="flex items-center">
-            <input
-              type="checkbox"
-              checked={formData.isDefault}
-              onChange={(e) =>
-                setFormData({ ...formData, isDefault: e.target.checked })
-              }
-            />
-            <label className="ml-2">Set as default address</label>
+            <div className="flex items-center">
+              <input
+                id="defaultCheckbox"
+                name="default"
+                type="checkbox"
+                checked={isDefaultAddress}
+                onChange={(e) => setIsDefaultAddress((prev) => !prev)}
+                className="mr-2"
+              />
+              <label htmlFor="defaultCheckbox" className="ml-2">
+                Set as default address
+              </label>
+            </div>
           </div>
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="secondary" onClick={onClose}>
