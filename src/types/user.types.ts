@@ -1,9 +1,10 @@
 export interface User {
   _id: string;
   email: string;
-  role: "user" | "admin";
-  createdAt: string;
-  updatedAt: string;
+  role?: "user" | "admin" | "product_manager" | "order_manager";
+  accessToken?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface UserResponse {

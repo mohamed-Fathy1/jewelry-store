@@ -2,8 +2,6 @@
 
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UserProvider } from "@/contexts/UserContext";
@@ -14,6 +12,8 @@ import { useEffect } from "react";
 import { CheckoutProvider } from "@/contexts/CheckoutContext";
 import CheckoutPage from "./checkout/page";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import { colors } from "@/constants/colors";
+import LayoutWrapper from "@/components/layout/LayoutWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,7 +36,11 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className={inter.className} suppressHydrationWarning>
+      <body
+        className={inter.className}
+        style={{ backgroundColor: colors.background }}
+        suppressHydrationWarning
+      >
         <AuthProvider>
           <UserProvider>
             <CategoryProvider>
@@ -44,11 +48,7 @@ export default function RootLayout({
                 <CartProvider>
                   <CheckoutProvider>
                     <WishlistProvider>
-                      <div className="min-h-screen flex flex-col">
-                        <Header />
-                        <main className="flex-grow">{children}</main>
-                        <Footer />
-                      </div>
+                      <LayoutWrapper>{children}</LayoutWrapper>
                     </WishlistProvider>
                   </CheckoutProvider>
                 </CartProvider>

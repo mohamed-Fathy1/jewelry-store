@@ -12,6 +12,7 @@ import LoadingSpinner from "../components/LoadingSpinner"; // Import the new loa
 import axios, { AxiosError } from "axios";
 import api from "@/lib/axios";
 import { useRouter, usePathname } from "next/navigation";
+import { decodeToken, checkTokenExpiration } from "@/utils/auth.utils";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -204,6 +205,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initAuth();
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token && checkTokenExpiration(token)) {
+      const decoded = decodeToken(token);
+      if (decoded) {
+        setAuthUser(decoded.user);
+      }
+    }
+    setIsLoading(false);
   }, []);
 
   if (isLoading) {

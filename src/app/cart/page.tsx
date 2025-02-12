@@ -5,18 +5,10 @@ import { colors } from "@/constants/colors";
 import Image from "next/image";
 import Link from "next/link";
 import { MinusIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { formatPrice } from "@/utils/format";
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
-
-  const formatPrice = (price: number) => {
-    return price.toLocaleString("en-US", {
-      style: "currency",
-      currency: "EGP",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  };
 
   if (cart.items.length === 0) {
     return (

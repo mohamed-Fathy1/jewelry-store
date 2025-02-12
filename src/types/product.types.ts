@@ -15,23 +15,15 @@ export interface Product {
   _id: string;
   productName: string;
   productDescription: string;
-  availableItems: number;
   price: number;
-  salePrice: number;
-  discount: number;
-  discountPercentage: number;
-  soldItems: number;
-  isSoldOut: boolean;
-  isSale: boolean;
-  expiredSale: number;
-  isExpiredSale: boolean;
-  category: Category | string;
-  createdBy: string;
-  slug: string;
-  defaultImage: Media;
-  albumImages: Media[];
-  createdAt: number;
-  id: string;
+  availableItems: number;
+  salePrice?: number;
+  expiredSale?: number;
+  categoryId: string;
+  defaultImage: string;
+  albumImages: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ProductFilters {
@@ -45,18 +37,15 @@ export interface ProductFilters {
   limit?: number;
 }
 
-export interface ProductsResponse {
-  statusCode: number;
-  data: {
-    products: {
-      totalItems: number;
-      totalPages: number;
-      currentPage: number;
-      data: Product[];
-    };
-  };
-  message: string;
+export interface ProductResponse {
   success: boolean;
+  message: string;
+  data: {
+    product?: Product;
+    products?: Product[];
+    total?: number;
+    perPage?: number;
+  };
 }
 
 export interface SingleProductResponse {
