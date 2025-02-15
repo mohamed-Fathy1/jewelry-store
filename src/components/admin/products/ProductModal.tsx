@@ -9,11 +9,26 @@ import toast from "react-hot-toast";
 import { colors } from "@/constants/colors";
 import ImageUpload from "./ImageUpload";
 import { categoryService } from "@/services/category.service";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import Image from "next/image";
 
 interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   product?: Product | null;
+}
+
+interface CreateProductData {
+  productName: string;
+  productDescription: string;
+  price: number;
+  availableItems: number;
+  salePrice?: number;
+  expiredSale?: string;
+  categoryId: string;
+  defaultImage: string;
+  albumImages: string[];
 }
 
 export default function ProductModal({
@@ -27,7 +42,7 @@ export default function ProductModal({
     price: "",
     availableItems: "",
     salePrice: "",
-    expiredSale: "",
+    expiredSale: null as Date | null,
     categoryId: "",
     defaultImage: "",
     albumImages: [] as string[],
@@ -56,10 +71,10 @@ export default function ProductModal({
         price: product.price.toString(),
         availableItems: product.availableItems.toString(),
         salePrice: product.salePrice?.toString() || "",
-        expiredSale: product.expiredSale?.toString() || "",
-        categoryId: product.categoryId || "",
+        expiredSale: product.expiredSale ? new Date(product.expiredSale) : null,
+        categoryId: product.category._id,
         defaultImage: product.defaultImage,
-        albumImages: product.albumImages.map((url) => url.mediaUrl) || [],
+        albumImages: product.albumImages || [],
       });
     } else {
       setFormData({
@@ -68,7 +83,7 @@ export default function ProductModal({
         price: "",
         availableItems: "",
         salePrice: "",
-        expiredSale: "",
+        expiredSale: null,
         categoryId: "",
         defaultImage: "",
         albumImages: [],
@@ -81,7 +96,7 @@ export default function ProductModal({
     setIsSubmitting(true);
 
     try {
-      const productData = {
+      const productData: CreateProductData = {
         productName: formData.productName,
         productDescription: formData.productDescription,
         price: parseFloat(formData.price),
@@ -90,11 +105,11 @@ export default function ProductModal({
           ? parseFloat(formData.salePrice)
           : undefined,
         expiredSale: formData.expiredSale
-          ? parseInt(formData.expiredSale)
+          ? formData.expiredSale.getTime().toString()
           : undefined,
         categoryId: formData.categoryId,
-        defaultImage: formData.albumImages[0] || "",
-        albumImages: formData.albumImages,
+        defaultImage: formData.albumImages[0].mediaUrl || "",
+        albumImages: formData.albumImages.map((media) => media.mediaUrl),
       };
 
       if (product) {
@@ -139,7 +154,7 @@ export default function ProductModal({
       <div className="flex items-center justify-center min-h-screen p-4">
         <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
 
-        <div className="relative bg-white rounded-lg w-full max-w-2xl mx-auto p-6">
+        <div className="relative bg-white rounded-lg w-full max-w-3xl mx-auto p-6">
           <div className="flex justify-between items-center mb-4">
             <Dialog.Title
               className="text-xl font-semibold"
@@ -155,7 +170,7 @@ export default function ProductModal({
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Product Name
@@ -227,7 +242,7 @@ export default function ProductModal({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Available Items
@@ -247,20 +262,23 @@ export default function ProductModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Sale Expiry Date
                 </label>
-                <input
-                  type="datetime-local"
-                  value={formData.expiredSale}
-                  onChange={(e) => {
-                    const timestamp = new Date(e.target.value).getTime();
+                <DatePicker
+                  selected={formData.expiredSale}
+                  onChange={(date) =>
                     setFormData((prev) => ({
                       ...prev,
-                      expiredSale: timestamp.toString(),
-                    }));
-                  }}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
+                      expiredSale: date,
+                    }))
+                  }
+                  showTimeSelect
+                  dateFormat="MMMM d, yyyy h:mm aa"
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
+                  placeholderText="Select date and time"
+                  minDate={new Date()}
+                  isClearable
                 />
               </div>
             </div>
@@ -282,7 +300,11 @@ export default function ProductModal({
               >
                 <option value="">Select a category</option>
                 {categories.map((category) => (
-                  <option key={category._id} value={category._id}>
+                  <option
+                    key={category._id}
+                    value={category._id}
+                    selected={category._id === formData.categoryId}
+                  >
                     {category.categoryName}
                   </option>
                 ))}
@@ -298,9 +320,11 @@ export default function ProductModal({
               <div className="grid grid-cols-4 gap-4 mt-4">
                 {formData.albumImages.map((url, index) => (
                   <div key={index} className="relative">
-                    <img
-                      src={url}
+                    <Image
+                      src={url.mediaUrl}
                       alt={`Product ${index + 1}`}
+                      width={96}
+                      height={96}
                       className="w-full h-24 object-cover rounded-md"
                     />
                     <button

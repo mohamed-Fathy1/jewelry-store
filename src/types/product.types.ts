@@ -18,7 +18,7 @@ export interface Product {
   price: number;
   availableItems: number;
   salePrice?: number;
-  expiredSale?: number;
+  expiredSale?: number | string;
   categoryId: string;
   defaultImage: string;
   albumImages: string[];
@@ -55,4 +55,16 @@ export interface SingleProductResponse {
   };
   message: string;
   success: boolean;
+}
+
+export interface CreateProductDto {
+  productName: string;
+  productDescription: string;
+  price: number;
+  availableItems: number;
+  salePrice?: number;
+  expiredSale?: string;
+  categoryId: string;
+  defaultImage: string;
+  albumImages: string[];
 }

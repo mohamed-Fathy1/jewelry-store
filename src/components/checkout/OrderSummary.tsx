@@ -19,7 +19,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
   );
 
   const shipping = selectedShipping ? selectedShipping.cost : 0; // Default shipping cost
-  const total = subtotal + shipping;
+  const total = shipping && !isShippingFree ? subtotal + shipping : subtotal;
 
   // New Discount Logic
   let discount = 0;
@@ -36,13 +36,12 @@ export default function OrderSummary({ orderSummaryPreview }) {
     }
   }, [selectedShipping]);
 
-  if (isShippingFree) {
-    discount += shipping; // Remove shipping cost
-  }
-
   if (total >= 1500) {
     discount += total * 0.1; // 10% discount for total price of 1500 EGP or more
   }
+  // if (isShippingFree) {
+  //   discount += shipping; // Remove shipping cost
+  // }
 
   const finalTotal = total - discount;
 
@@ -155,7 +154,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
           <span style={{ color: colors.textPrimary }}>
             {discount > 0 ? (
               <span style={{ textDecoration: "line-through" }}>
-                EGP{total.toFixed(2)}
+                EGP{(total + shipping).toFixed(2)}
               </span>
             ) : null}
             <span

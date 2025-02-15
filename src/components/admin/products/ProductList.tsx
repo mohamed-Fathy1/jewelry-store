@@ -190,7 +190,7 @@ export default function ProductList({ onEdit }: ProductListProps) {
                           <div className="text-sm font-medium text-gray-900">
                             {formatPrice(product.price)}
                           </div>
-                          {product.salePrice && (
+                          {product.salePrice ? (
                             <div className="flex items-center mt-1">
                               <span className="text-xs text-gray-500 line-through">
                                 {formatPrice(product.salePrice)}
@@ -202,7 +202,7 @@ export default function ProductList({ onEdit }: ProductListProps) {
                                 % OFF
                               </span>
                             </div>
-                          )}
+                          ) : null}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
