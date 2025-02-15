@@ -43,11 +43,11 @@ export default function HeroModal({ isOpen, onClose, slider }: HeroModalProps) {
     try {
       const images = {
         image1: {
-          imageUrl: formData.smallImage,
+          imageUrl: formData.smallImage.mediaUrl,
           imageType: "small" as const,
         },
         image2: {
-          imageUrl: formData.largeImage,
+          imageUrl: formData.largeImage.mediaUrl,
           imageType: "large" as const,
         },
       };
@@ -124,7 +124,7 @@ export default function HeroModal({ isOpen, onClose, slider }: HeroModalProps) {
               {formData.smallImage && (
                 <div className="mt-2">
                   <img
-                    src={formData.smallImage}
+                    src={formData.smallImage.mediaUrl}
                     alt="Small preview"
                     className="h-32 w-full object-cover rounded-lg"
                   />
@@ -141,7 +141,7 @@ export default function HeroModal({ isOpen, onClose, slider }: HeroModalProps) {
               {formData.largeImage && (
                 <div className="mt-2">
                   <img
-                    src={formData.largeImage}
+                    src={formData.largeImage.mediaUrl}
                     alt="Large preview"
                     className="h-32 w-full object-cover rounded-lg"
                   />
