@@ -17,6 +17,7 @@ interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   product?: Product | null;
+  onSuccess?: () => void;
 }
 
 interface CreateProductData {
@@ -35,6 +36,7 @@ export default function ProductModal({
   isOpen,
   onClose,
   product,
+  onSuccess,
 }: ProductModalProps) {
   const [formData, setFormData] = useState({
     productName: "",
@@ -121,6 +123,7 @@ export default function ProductModal({
       }
 
       onClose();
+      onSuccess?.();
     } catch (error) {
       toast.error(
         product ? "Failed to update product" : "Failed to create product"
@@ -131,6 +134,8 @@ export default function ProductModal({
   };
 
   const handleImageUpload = (urls: string[]) => {
+    console.log(urls);
+
     setFormData((prev) => ({
       ...prev,
       albumImages: [...prev.albumImages, ...urls],

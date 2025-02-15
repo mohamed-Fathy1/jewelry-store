@@ -111,7 +111,7 @@ export const adminService = {
       });
 
       await Promise.all(uploadPromises);
-      return presignedUrls.map((objUrl) => objUrl.mediaUrl); // Return the presigned URLs after successful upload
+      return presignedUrls; // Return the presigned URLs after successful upload
     } catch (error) {
       console.error("Error uploading images:", error);
       throw error; // Rethrow the error for further handling

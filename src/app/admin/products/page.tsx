@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import ProductList from "@/components/admin/products/ProductList";
+import ProductList, {
+  ProductListRef,
+} from "@/components/admin/products/ProductList";
 import ProductModal from "@/components/admin/products/ProductModal";
 import { colors } from "@/constants/colors";
 
 export default function ProductsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const listRef = useRef<ProductListRef>(null);
 
   const handleAddProduct = () => {
     setSelectedProduct(null);
@@ -18,6 +21,10 @@ export default function ProductsPage() {
   const handleEditProduct = (product) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
+  };
+
+  const handleSuccess = () => {
+    listRef.current?.fetchProducts();
   };
 
   return (
@@ -39,12 +46,13 @@ export default function ProductsPage() {
         </button>
       </div>
 
-      <ProductList onEdit={handleEditProduct} />
+      <ProductList ref={listRef} onEdit={handleEditProduct} />
 
       <ProductModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         product={selectedProduct}
+        onSuccess={handleSuccess}
       />
     </div>
   );

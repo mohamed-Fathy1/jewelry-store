@@ -13,12 +13,14 @@ interface CategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   category?: Category | null;
+  onSuccess?: () => void;
 }
 
 export default function CategoryModal({
   isOpen,
   onClose,
   category,
+  onSuccess,
 }: CategoryModalProps) {
   const [formData, setFormData] = useState({
     categoryName: "",
@@ -59,6 +61,7 @@ export default function CategoryModal({
       }
 
       onClose();
+      onSuccess?.();
     } catch (error) {
       toast.error(
         category ? "Failed to update category" : "Failed to create category"
