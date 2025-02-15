@@ -124,6 +124,7 @@ export default function Header() {
       onClick: handleScrollToFeaturedCategories,
     },
     { name: "About Us", href: "/about" },
+    { name: "Exchange Policy", href: "/exchange-policy" },
   ];
 
   const handleLogout = async () => {

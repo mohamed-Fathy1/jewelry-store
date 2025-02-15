@@ -72,7 +72,7 @@ export default function ProductModal({
         availableItems: product.availableItems.toString(),
         salePrice: product.salePrice?.toString() || "",
         expiredSale: product.expiredSale ? new Date(product.expiredSale) : null,
-        categoryId: product.category._id,
+        categoryId: product.category?._id,
         defaultImage: product.defaultImage,
         albumImages: product.albumImages || [],
       });
