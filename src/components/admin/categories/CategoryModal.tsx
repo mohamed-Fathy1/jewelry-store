@@ -32,7 +32,7 @@ export default function CategoryModal({
     if (category) {
       setFormData({
         categoryName: category.categoryName,
-        image: category.image.mediaUrl,
+        image: category.image,
       });
     } else {
       setFormData({
@@ -119,7 +119,8 @@ export default function CategoryModal({
                     categoryName: e.target.value,
                   }))
                 }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
+                placeholder="Category Name"
+                className="mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
                 required
               />
             </div>

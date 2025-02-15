@@ -189,7 +189,8 @@ export default function ProductModal({
                     productName: e.target.value,
                   }))
                 }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
+                className="mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
+                placeholder="Product Name"
                 required
               />
             </div>
@@ -206,8 +207,9 @@ export default function ProductModal({
                     productDescription: e.target.value,
                   }))
                 }
+                placeholder="Description"
                 rows={3}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
+                className="mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
               />
             </div>
 
@@ -223,7 +225,8 @@ export default function ProductModal({
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, price: e.target.value }))
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
+                  placeholder="Price"
+                  className="mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
                   required
                 />
               </div>
@@ -242,7 +245,8 @@ export default function ProductModal({
                       salePrice: e.target.value,
                     }))
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
+                  placeholder="Sale Price"
+                  className="mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
                 />
               </div>
             </div>
@@ -261,7 +265,8 @@ export default function ProductModal({
                       availableItems: e.target.value,
                     }))
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
+                  placeholder="Available Items"
+                  className="mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
                   required
                 />
               </div>
@@ -280,7 +285,7 @@ export default function ProductModal({
                   }
                   showTimeSelect
                   dateFormat="MMMM d, yyyy h:mm aa"
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
+                  className="w-full p-1 md:px-2 rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
                   placeholderText="Select date and time"
                   minDate={new Date()}
                   isClearable
@@ -300,7 +305,7 @@ export default function ProductModal({
                     categoryId: e.target.value,
                   }))
                 }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
+                className="mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
                 required
               >
                 <option value="">Select a category</option>

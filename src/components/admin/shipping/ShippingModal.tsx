@@ -105,37 +105,17 @@ export default function ShippingModal({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Region
+                Region Name
               </label>
-              {shipping ? (
-                // If editing, show readonly region
-                <input
-                  type="text"
-                  value={formData.category}
-                  className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 cursor-not-allowed"
-                  disabled
-                />
-              ) : (
-                // If creating new, show region selector
-                <select
-                  value={formData.category}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      category: e.target.value,
-                    }))
-                  }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
-                  required
-                >
-                  <option value="">Select a region</option>
-                  {AVAILABLE_REGIONS.map((region) => (
-                    <option key={region} value={region}>
-                      {region}
-                    </option>
-                  ))}
-                </select>
-              )}
+              <input
+                type="text"
+                value={formData.category}
+                className="mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, category: e.target.value }))
+                }
+                placeholder="Region"
+              />
             </div>
 
             <div>
@@ -149,7 +129,8 @@ export default function ShippingModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, cost: e.target.value }))
                 }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
+                placeholder="Cost"
+                className="mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
                 required
               />
             </div>
