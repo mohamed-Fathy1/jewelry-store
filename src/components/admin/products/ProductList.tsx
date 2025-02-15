@@ -71,7 +71,9 @@ const ProductList = forwardRef<ProductListRef, ProductListProps>(
           }
         }
       } catch (error) {
-        toast.error("Failed to fetch products");
+        console.log(error);
+
+        // toast.error("Failed to fetch products");
       } finally {
         setIsLoading(false);
       }
