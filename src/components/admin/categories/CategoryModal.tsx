@@ -49,7 +49,7 @@ export default function CategoryModal({
     try {
       const categoryData: CreateCategoryDto = {
         categoryName: formData.categoryName,
-        image: formData.image,
+        image: formData.image.mediaUrl,
       };
 
       if (category) {
@@ -133,7 +133,7 @@ export default function CategoryModal({
               {formData.image && (
                 <div className="mt-4">
                   <img
-                    src={formData.image}
+                    src={formData.image.mediaUrl}
                     alt="Category"
                     className="w-full h-32 object-cover rounded-md"
                   />
