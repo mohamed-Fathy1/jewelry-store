@@ -3,11 +3,32 @@ import { DashboardStatsResponse } from "@/types/admin.types";
 import { Product, ProductResponse } from "@/types/product.types";
 import { OrdersResponse, OrderResponse } from "@/types/order.types";
 import { Order } from "@/types/order.types";
+import {
+  ShippingResponse,
+  ShippingsResponse,
+  Shipping,
+} from "@/types/shipping.types";
+
+interface DashboardAnalysis {
+  totalRevenue: number;
+  totalOrders: number;
+  totalCustomers: number;
+  totalProducts: number;
+}
+
+interface AnalysisResponse {
+  statusCode: number;
+  data: {
+    analysis: DashboardAnalysis;
+  };
+  message: string;
+  success: boolean;
+}
 
 export const adminService = {
   async getDashboardStats(): Promise<DashboardStatsResponse> {
     try {
-      const response = await api.get("/admin/dashboard/stats");
+      const response = await api.get("/product/get-analysis");
       return response.data;
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
@@ -175,7 +196,8 @@ export const adminService = {
     status: Order["status"]
   ): Promise<OrderResponse> {
     try {
-      const response = await api.patch(`/order/update-status/${orderId}`, {
+      const response = await api.patch(`/order/update-status`, {
+        orderId,
         status,
       });
       return response.data;
@@ -185,27 +207,74 @@ export const adminService = {
     }
   },
 
-  async getAllOrders(page: number = 1): Promise<OrdersResponse> {
+  async getAllOrders(
+    page: number = 1,
+    status?: string
+  ): Promise<OrdersResponse> {
     try {
-      const response = await api.get(`/order/get-all-orders?page=${page}`);
+      let url = `/order/get-all-orders?page=${page}`;
+      if (status && status !== "all") {
+        url += `&status=${status}`;
+      }
+      const response = await api.get(url);
       return response.data;
     } catch (error) {
-      console.error("Error fetching all orders:", error);
+      console.error("Error fetching orders:", error);
       throw error;
     }
   },
 
-  async getOrdersByStatus(
-    status: Order["status"],
-    page: number = 1
-  ): Promise<OrdersResponse> {
+  async getDashboardAnalysis(): Promise<AnalysisResponse> {
     try {
-      const response = await api.get(
-        `/order/get-orders-by-status/${status}?page=${page}`
-      );
+      const response = await api.get("/product/get-analysis");
       return response.data;
     } catch (error) {
-      console.error("Error fetching orders by status:", error);
+      console.error("Error fetching dashboard analysis:", error);
+      throw error;
+    }
+  },
+
+  async getShippings(): Promise<ShippingsResponse> {
+    try {
+      const response = await api.get("/shipping");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching shipping options:", error);
+      throw error;
+    }
+  },
+
+  async createShipping(data: {
+    category: string;
+    cost: number;
+  }): Promise<ShippingResponse> {
+    try {
+      const response = await api.post("/shipping", data);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating shipping:", error);
+      throw error;
+    }
+  },
+
+  async updateShipping(
+    id: string,
+    data: { category: string; cost: number }
+  ): Promise<ShippingResponse> {
+    try {
+      const response = await api.patch(`/shipping/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating shipping:", error);
+      throw error;
+    }
+  },
+
+  async deleteShipping(id: string): Promise<void> {
+    try {
+      await api.delete(`/shipping/${id}`);
+    } catch (error) {
+      console.error("Error deleting shipping:", error);
       throw error;
     }
   },

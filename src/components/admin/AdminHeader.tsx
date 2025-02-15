@@ -21,10 +21,10 @@ export default function AdminHeader() {
           <div className="flex"></div>
           <div className="flex items-center">
             {/* Notifications */}
-            <button className="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none">
+            {/* <button className="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none">
               <span className="sr-only">View notifications</span>
               <BellIcon className="h-6 w-6" aria-hidden="true" />
-            </button>
+            </button> */}
 
             {/* Profile dropdown */}
             <Menu as="div" className="ml-3 relative">

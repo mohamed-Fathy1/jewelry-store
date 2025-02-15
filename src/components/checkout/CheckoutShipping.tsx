@@ -24,7 +24,7 @@ export default function CheckoutShipping({ onSubmit }) {
   const [isShipToOpen, setIsShipToOpen] = useState(true);
   const [isShippingOpen, setIsShippingOpen] = useState(true);
   const { authUser } = useAuth();
-  const { getProfile } = useUser();
+  const { getProfile, setDefaultAddressId } = useUser();
   const {
     selectedAddress,
     setSelectedAddress,
@@ -257,6 +257,7 @@ export default function CheckoutShipping({ onSubmit }) {
           onAddressUpdated={fetchAddresses}
           setAddresses={setAddresses}
           address={editingAddress}
+          makeDefault={setDefaultAddressId}
         />
       ) : null}
     </div>

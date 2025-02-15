@@ -104,7 +104,7 @@ export default function OrdersPage() {
                 <div>
                   <h3 className="font-medium mb-2">Products</h3>
                   <div className="space-y-4">
-                    {selectedOrder.products.map((product, index) => (
+                    {selectedOrder?.products?.map((product, index) => (
                       <div
                         key={index}
                         className="flex items-center border rounded-lg p-3"
@@ -112,22 +112,22 @@ export default function OrdersPage() {
                         {typeof product.productId === "object" && (
                           <div className="h-16 w-16 relative flex-shrink-0">
                             <Image
-                              src={product.productId.defaultImage.mediaUrl}
-                              alt={product.productName}
+                              src={product?.productId?.defaultImage?.mediaUrl}
+                              alt={product?.productName}
                               fill
                               className="rounded-md object-cover"
                             />
                           </div>
                         )}
                         <div className="ml-4 flex-1">
-                          <p className="font-medium">{product.productName}</p>
+                          <p className="font-medium">{product?.productName}</p>
                           <div className="flex justify-between items-center mt-1">
                             <p className="text-sm text-gray-600">
-                              {product.quantity} ×{" "}
-                              {formatPrice(product.itemPrice)}
+                              {product?.quantity} ×{" "}
+                              {formatPrice(product?.itemPrice)}
                             </p>
                             <p className="font-medium">
-                              {formatPrice(product.totalPrice)}
+                              {formatPrice(product?.totalPrice)}
                             </p>
                           </div>
                         </div>
@@ -140,10 +140,10 @@ export default function OrdersPage() {
                 <div>
                   <h3 className="font-medium mb-2">Shipping Information</h3>
                   <p className="text-sm text-gray-600">
-                    Method: {selectedOrder.shipping.category}
+                    Method: {selectedOrder?.shipping?.category}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Cost: {formatPrice(selectedOrder.shipping.cost)}
+                    Cost: {formatPrice(selectedOrder?.shipping?.cost)}
                   </p>
                 </div>
               </div>

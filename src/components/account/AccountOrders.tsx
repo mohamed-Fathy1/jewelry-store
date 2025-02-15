@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { orderService } from "@/services/order.service"; // Import the order service
 import toast from "react-hot-toast";
+import { adminService } from "@/services/admin.service";
 
 export default function AccountOrders() {
   const [orders, setOrders] = useState([]); // State to hold orders
@@ -43,6 +44,31 @@ export default function AccountOrders() {
         return "bg-yellow-100 text-yellow-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const canCancelOrder = (status: string) => {
+    // User can only cancel if order is under_review, confirmed, or ordered
+    const cancellableStatuses = ["under_review", "confirmed", "ordered"];
+    return cancellableStatuses.includes(status);
+  };
+
+  const handleCancelOrder = async (orderId: string) => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) {
+      return;
+    }
+
+    try {
+      await adminService.updateOrderStatus(orderId, "cancelled");
+      toast.success("Order cancelled successfully");
+      // Refresh orders list
+      const result = await orderService.getUserOrders();
+      if (result.success) {
+        setOrders(result.data.orders);
+      }
+    } catch (error) {
+      toast.error("Failed to cancel order");
+      console.error("Error cancelling order:", error);
     }
   };
 
@@ -164,15 +190,20 @@ export default function AccountOrders() {
             >
               Track Order
             </Link>
-            {/* <button
-              className="px-4 py-2 rounded-md border transition-colors duration-200"
-              style={{
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              }}
-            >
-              View Invoice
-            </button> */}
+
+            {canCancelOrder(order.status) && (
+              <button
+                onClick={() => handleCancelOrder(order._id)}
+                className="px-4 py-2 rounded-md border transition-colors duration-200"
+                style={{
+                  borderColor: colors.border,
+                  color: colors.textPrimary,
+                  backgroundColor: "white",
+                }}
+              >
+                Cancel Order
+              </button>
+            )}
           </div>
         </div>
       ))}

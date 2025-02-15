@@ -8,122 +8,215 @@ import {
   CubeIcon,
 } from "@heroicons/react/24/outline";
 import { colors } from "@/constants/colors";
-
-interface DashboardStats {
-  totalRevenue: number;
-  totalOrders: number;
-  totalCustomers: number;
-  totalProducts: number;
-}
-
-interface StatCard {
-  name: string;
-  value: string | number;
-  icon: any; // Consider using a more specific type
-  change: string;
-  changeType: "positive" | "negative";
-}
+import { adminService } from "@/services/admin.service";
+import { DashboardStats } from "@/types/admin.types";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import toast from "react-hot-toast";
 
 export default function AdminDashboard() {
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
-    totalRevenue: 0,
-    totalOrders: 0,
-    totalCustomers: 0,
-    totalProducts: 0,
-  });
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch dashboard stats
     const fetchStats = async () => {
       try {
-        // TODO: Implement API call to fetch dashboard stats
-        // const response = await adminService.getDashboardStats();
-        // setDashboardStats(response.data);
+        const response = await adminService.getDashboardStats();
+        setStats(response.data.analysis);
       } catch (error) {
-        console.error("Failed to fetch dashboard stats:", error);
+        toast.error("Failed to fetch dashboard stats");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchStats();
   }, []);
 
-  const statCards: StatCard[] = [
+  if (isLoading) return <div>Loading...</div>;
+  if (!stats) return <div>Failed to load dashboard</div>;
+
+  const statCards = [
     {
       name: "Total Revenue",
-      value: `$${dashboardStats.totalRevenue.toLocaleString()}`,
+      value: stats.totalRevenue.toLocaleString("en-US", {
+        style: "currency",
+        currency: "EGP",
+      }),
       icon: CurrencyDollarIcon,
       change: "+12%",
-      changeType: "positive",
+      changeType: "positive" as const,
     },
     {
       name: "Total Orders",
-      value: dashboardStats.totalOrders,
+      value: stats.totalOrders,
       icon: ShoppingBagIcon,
       change: "+4%",
-      changeType: "positive",
+      changeType: "positive" as const,
     },
     {
       name: "Total Customers",
-      value: dashboardStats.totalCustomers,
+      value: stats.totalCustomers,
       icon: UserGroupIcon,
       change: "+2.1%",
-      changeType: "positive",
+      changeType: "positive" as const,
     },
     {
       name: "Total Products",
-      value: dashboardStats.totalProducts,
+      value: stats.totalProducts,
       icon: CubeIcon,
       change: "-0.5%",
-      changeType: "negative",
+      changeType: "negative" as const,
     },
   ];
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+      <h1
+        className="text-2xl font-semibold mb-8"
+        style={{ color: colors.textPrimary }}
+      >
+        Dashboard
+      </h1>
 
-      <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((item) => (
-          <div
-            key={item.name}
-            className="bg-white overflow-hidden shadow rounded-lg"
-          >
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <item.icon
-                    className="h-6 w-6 text-gray-400"
-                    aria-hidden="true"
-                  />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      {item.name}
-                    </dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">
-                        {item.value}
-                      </div>
-                      <div
-                        className={`ml-2 flex items-baseline text-sm font-semibold ${
-                          item.changeType === "positive"
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {item.change}
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {statCards.map((stat) => (
+          <div key={stat.name} className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center">
+              <div
+                className="p-2 rounded-lg"
+                style={{ backgroundColor: `${colors.brown}20` }}
+              >
+                <stat.icon
+                  className="h-6 w-6"
+                  style={{ color: colors.brown }}
+                />
               </div>
+              <div className="ml-4">
+                <p
+                  className="text-sm font-medium"
+                  style={{ color: colors.textSecondary }}
+                >
+                  {stat.name}
+                </p>
+                <p
+                  className="text-2xl font-semibold mt-1"
+                  style={{ color: colors.textPrimary }}
+                >
+                  {stat.value}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <span
+                className={`text-sm font-medium ${
+                  stat.changeType === "positive"
+                    ? "text-green-600"
+                    : "text-red-600"
+                }`}
+              >
+                {stat.change}
+              </span>
+              <span
+                className="text-sm ml-2"
+                style={{ color: colors.textSecondary }}
+              >
+                from last month
+              </span>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Add more dashboard components here */}
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Revenue Chart */}
+        {/* <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2
+            className="text-lg font-semibold mb-6"
+            style={{ color: colors.textPrimary }}
+          >
+            Revenue Overview
+          </h2>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={stats.salesByDay}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke={colors.brown}
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div> */}
+
+        {/* Recent Orders */}
+        {/* <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2
+            className="text-lg font-semibold mb-6"
+            style={{ color: colors.textPrimary }}
+          >
+            Recent Orders
+          </h2>
+          <div className="space-y-4">
+            {stats.recentOrders.map((order) => (
+              <div
+                key={order._id}
+                className="flex items-center justify-between p-4 rounded-lg border"
+              >
+                <div>
+                  <p
+                    className="font-medium"
+                    style={{ color: colors.textPrimary }}
+                  >
+                    Order #{order._id.slice(-8)}
+                  </p>
+                  <p
+                    className="text-sm mt-1"
+                    style={{ color: colors.textSecondary }}
+                  >
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p
+                    className="font-medium"
+                    style={{ color: colors.textPrimary }}
+                  >
+                    {order.price.toLocaleString("en-US", {
+                      style: "currency",
+                      currency: "EGP",
+                    })}
+                  </p>
+                  <span
+                    className={`text-sm px-2 py-1 rounded-full ${
+                      order.status === "delivered"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {order.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div> */}
+      </div>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import {
   UsersIcon,
   ChartBarIcon,
   Cog6ToothIcon,
+  TruckIcon,
 } from "@heroicons/react/24/outline";
 import { colors } from "@/constants/colors";
 
@@ -18,9 +19,10 @@ const navigation = [
   { name: "Products", href: "/admin/products", icon: CubeIcon },
   { name: "Orders", href: "/admin/orders", icon: ShoppingBagIcon },
   { name: "Categories", href: "/admin/categories", icon: FolderIcon },
-  { name: "Customers", href: "/admin/customers", icon: UsersIcon },
-  { name: "Analytics", href: "/admin/analytics", icon: ChartBarIcon },
-  { name: "Settings", href: "/admin/settings", icon: Cog6ToothIcon },
+  // { name: "Customers", href: "/admin/customers", icon: UsersIcon },
+  // { name: "Analytics", href: "/admin/analytics", icon: ChartBarIcon },
+  // { name: "Settings", href: "/admin/settings", icon: Cog6ToothIcon },
+  { name: "Shipping", href: "/admin/shipping", icon: TruckIcon },
 ];
 
 export default function AdminSidebar() {

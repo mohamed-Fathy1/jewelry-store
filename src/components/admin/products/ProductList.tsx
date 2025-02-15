@@ -39,6 +39,7 @@ export default function ProductList({ onEdit }: ProductListProps) {
         response = await api.get(
           `/public/product/search-product?searchQuery=${searchQuery}`
         );
+        setProducts(response.data.data.products);
       }
       // Otherwise use filter endpoints
       else {
@@ -48,10 +49,9 @@ export default function ProductList({ onEdit }: ProductListProps) {
           soldout: `/product/sold-out?page=${page}`,
         };
         response = await api.get(endpoints[currentFilter]);
+        setProducts(response.data.data.products.data);
+        setTotalPages(response.data.data.products.totalPages);
       }
-
-      setProducts(response.data.data.products.data);
-      setTotalPages(response.data.data.products.totalPages);
     } catch (error) {
       toast.error("Failed to fetch products");
     } finally {
