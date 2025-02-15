@@ -6,11 +6,20 @@ import {
   CreateCategoryDto,
   UpdateCategoryDto,
 } from "@/types/category.types";
+import axios from "axios";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const axiosInstance = axios.create({
+  baseURL: API_URL,
+});
 
 export const categoryService = {
   async getAllCategories(): Promise<CategoriesResponse> {
     try {
-      const response = await api.get("/public/category/get-all-categories");
+      const response = await axiosInstance.get(
+        "/public/category/get-all-categories"
+      );
       return response.data;
     } catch (error) {
       console.error("Error fetching categories:", error);
