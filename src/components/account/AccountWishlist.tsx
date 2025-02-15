@@ -116,7 +116,7 @@ export default function AccountWishlist() {
                 </h3>
               </Link>
               <p className="mb-2" style={{ color: colors.textSecondary }}>
-                {item.productId.category}
+                {item.productId.category.categoryName}
               </p>
               <p
                 className="text-lg font-semibold mb-4"
