@@ -20,6 +20,8 @@ export const authService = {
       `/authentication/active-account`,
       { email, activeCode }
     );
+    console.log(response);
+
     return response.data;
   },
 

@@ -50,6 +50,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // setIsLoading(true);
       try {
         const response = await authService.activateAccount(email, activeCode);
+        console.log(response);
+
         if (response.success && response.data.accessToken) {
           const userData = {
             email,
@@ -64,6 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         return response;
+      } catch (error) {
+        console.log(error);
       } finally {
         setIsLoading(false);
       }

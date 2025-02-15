@@ -20,7 +20,7 @@ const AccountActivation = () => {
     "",
     "",
   ]);
-  const { activateAccount, authUser } = useAuth();
+  const { activateAccount, registerEmail, authUser } = useAuth();
   const { getProfile } = useUser();
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [gettingActiveCode, setGettingActiveCode] = useState(false);
@@ -75,10 +75,13 @@ const AccountActivation = () => {
 
     try {
       const response = await activateAccount(email, activeCode);
+      console.log("response", response);
+
       if (response.success) {
+        console.log("response", response);
         toast.success(response.message);
       } else {
-        toast.error(response.message);
+        toast.error("Invalid verification code. Please try again.");
       }
     } catch (error) {
       toast.error("Failed to activate account. Please try again.", error);
@@ -148,8 +151,9 @@ const AccountActivation = () => {
               type="button"
               className="font-medium hover:underline"
               style={{ color: colors.brown }}
-              onClick={() => {
+              onClick={async () => {
                 // Add resend code logic here
+                await registerEmail(email);
                 toast.success("New verification code sent!");
               }}
             >
