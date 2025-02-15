@@ -44,12 +44,15 @@ export default function WishlistList() {
                 Product
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Items
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 User
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Added Date
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Price
               </th>
             </tr>
@@ -69,7 +72,7 @@ export default function WishlistList() {
                     </div>
                     <div className="ml-4">
                       <Link
-                        href={`/admin/products/${item.productId._id}`}
+                        href={`/products/${item.productId._id}`}
                         className="text-sm font-medium hover:text-brown"
                         style={{ color: colors.textPrimary }}
                       >
@@ -77,6 +80,22 @@ export default function WishlistList() {
                       </Link>
                     </div>
                   </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="">
+                    <div className="text-sm font-medium text-gray-900 mb-1">
+                      <span className="font-medium">Avalable: </span>
+                      {item.productId.availableItems}
+                    </div>
+                    <div className="text-xs text-gray-500 flex items-center">
+                      {/* <span className="font-medium">SKU:</span>
+                                <span className="ml-1">{product.}</span> */}
+                    </div>
+                    <div className="text-xs text-gray-500 flex items-center mt-1">
+                      <span className="font-medium">Sold:</span>
+                      <span className="ml-1">{item.productId.soldItems}</span>
+                    </div>
+                  </div>{" "}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div
@@ -94,7 +113,7 @@ export default function WishlistList() {
                     {format(new Date(item.createdAt), "MMM d, yyyy")}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right">
+                <td className="px-6 py-4 whitespace-nowrap">
                   <div
                     className="text-sm font-medium"
                     style={{ color: colors.textPrimary }}
