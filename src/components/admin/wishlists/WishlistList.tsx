@@ -72,7 +72,7 @@ export default function WishlistList() {
                     </div>
                     <div className="ml-4">
                       <Link
-                        href={`/products/${item.productId._id}`}
+                        href={`/product/${item.productId._id}`}
                         className="text-sm font-medium hover:text-brown"
                         style={{ color: colors.textPrimary }}
                       >
