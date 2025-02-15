@@ -19,8 +19,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
   );
 
   const shipping = selectedShipping ? selectedShipping.cost : 0; // Default shipping cost
-  const tax = subtotal * 0.1; // 10% tax
-  const total = subtotal + shipping + tax;
+  const total = subtotal + shipping;
 
   // New Discount Logic
   let discount = 0;
@@ -134,10 +133,10 @@ export default function OrderSummary({ orderSummaryPreview }) {
             ) : null}
           </div>
         </div>
-        <div className="flex justify-between">
+        {/* <div className="flex justify-between">
           <span style={{ color: colors.textSecondary }}>Tax</span>
           <span style={{ color: colors.textPrimary }}>EGP{tax.toFixed(2)}</span>
-        </div>
+        </div> */}
         {discount > 0 && (
           <div className="flex justify-between">
             <span className="text-shadow-light" style={{ color: colors.gold }}>

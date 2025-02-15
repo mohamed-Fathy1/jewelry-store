@@ -25,13 +25,13 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
   const getAllCategories = useCallback(async () => {
     setIsLoading(true);
     try {
-      console.log("getAllCategories");
       const response = await categoryService.getAllCategories();
       if (response.success) {
         setCategories(response.data.categories);
       }
-    } catch {
-      toast.error("Failed to fetch categories");
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+      toast.error("Failed to load categories");
     } finally {
       setIsLoading(false);
     }

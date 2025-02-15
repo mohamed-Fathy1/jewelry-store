@@ -9,6 +9,7 @@ import { adminService } from "@/services/admin.service";
 import Image from "next/image";
 import { formatPrice } from "@/utils/format";
 import { format } from "date-fns";
+import { CheckIcon } from "lucide-react";
 
 const getStatusIndex = (status: string) => {
   const statusFlow = [
@@ -111,13 +112,13 @@ export default function OrderTrackingPage({
   const currentStep = getStatusIndex(order.status);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-4 md:py-8">
       {/* Order Header */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div className="flex justify-between items-start mb-6">
+      <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-4 md:mb-6">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
           <div>
             <h1
-              className="text-2xl font-semibold mb-2"
+              className="text-xl md:text-2xl font-semibold mb-2"
               style={{ color: colors.textPrimary }}
             >
               Order #{order._id.slice(-8)}
@@ -126,7 +127,7 @@ export default function OrderTrackingPage({
               Placed on {format(new Date(order.createdAt), "MMMM d, yyyy")}
             </p>
           </div>
-          <div className="text-right">
+          <div className="flex flex-col items-start md:items-end">
             <div
               className="text-lg font-semibold mb-1"
               style={{ color: colors.textPrimary }}
@@ -168,7 +169,7 @@ export default function OrderTrackingPage({
             </div>
 
             {/* Status Points */}
-            <div className="flex justify-between px-4">
+            <div className="flex justify-between lg:px-4">
               {[
                 "Under Review",
                 "Confirmed",
@@ -178,8 +179,7 @@ export default function OrderTrackingPage({
               ].map((status, index) => (
                 <div
                   key={status}
-                  className="flex flex-col items-center relative z-10"
-                  style={{ width: "20%" }}
+                  className="flex flex-col items-center relative z-10 w-[20%]"
                 >
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 transition-colors ${
@@ -193,24 +193,12 @@ export default function OrderTrackingPage({
                     }}
                   >
                     {index <= currentStep ? (
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
+                      <CheckIcon className="w-5 h-5" />
                     ) : (
                       <div className="w-2 h-2 rounded-full bg-current" />
                     )}
                   </div>
-                  <span className="text-sm text-gray-600 text-center whitespace-nowrap">
+                  <span className="text-[10px] md:text-xs lg:text-sm text-center text-gray-600 px-1">
                     {status}
                   </span>
                 </div>

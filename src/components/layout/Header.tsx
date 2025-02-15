@@ -119,7 +119,7 @@ export default function Header() {
       isSpecial: true,
     },
     {
-      name: "Collections",
+      name: "Categories",
       href: "/#featured-categories",
       onClick: handleScrollToFeaturedCategories,
     },
