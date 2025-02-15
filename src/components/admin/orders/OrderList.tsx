@@ -129,7 +129,7 @@ export default function OrderList({ onViewDetails }: OrderListProps) {
   return (
     <div>
       {/* Status Filter */}
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex gap-2 w-full overflow-x-auto">
         {statusOptions.map((status) => (
           <button
             key={status}

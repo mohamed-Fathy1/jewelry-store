@@ -20,7 +20,25 @@ export default function Search({ isOpen, onClose }: SearchProps) {
   const [results, setResults] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const debouncedSearch = useDebounce(searchTerm, 200);
+  const debouncedSearch = useDebounce(async () => {
+    console.log("searchTerm", searchTerm);
+    if (searchTerm.length < 1) {
+      setResults([]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await productService.searchProducts(searchTerm);
+      if (response.success) {
+        setResults(response.data.products);
+      }
+    } catch (error) {
+      console.error("Search failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, 200);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -37,27 +55,9 @@ export default function Search({ isOpen, onClose }: SearchProps) {
   }, [onClose]);
 
   useEffect(() => {
-    const searchProducts = async () => {
-      if (debouncedSearch.length < 1) {
-        setResults([]);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const response = await productService.searchProducts(debouncedSearch);
-        if (response.success) {
-          setResults(response.data.products);
-        }
-      } catch (error) {
-        console.error("Search failed:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    searchProducts();
-  }, [debouncedSearch]);
+    console.log("searchTerm", searchTerm);
+    debouncedSearch();
+  }, [searchTerm]);
 
   if (!isOpen) return null;
 
@@ -123,13 +123,14 @@ export default function Search({ isOpen, onClose }: SearchProps) {
                   className="flex items-center gap-4 p-2 rounded-md hover:bg-opacity-50 transition-colors duration-200"
                   style={{ backgroundColor: colors.background }}
                 >
-                  <Image
-                    src={product.defaultImage.mediaUrl}
-                    alt={product.productName}
-                    width={50}
-                    height={50}
-                    className="rounded-md object-cover"
-                  />
+                  <div className="h-12 w-12 relative flex-shrink-0">
+                    <Image
+                      src={product.defaultImage.mediaUrl}
+                      alt={product.productName}
+                      fill
+                      className="rounded-md object-cover"
+                    />
+                  </div>
                   <div className="flex-1">
                     <h4 style={{ color: colors.textPrimary }}>
                       {product.productName}

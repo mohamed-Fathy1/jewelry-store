@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUser } from "@/contexts/UserContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
+import { isAdmin } from "@/utils/auth.utils";
 
 const AccountActivation = () => {
   const router = useRouter();
@@ -19,7 +20,7 @@ const AccountActivation = () => {
     "",
     "",
   ]);
-  const { activateAccount } = useAuth();
+  const { activateAccount, authUser } = useAuth();
   const { getProfile } = useUser();
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [gettingActiveCode, setGettingActiveCode] = useState(false);
@@ -51,6 +52,16 @@ const AccountActivation = () => {
     }
   };
 
+  useEffect(() => {
+    if (authUser?.accessToken) {
+      if (isAdmin(authUser)) {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
+    }
+  }, [authUser, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setGettingActiveCode(true);
@@ -66,8 +77,6 @@ const AccountActivation = () => {
       const response = await activateAccount(email, activeCode);
       if (response.success) {
         toast.success(response.message);
-        await getProfile();
-        router.push("/");
       } else {
         toast.error(response.message);
       }

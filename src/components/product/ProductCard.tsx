@@ -104,7 +104,7 @@ function ProductCard({ product }: ProductCardProps) {
                 color: colors.textLight,
               }}
             >
-              {product.discountPercentage}% OFF
+              {Math.round(product.discountPercentage)}% OFF
             </div>
           )}
         </div>

@@ -47,10 +47,20 @@ export default function ProductList({ onEdit }: ProductListProps) {
           all: `/public/product/get-all-product?page=${page}`,
           sale: `/public/product/get-all-sale?page=${page}`,
           soldout: `/product/sold-out?page=${page}`,
+          wishlisted: `/wishlist/get-all-wishlist?page=${page}`,
         };
         response = await api.get(endpoints[currentFilter]);
-        setProducts(response.data.data.products.data);
-        setTotalPages(response.data.data.products.totalPages);
+        if (currentFilter === "wishlisted") {
+          setProducts(
+            response.data.data.wishlist.products.map(
+              (product: any) => product.productId
+            )
+          );
+          setTotalPages(response.data.wishlist.totalPages);
+        } else {
+          setProducts(response.data.data.products.data);
+          setTotalPages(response.data.data.products.totalPages);
+        }
       }
     } catch (error) {
       toast.error("Failed to fetch products");

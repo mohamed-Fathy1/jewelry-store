@@ -8,6 +8,8 @@ import {
   ShippingsResponse,
   Shipping,
 } from "@/types/shipping.types";
+import { HeroResponse, CreateHeroResponse } from "@/types/hero.types";
+import { WishlistResponse } from "@/types/wishlist.types";
 
 interface DashboardAnalysis {
   totalRevenue: number;
@@ -275,6 +277,64 @@ export const adminService = {
       await api.delete(`/shipping/${id}`);
     } catch (error) {
       console.error("Error deleting shipping:", error);
+      throw error;
+    }
+  },
+
+  async getHeroSliders(): Promise<HeroResponse> {
+    try {
+      const response = await api.get("/public/hero-section/get");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching hero sliders:", error);
+      throw error;
+    }
+  },
+
+  async createHeroSlider(images: {
+    image1: { imageUrl: string; imageType: "small" | "large" };
+    image2: { imageUrl: string; imageType: "small" | "large" };
+  }): Promise<CreateHeroResponse> {
+    try {
+      const response = await api.post("/slider/create", { images });
+      return response.data;
+    } catch (error) {
+      console.error("Error creating hero slider:", error);
+      throw error;
+    }
+  },
+
+  async updateHeroSlider(
+    id: string,
+    images: {
+      image1: { imageUrl: string; imageType: "small" | "large" };
+      image2: { imageUrl: string; imageType: "small" | "large" };
+    }
+  ): Promise<CreateHeroResponse> {
+    try {
+      const response = await api.patch(`/slider/update/${id}`, { images });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating hero slider:", error);
+      throw error;
+    }
+  },
+
+  async deleteHeroSlider(id: string): Promise<void> {
+    try {
+      await api.post(`/slider/delete/${id}`);
+    } catch (error) {
+      console.error("Error deleting hero slider:", error);
+      throw error;
+    }
+  },
+
+  async getWishlists(page: number = 1): Promise<WishlistResponse> {
+    try {
+      const response = await api.get(`/wishlist/get-all-wishlist?page=${page}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching wishlists:", error);
       throw error;
     }
   },

@@ -8,7 +8,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 
 interface ProductFiltersProps {
   onSearch: (query: string) => void;
-  onFilterChange: (filter: "all" | "sale" | "soldout") => void;
+  onFilterChange: (filter: "all" | "sale" | "soldout" | "wishlisted") => void;
 }
 
 export default function ProductFilters({
@@ -30,11 +30,20 @@ export default function ProductFilters({
     debouncedSearch(value);
   };
 
-  const handleFilterSelect = (filter: "all" | "sale" | "soldout") => {
+  const handleFilterSelect = (
+    filter: "all" | "sale" | "soldout" | "wishlisted"
+  ) => {
     onFilterChange(filter);
     setSearchQuery(""); // Clear search when changing filters
     setIsFilterOpen(false);
   };
+
+  const filterOptions = [
+    { value: "all", label: "All Products" },
+    { value: "sale", label: "On Sale" },
+    { value: "soldout", label: "Sold Out" },
+    { value: "wishlisted", label: "Most Wishlisted" },
+  ];
 
   return (
     <div className="mb-6">
@@ -76,35 +85,20 @@ export default function ProductFilters({
             </Dialog.Title>
 
             <div className="space-y-4">
-              <label className="flex items-center space-x-3">
-                <input
-                  type="radio"
-                  checked={selectedFilter === "all"}
-                  onChange={() => handleFilterSelect("all")}
-                  className="form-radio text-brown"
-                />
-                <span>All Products</span>
-              </label>
-
-              <label className="flex items-center space-x-3">
-                <input
-                  type="radio"
-                  checked={selectedFilter === "sale"}
-                  onChange={() => handleFilterSelect("sale")}
-                  className="form-radio text-brown"
-                />
-                <span>On Sale</span>
-              </label>
-
-              <label className="flex items-center space-x-3">
-                <input
-                  type="radio"
-                  checked={selectedFilter === "soldout"}
-                  onChange={() => handleFilterSelect("soldout")}
-                  className="form-radio text-brown"
-                />
-                <span>Sold Out</span>
-              </label>
+              {filterOptions.map((option) => (
+                <label
+                  key={option.value}
+                  className="flex items-center space-x-3"
+                >
+                  <input
+                    type="radio"
+                    checked={selectedFilter === option.value}
+                    onChange={() => handleFilterSelect(option.value)}
+                    className="form-radio text-brown"
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
             </div>
 
             <div className="mt-6 flex justify-end">

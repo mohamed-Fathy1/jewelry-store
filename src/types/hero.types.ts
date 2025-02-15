@@ -12,10 +12,36 @@ interface ImageSlider {
   createdBy: string;
 }
 
+interface HeroImage {
+  mediaUrl: string;
+  mediaId: string;
+  mediaType: "small" | "large";
+}
+
+interface HeroImages {
+  image1: HeroImage;
+  image2: HeroImage;
+}
+
+export interface HeroSlider {
+  _id: string;
+  images: HeroImages;
+  createdBy: string;
+}
+
 export interface HeroResponse {
   statusCode: number;
   data: {
-    imageSlider: ImageSlider[];
+    imageSlider: HeroSlider[];
+  };
+  message: string;
+  success: boolean;
+}
+
+export interface CreateHeroResponse {
+  statusCode: number;
+  data: {
+    media: HeroSlider;
   };
   message: string;
   success: boolean;
