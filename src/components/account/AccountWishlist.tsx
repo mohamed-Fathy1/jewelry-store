@@ -9,6 +9,8 @@ import toast from "react-hot-toast";
 import { wishlistService } from "@/services/wishlist.service";
 import { useWishlist } from "@/contexts/WishlistContext";
 import Pagination from "@/components/common/Pagination";
+import { useCart } from "@/contexts/CartContext";
+import { formatPrice } from "@/utils/format";
 
 export default function AccountWishlist() {
   const { toggleWishlist } = useWishlist();
@@ -16,6 +18,7 @@ export default function AccountWishlist() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const { addToCart } = useCart();
   // const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,8 +48,17 @@ export default function AccountWishlist() {
     });
   };
 
-  const addToCart = (name: string) => {
-    toast.success(`${name} added to cart`);
+  const handleAddToCart = (product: Product) => {
+    const cartItem: CartItem = {
+      productId: product._id,
+      quantity: 1,
+      price: product.salePrice || product.price,
+      productName: product.productName,
+      productImage: product.defaultImage.mediaUrl,
+      availableItems: product.availableItems,
+    };
+
+    addToCart(cartItem);
   };
 
   if (loading) {
@@ -122,11 +134,11 @@ export default function AccountWishlist() {
                 className="text-lg font-semibold mb-4"
                 style={{ color: colors.textPrimary }}
               >
-                ${item.productId.price.toFixed(2)}
+                {formatPrice(item.productId.price)}
               </p>
               <div className="flex gap-2">
                 <button
-                  onClick={() => addToCart(item.productId.productName)}
+                  onClick={() => handleAddToCart(item.productId)}
                   disabled={!item.productId.isSale}
                   className="flex-1 flex items-center justify-center gap-2 py-2 rounded-md transition-colors duration-200 disabled:opacity-50"
                   style={{

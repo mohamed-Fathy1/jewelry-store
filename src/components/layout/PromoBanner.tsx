@@ -6,7 +6,7 @@ import LoadingSpinner from "../../components/LoadingSpinner"; // Import the new 
 
 const offers = [
   {
-    message: "🎉 Buy 3 of Your Favorite Bracelets and Enjoy Free Shipping! 🚚",
+    message: "🎉 Buy 3 of Your Favorite Jewelry and Enjoy Free Shipping! 🚚",
   },
   {
     message: "💰 Spend 1500 EGP and Get 10% Off + Free Shipping! 🎊",

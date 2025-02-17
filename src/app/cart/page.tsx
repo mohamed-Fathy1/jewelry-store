@@ -44,32 +44,37 @@ export default function CartPage() {
           {cart.items.map((item) => (
             <div
               key={item.productId}
-              className="flex items-center space-x-4 p-4 rounded-lg border"
+              className="flex items-center justify-between space-x-4 p-4 rounded-lg border"
               style={{ borderColor: colors.border }}
             >
-              <div className="w-24 h-24 relative rounded-md overflow-hidden">
-                <Image
-                  src={item.productImage}
-                  alt={item.productName}
-                  fill
-                  className="object-cover"
-                />
-              </div>
+              <Link
+                href={`/product/${item.productId}`}
+                className="flex gap-5 items-center group"
+              >
+                <div className="w-24 h-24 relative rounded-md overflow-hidden">
+                  <Image
+                    src={item.productImage}
+                    alt={item.productName}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
 
-              <div className="flex-grow">
-                <h3
-                  className="text-lg font-medium"
-                  style={{ color: colors.textPrimary }}
-                >
-                  {item.productName}
-                </h3>
-                <p
-                  className="text-lg font-semibold"
-                  style={{ color: colors.brown }}
-                >
-                  {formatPrice(item.price)}
-                </p>
-              </div>
+                <div className="flex-grow">
+                  <h3
+                    className="text-lg font-medium group-hover:underline"
+                    style={{ color: colors.textPrimary }}
+                  >
+                    {item.productName}
+                  </h3>
+                  <p
+                    className="text-lg font-semibold"
+                    style={{ color: colors.brown }}
+                  >
+                    {formatPrice(item.price)}
+                  </p>
+                </div>
+              </Link>
 
               <div className="flex items-center space-x-2">
                 <div

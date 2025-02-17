@@ -5,7 +5,7 @@ import { colors } from "@/constants/colors"; // Adjust the import based on your 
 
 const offers = [
   {
-    message: "🎉 Buy 3 of Your Favorite Bracelets and Enjoy Free Shipping! 🚚",
+    message: "🎉 Buy 3 of Your Favorite Jewelry and Enjoy Free Shipping! 🚚",
   },
   {
     message: "💰 Spend 1500 EGP and Get 10% Off + Free Shipping! 🎊",

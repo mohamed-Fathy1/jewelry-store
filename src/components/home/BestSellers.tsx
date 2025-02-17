@@ -39,6 +39,7 @@ export default function BestSellers() {
       price: product.salePrice || product.price,
       productName: product.productName,
       productImage: product.defaultImage.mediaUrl,
+      availableItems: product.availableItems,
     };
 
     addToCart(cartItem);

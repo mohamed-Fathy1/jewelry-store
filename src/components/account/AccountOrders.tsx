@@ -171,7 +171,7 @@ export default function AccountOrders() {
                     Quantity: {item.quantity}
                   </p>
                   <p className="mt-1" style={{ color: colors.textPrimary }}>
-                    EGP{item.itemPrice.toFixed(2)}
+                    EGP {item.itemPrice.toFixed(2)}
                   </p>
                 </div>
               </div>

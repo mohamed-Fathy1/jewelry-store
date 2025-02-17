@@ -22,10 +22,10 @@ interface FilterSidebarProps {
 
 const filterOptions = {
   price: [
-    { id: "under-100", name: "Under $100", value: "Under $100" },
-    { id: "100-500", name: "$100 - $500", value: "$100 - $500" },
-    { id: "500-1000", name: "$500 - $1000", value: "$500 - $1000" },
-    { id: "over-1000", name: "Over $1000", value: "Over $1000" },
+    { id: "under-100", name: "Under LE 100", value: "Under $100" },
+    { id: "100-500", name: "LE 100 - LE 500", value: "$100 - $500" },
+    { id: "500-1000", name: "LE 500 - LE 1000", value: "$500 - $1000" },
+    { id: "over-1000", name: "Over LE 1000", value: "Above $1000" },
   ],
 };
 

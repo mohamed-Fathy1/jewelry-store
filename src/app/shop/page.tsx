@@ -45,8 +45,13 @@ export default function ShopPage() {
         } else if (
           Object.values(activeFilters).some((filter) =>
             Array.isArray(filter) ? filter.length > 0 : filter !== ""
-          )
+          ) ||
+          sortConfig.sortBy
         ) {
+          console.log("=================================");
+          console.log("sortOption", sortConfig.sortBy);
+          console.log("=================================");
+
           // If we have active filters
           response = await productService.getFilteredProducts(
             {
