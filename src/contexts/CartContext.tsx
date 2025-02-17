@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Cart, CartItem, CartContextType } from "@/types/cart.types";
 import toast from "react-hot-toast";
+import { abort } from "process";
 
 const CART_STORAGE_KEY = "shopping_cart";
 
@@ -41,6 +42,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       let updatedItems;
       if (existingItemIndex >= 0) {
+        // if item out of stock
+        if (
+          prevCart.items.find((item) => item.productId === newItem.productId)
+            .quantity +
+            newItem.quantity >
+          newItem.availableItems
+        ) {
+          toast.error("Item Out of Stock");
+          return prevCart;
+        }
         // Update quantity if item exists
         updatedItems = prevCart.items.map((item, index) =>
           index === existingItemIndex

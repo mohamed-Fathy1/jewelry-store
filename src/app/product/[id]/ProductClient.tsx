@@ -35,7 +35,7 @@ export default function ProductClient({ id }: { id: string }) {
   if (!productData?.category) return <div>Product category not found</div>;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-8 md:py-8">
       <ProductDetails productId={id} />
       <div className="mt-12 border-t border-gray-200 pt-12">
         <RelatedProducts productId={id} category={productData.category} />

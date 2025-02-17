@@ -122,7 +122,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
       {/* Image gallery */}
       <div className="space-y-2">
         {/* Main image */}
-        <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
+        <div className="relative aspect-[2/3] md:aspect-[4/3] rounded-lg overflow-hidden">
           <Image
             src={currentProduct.albumImages[activeImage].mediaUrl}
             alt={`${currentProduct.productName} - Main View`}

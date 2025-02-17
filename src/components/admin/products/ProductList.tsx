@@ -201,12 +201,12 @@ const ProductList = forwardRef<ProductListRef, ProductListProps>(
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-col">
                             <div className="text-sm font-medium text-gray-900">
-                              {formatPrice(product.price)}
+                              {formatPrice(product.salePrice || product.price)}
                             </div>
                             {product.salePrice ? (
                               <div className="flex items-center mt-1">
                                 <span className="text-xs text-gray-500 line-through">
-                                  {formatPrice(product.salePrice)}
+                                  {formatPrice(product.price)}
                                 </span>
                                 <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
                                   {Math.round(
