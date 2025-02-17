@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { colors } from "@/constants/colors";
 import AddressPopup from "../profile/AddressPopup";
 import { Address } from "@/types/address.types";
@@ -19,10 +19,8 @@ export default function CheckoutShipping({ onSubmit }) {
   const [isAddressPopupOpen, setIsAddressPopupOpen] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
-  const [shippingRegions, setShippingRegions] = useState<ShippingRegion[]>([]);
   const [isAccountOpen, setIsAccountOpen] = useState(true);
   const [isShipToOpen, setIsShipToOpen] = useState(true);
-  const [isShippingOpen, setIsShippingOpen] = useState(true);
   const { authUser } = useAuth();
   const { getProfile, setDefaultAddressId } = useUser();
   const {
@@ -34,7 +32,6 @@ export default function CheckoutShipping({ onSubmit }) {
 
   useEffect(() => {
     fetchAddresses();
-    fetchShippingRegions();
   }, []);
 
   const fetchAddresses = async () => {
@@ -52,20 +49,6 @@ export default function CheckoutShipping({ onSubmit }) {
     }
   };
 
-  const fetchShippingRegions = async () => {
-    try {
-      const response = await fetch("https://api.atozaccessory.com/shipping", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
-      const data = await response.json();
-      setShippingRegions(data.data.shipping);
-    } catch (error) {
-      console.error("Failed to fetch shipping regions:", error);
-    }
-  };
-
   const handleEditAddress = (address: Address) => {
     setEditingAddress(address);
     setIsAddressPopupOpen(true);
@@ -74,6 +57,13 @@ export default function CheckoutShipping({ onSubmit }) {
   const handleAddressSelect = (address: Address) => {
     setCheckoutSelectedAddress(address);
   };
+
+  const selectedShippingRegion = useMemo(() => {
+    if (!selectedAddress) return null;
+    // Assuming you have a way to get the shipping region based on the address
+    setSelectedShipping(selectedAddress.shipping);
+    return selectedAddress.shipping;
+  }, [selectedAddress]);
 
   return (
     <div className="max-w-2xl mx-auto px-2 md:p-4">
@@ -186,40 +176,24 @@ export default function CheckoutShipping({ onSubmit }) {
       >
         <div
           className="flex justify-between items-center p-4 cursor-pointer"
-          onClick={() => setIsShippingOpen(!isShippingOpen)}
           style={{ color: colors.textPrimary }}
         >
           <h2 className="text-lg font-medium">Shipping method</h2>
-          {isShippingOpen ? <ChevronUp /> : <ChevronDown />}
         </div>
-        {isShippingOpen && (
+        {selectedShippingRegion && (
           <div className="p-4 border-t" style={{ borderColor: colors.border }}>
-            {shippingRegions.map((region) => (
-              <label
-                key={region._id}
-                className="flex items-center justify-between p-3 mb-2 cursor-pointer rounded transition-colors duration-200"
-                style={{
-                  backgroundColor:
-                    selectedShipping._id === region._id
-                      ? colors.shadow
-                      : colors.background,
-                  color: colors.textPrimary,
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="shipping"
-                    value={region.cost}
-                    checked={selectedShipping._id === region._id}
-                    onChange={(e) => setSelectedShipping(region)}
-                    className="mr-3 invisible"
-                  />
-                  <span>{region.category}</span>
-                </div>
-                <span>£E{region.cost.toFixed(2)}</span>
-              </label>
-            ))}
+            <label
+              className="flex items-center justify-between p-3 mb-2 cursor-pointer rounded transition-colors duration-200"
+              style={{
+                backgroundColor: colors.shadow,
+                color: colors.textPrimary,
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <span>{selectedShippingRegion.category}</span>
+              </div>
+              <span>£E{selectedShippingRegion.cost.toFixed(2)}</span>
+            </label>
           </div>
         )}
       </div>

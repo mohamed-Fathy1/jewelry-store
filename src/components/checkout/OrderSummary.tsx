@@ -142,7 +142,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
               Discount {total >= 1500 && "(10%)"}
             </span>
             <span className="text-shadow-light" style={{ color: colors.gold }}>
-              -EGP{discount.toFixed(2)}
+              -EGP {discount.toFixed(2)}
             </span>
           </div>
         )}
@@ -154,7 +154,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
           <span style={{ color: colors.textPrimary }}>
             {discount > 0 ? (
               <span style={{ textDecoration: "line-through" }}>
-                EGP{(total + shipping).toFixed(2)}
+                EGP {(total + shipping).toFixed(2)}
               </span>
             ) : null}
             <span
@@ -164,7 +164,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
                 color: discount > 0 ? colors.gold : colors.textPrimary,
               }}
             >
-              EGP{finalTotal.toFixed(2)}
+              EGP {finalTotal.toFixed(2)}
             </span>
           </span>
         </div>

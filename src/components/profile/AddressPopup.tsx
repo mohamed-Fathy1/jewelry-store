@@ -8,6 +8,7 @@ import { toast } from "react-hot-toast";
 import { useUser } from "@/contexts/UserContext";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { ChevronsDown, LucideChevronDown } from "lucide-react";
+import { adminService } from "@/services/admin.service";
 
 // Define the governorate enum
 enum Governorate {
@@ -80,15 +81,24 @@ export default function AddressPopup({
     firstName: address?.firstName || "",
     lastName: address?.lastName || "",
     apartmentSuite: address?.apartmentSuite || "",
-    governorate: address?.governorate || "",
+    shipping: address?.shipping._id || "",
     address: address?.address || "",
     postalCode: address?.postalCode || "",
     primaryPhone: address?.primaryPhone || "",
     secondaryPhone: address?.secondaryPhone || "",
   });
   const [isDefaultAddress, setIsDefaultAddress] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState([]);
 
   const { user, defaultAddressId } = useUser();
+
+  useEffect(() => {
+    const fetchShippingAddress = async () => {
+      const res = await adminService?.getShippings();
+      setShippingAddress(res.data.shipping);
+    };
+    fetchShippingAddress();
+  }, []);
 
   useEffect(() => {
     if (address?._id === defaultAddressId) {
@@ -202,9 +212,15 @@ export default function AddressPopup({
               <label className="block mb-1">Governorate</label>
               <div className="flex justify-between border rounded-md p-2 relative w-full">
                 <select
-                  value={formData.governorate}
+                  value={
+                    shippingAddress.find((gov) => gov._id === formData.shipping)
+                      ?.category || ""
+                  }
                   onChange={(e) =>
-                    setFormData({ ...formData, governorate: e.target.value })
+                    setFormData({
+                      ...formData,
+                      shipping: e.target.value,
+                    })
                   }
                   className="absolute inset-0 opacity-0 border rounded-md p-2"
                   required
@@ -212,13 +228,16 @@ export default function AddressPopup({
                   <option value="" disabled>
                     Select Governorate
                   </option>
-                  {Object.values(Governorate).map((gov) => (
-                    <option key={gov} value={gov}>
-                      {gov}
+                  {shippingAddress.map((gov) => (
+                    <option key={gov._id} value={gov._id}>
+                      {gov.category}
                     </option>
                   ))}
                 </select>
-                <span>{formData.governorate || "Governate"}</span>
+                <span>
+                  {shippingAddress.find((gov) => gov._id === formData.shipping)
+                    ?.category || "Governate"}
+                </span>
                 <LucideChevronDown />
               </div>
             </div>

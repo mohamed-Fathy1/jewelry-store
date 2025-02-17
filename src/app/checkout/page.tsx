@@ -96,7 +96,6 @@ export default function CheckoutPage() {
     // Prepare order data
     const orderData = {
       userId: selectedAddress._id,
-      shippingId: selectedShipping._id,
       products: cart.items.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,

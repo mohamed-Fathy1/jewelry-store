@@ -3,7 +3,7 @@ export interface Address {
   firstName: string;
   lastName: string;
   apartmentSuite?: string;
-  governorate: string;
+  shipping: string;
   address: string;
   postalCode: string;
   primaryPhone: string;

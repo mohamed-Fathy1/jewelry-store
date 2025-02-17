@@ -84,7 +84,7 @@ export default function WishlistList() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="">
                     <div className="text-sm font-medium text-gray-900 mb-1">
-                      <span className="font-medium">Avalable: </span>
+                      <span className="font-medium">Available: </span>
                       {item.productId.availableItems}
                     </div>
                     <div className="text-xs text-gray-500 flex items-center">
