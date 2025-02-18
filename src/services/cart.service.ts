@@ -45,4 +45,14 @@ export const cartService = {
     );
     return response.data;
   },
+
+  async checkStockAmount(productIds) {
+    const response = await await axiosInstance.post(
+      "/public/product/available-items",
+      {
+        products: productIds,
+      }
+    );
+    return response.data;
+  },
 };

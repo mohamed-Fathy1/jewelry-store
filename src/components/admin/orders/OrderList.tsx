@@ -258,7 +258,7 @@ export default function OrderList({ onViewDetails }: OrderListProps) {
                               {order.userInformation.primaryPhone}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {order.userInformation.governorate},{" "}
+                              {order.shipping.category},{" "}
                               {order.userInformation.country}
                             </div>
                             <div className="text-sm text-gray-500">

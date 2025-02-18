@@ -85,7 +85,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
                   className="text-sm font-medium"
                   style={{ color: colors.textPrimary }}
                 >
-                  EGP{(item.price * item.quantity).toFixed(2)}
+                  EGP {(item.price * item.quantity).toFixed(2)}
                 </p>
               </div>
             </div>
@@ -101,7 +101,7 @@ export default function OrderSummary({ orderSummaryPreview }) {
         <div className="flex justify-between">
           <span style={{ color: colors.textSecondary }}>Subtotal</span>
           <span style={{ color: colors.textPrimary }}>
-            EGP{subtotal.toFixed(2)}
+            EGP {subtotal.toFixed(2)}
           </span>
         </div>
         <div className="flex justify-between">

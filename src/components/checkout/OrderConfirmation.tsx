@@ -66,7 +66,7 @@ export default function OrderConfirmation({
               className="text-lg font-medium"
               style={{ color: colors.textPrimary }}
             >
-              {shippingData._id}
+              #{shippingData._id.slice(-8)}
             </p>
           </div>
 

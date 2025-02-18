@@ -4,13 +4,8 @@ import { OrderResponse } from "@/types/order.types"; // You might need to create
 
 export const orderService = {
   async createOrder(orderData: any): Promise<OrderResponse> {
-    try {
-      const response = await api.post(`/order/create`, orderData);
-      return response.data;
-    } catch (error) {
-      console.error("Error creating order:", error);
-      throw new Error("Failed to create order");
-    }
+    const response = await api.post(`/order/create`, orderData);
+    return response.data;
   },
 
   async getUserOrders(): Promise<OrderResponse> {

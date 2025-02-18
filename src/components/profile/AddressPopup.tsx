@@ -6,9 +6,9 @@ import { userService } from "@/services/user.service";
 import { Button } from "@/components/ui/Button";
 import { toast } from "react-hot-toast";
 import { useUser } from "@/contexts/UserContext";
-import { ChevronDownIcon } from "@heroicons/react/24/solid";
-import { ChevronsDown, LucideChevronDown } from "lucide-react";
+import { LucideChevronDown } from "lucide-react";
 import { adminService } from "@/services/admin.service";
+import Joi from "joi";
 
 // Define the governorate enum
 enum Governorate {
@@ -69,6 +69,58 @@ interface AddressPopupProps {
   makeDefault: (id: string) => void;
 }
 
+// Define the validation schema
+const addressSchema = Joi.object({
+  firstName: Joi.string().min(2).max(50).required().messages({
+    "string.base": "First name must be a string.",
+    "string.empty": "First name is required.",
+    "string.min": "First name must be at least 2 characters long.",
+    "string.max": "First name must be at most 50 characters long.",
+  }),
+  lastName: Joi.string().min(2).max(50).required().messages({
+    "string.base": "Last name must be a string.",
+    "string.empty": "Last name is required.",
+    "string.min": "Last name must be at least 2 characters long.",
+    "string.max": "Last name must be at most 50 characters long.",
+  }),
+  address: Joi.string().min(1).max(500).required().messages({
+    "string.base": "Street address must be a string.",
+    "string.empty": "Street address is required.",
+    "string.min": "Street address must be at least 1 character long.",
+    "string.max": "Street address must be at most 500 characters long.",
+  }),
+  apartmentSuite: Joi.string().min(1).max(500).allow("").optional().messages({
+    "string.base": "Apartment/Suite must be a string.",
+    "string.max": "Apartment/Suite must be at most 500 characters long.",
+  }),
+  shipping: Joi.string().required().messages({
+    "string.base": "Shipping is required.",
+  }),
+  postalCode: Joi.string().min(3).max(6).allow("").optional().messages({
+    "string.base": "Postal code must be a string.",
+    "string.min": "Postal code must be at least 3 characters long.",
+    "string.max": "Postal code must be at most 6 characters long.",
+  }),
+  primaryPhone: Joi.string()
+    .pattern(/^(\+?2)?01[0-25]\d{8}$/)
+    .required()
+    .messages({
+      "string.base": "Primary phone must be a string.",
+      "string.empty": "Primary phone is required.",
+      "string.pattern.base":
+        "Primary phone must be a valid Egyptian phone number.",
+    }),
+  secondaryPhone: Joi.string()
+    .pattern(/^(\+?2)?01[0-25]\d{8}$/)
+    .allow("")
+    .optional()
+    .messages({
+      "string.base": "Secondary phone must be a string.",
+      "string.pattern.base":
+        "Secondary phone must be a valid Egyptian phone number.",
+    }),
+});
+
 export default function AddressPopup({
   isOpen,
   onClose,
@@ -114,6 +166,13 @@ export default function AddressPopup({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Validate formData against the schema
+      const { error } = addressSchema.validate(formData);
+      if (error) {
+        toast.error(error.details[0].message); // Show validation error
+        return;
+      }
+
       if (address?._id) {
         console.log("address.Id", address?._id);
 

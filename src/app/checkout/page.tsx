@@ -104,17 +104,18 @@ export default function CheckoutPage() {
 
     try {
       const result = await orderService.createOrder(orderData);
-      if (result.success) {
+
+      if (result?.success) {
         setOrderMessage(result.message);
         toast.success(result.message);
         clearCart();
         setShippingData(result.data.order);
         setCurrentStep("confirmation");
       } else {
-        toast.error(result.message);
         setOrderMessage("Failed to create order. Please try again.");
       }
     } catch (error) {
+      toast.error(error.response.data.message);
       console.error("Error creating order:", error);
       setOrderMessage("An error occurred. Please try again.");
     } finally {

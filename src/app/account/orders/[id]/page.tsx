@@ -54,6 +54,11 @@ const getStatusDisplay = (status: string) => {
       description: "Order has been cancelled",
       color: "#DC2626",
     },
+    deleted: {
+      label: "Deleted",
+      description: "Order has been deleted",
+      color: "#e30505",
+    },
   };
   return statusInfo[status] || statusInfo.under_review;
 };
@@ -293,8 +298,7 @@ export default function OrderTrackingPage({
                 </p>
                 <p className="text-sm" style={{ color: colors.textSecondary }}>
                   <span className="font-medium">Location:</span>{" "}
-                  {order.userInformation.governorate},{" "}
-                  {order.userInformation.country}
+                  {order.shipping.category}, {order.userInformation.country}
                 </p>
               </div>
             )}

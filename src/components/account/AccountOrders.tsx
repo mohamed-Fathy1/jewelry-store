@@ -125,7 +125,7 @@ export default function AccountOrders() {
                 Order number
               </p>
               <p className="font-medium" style={{ color: colors.textPrimary }}>
-                {order._id}
+                #{order._id.slice(-8)}
               </p>
             </div>
             <div>
@@ -133,7 +133,7 @@ export default function AccountOrders() {
                 Total
               </p>
               <p className="font-medium" style={{ color: colors.textPrimary }}>
-                EGP{order.price.toFixed(2)}
+                EGP {order.price.toFixed(2)}
               </p>
             </div>
             <div>

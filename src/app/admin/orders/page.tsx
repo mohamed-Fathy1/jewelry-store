@@ -80,7 +80,7 @@ export default function OrdersPage() {
                           Phone: {selectedOrder.userInformation.primaryPhone}
                         </p>
                         <p className="text-sm text-gray-600">
-                          Location: {selectedOrder.userInformation.governorate},{" "}
+                          Location: {selectedOrder.shipping.category},{" "}
                           {selectedOrder.userInformation.country}
                         </p>
                         <p className="text-sm text-gray-600">
