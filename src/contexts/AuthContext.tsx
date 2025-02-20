@@ -142,7 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (
       requiresAuth &&
-      (!storedUser || !storedToken || !authUser?.accessToken)
+      (!storedUser || !storedToken)
     ) {
       // Redirect to login if trying to access protected route while not authenticated
       router.push("/auth/login");

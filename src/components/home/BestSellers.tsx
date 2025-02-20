@@ -96,7 +96,7 @@ export default function BestSellers() {
                           color: colors.textLight,
                         }}
                       >
-                        {product.discountPercentage}% OFF
+                        {Math.round(product.discountPercentage)}% OFF
                       </div>
                     )}
                     {product.isSale && (
