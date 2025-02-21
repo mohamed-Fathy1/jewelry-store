@@ -28,7 +28,7 @@ const TarnishingPromo: React.FC = () => {
             <div className="min-w-[250px] md:w-full">
               <div className="absolute -right-1/4 bottom-1/2 aspect-square w-2/3 max-w-[300px]">
                 <Image
-                  src="/images/IMG_2953.JPG"
+                  src="/images/IMG_5678.jpg"
                   alt="Gold ring with opal stone on hand"
                   fill
                   className="object-cover rounded-sm shadow-lg"
@@ -37,7 +37,7 @@ const TarnishingPromo: React.FC = () => {
               </div>
               <div className="relative mr-auto w-2/3 aspect-[3/4] max-w-[300px]">
                 <Image
-                  src="/images/IMG_1853.JPG"
+                  src="/images/IMG_3645.jpg"
                   alt="Gold necklaces with pendant displayed on white surface"
                   fill
                   className="object-cover rounded-sm shadow-lg"

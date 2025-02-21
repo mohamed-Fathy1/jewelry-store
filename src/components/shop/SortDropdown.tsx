@@ -9,7 +9,6 @@ const sortOptions = [
   { name: "Newest", value: "Newest" },
   { name: "Price: Low to High", value: "Low to High" },
   { name: "Price: High to Low", value: "High to Low" },
-  { name: "Most Popular", value: "Most Popular" },
 ];
 
 interface SortDropdownProps {

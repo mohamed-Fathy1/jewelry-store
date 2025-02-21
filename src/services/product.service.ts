@@ -52,10 +52,31 @@ export const productService = {
   // Get products by category ID
   async getProductsByCategoryId(
     categoryId: string,
-    page: number = 1
+    page: number = 1,
+    filters: {
+      priceRange?: (typeof priceRange)[keyof typeof priceRange];
+      sort?: (typeof sort)[keyof typeof sort];
+    }
   ): Promise<ProductsResponse> {
+    const queryParams = new URLSearchParams();
+
+    // Add page parameter
+    if (page) {
+      queryParams.append("page", page.toString());
+    }
+
+    // Add sort parameter
+    if (filters.sort) {
+      queryParams.append("sort", filters.sort);
+    }
+
+    // Add price range parameter
+    if (filters.priceRange) {
+      queryParams.append("priceRange", filters.priceRange);
+    }
+
     const response = await axiosInstance.get<ProductsResponse>(
-      `/public/product/get-category/${categoryId}?page=${page}`
+      `/public/product/get-category/${categoryId}?${queryParams.toString()}`
     );
     return response.data;
   },

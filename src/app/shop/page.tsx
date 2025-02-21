@@ -37,7 +37,11 @@ export default function ShopPage() {
           // If we have a category ID, fetch products for that category
           response = await productService.getProductsByCategoryId(
             categoryId,
-            currentPage
+            currentPage,
+            {
+              ...activeFilters,
+              sort: `${sortConfig.sortBy}`,
+            }
           );
         } else if (isSale === "true") {
           // If we're viewing sale items
@@ -48,10 +52,6 @@ export default function ShopPage() {
           ) ||
           sortConfig.sortBy
         ) {
-          console.log("=================================");
-          console.log("sortOption", sortConfig.sortBy);
-          console.log("=================================");
-
           // If we have active filters
           response = await productService.getFilteredProducts(
             {
