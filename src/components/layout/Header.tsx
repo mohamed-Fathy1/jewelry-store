@@ -49,7 +49,7 @@ export default function Header() {
       !mobileMenuToggleRef.current.contains(event.target as Node)
     ) {
       setIsMobileMenuOpen(false);
-      mobileMenuToggleRef.current.style.display = "none";
+      // mobileMenuToggleRef.current.style.display = "none";
     }
   };
 
@@ -271,9 +271,9 @@ export default function Header() {
                     )}
                   </button>
 
-                  <div className="absolute right-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-0 lg:duration-200 ease-in-out">
+                  <div className="absolute right-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-0 lg:duration-100 ease-in-out">
                     <div
-                      className="w-56 rounded-lg overflow-hidden transform transition-all duration-0 lg:duration-200 hover:scale-[1.02]"
+                      className="w-56 rounded-lg overflow-hidden transform transition-all duration-0 lg:duration-100 hover:scale-[1.02]"
                       style={{
                         backgroundColor: colors.background,
                         borderColor: colors.border,
