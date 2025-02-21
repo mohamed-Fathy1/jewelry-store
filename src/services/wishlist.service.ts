@@ -26,6 +26,15 @@ export const wishlistService = {
     }
   },
 
+  async getUserWishlist(page: number = 1): Promise<WishlistResponse> {
+    try {
+      const response = await api.get(`/wishlist/get-user-wishlist`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
+      throw new Error("Failed to fetch wishlist");
+    }
+  },
   async deleteFavoriteProduct(productId: string): Promise<WishlistResponse> {
     try {
       const response = await api.delete(

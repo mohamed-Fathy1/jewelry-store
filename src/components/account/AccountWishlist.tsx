@@ -25,10 +25,10 @@ export default function AccountWishlist() {
     const fetchWishlist = async () => {
       setLoading(true);
       try {
-        const result = await wishlistService.getAllWishlist(currentPage);
+        const result = await wishlistService.getUserWishlist(currentPage);
         if (result.success) {
-          setTotalPages(result.data.wishlist.totalPages);
-          setWishlist(result.data.wishlist.products);
+          // setTotalPages(result.data.wishlist.totalPages);
+          setWishlist(result.data.wishlist);
         } else {
           console.error("Failed to fetch wishlist:", result.message);
         }
@@ -128,7 +128,7 @@ export default function AccountWishlist() {
                 </h3>
               </Link>
               <p className="mb-2" style={{ color: colors.textSecondary }}>
-                {item.productId.category.categoryName}
+                {/* {item.productId.category.categoryName} */}
               </p>
               <p
                 className="text-lg font-semibold mb-4"

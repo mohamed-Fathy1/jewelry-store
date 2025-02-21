@@ -1,11 +1,10 @@
 import axios from "axios";
-import { AddressResponse } from "@/types/address.types";
+import { Address, AddressResponse } from "@/types/address.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
 });
 
 export const addressService = {

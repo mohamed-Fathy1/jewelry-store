@@ -49,11 +49,12 @@ export default function Header() {
       !mobileMenuToggleRef.current.contains(event.target as Node)
     ) {
       setIsMobileMenuOpen(false);
+      mobileMenuToggleRef.current.style.display = "none";
     }
   };
 
   const handleScroll = (e) => {
-    const scrollThreshold = 150;
+    const scrollThreshold = 100;
     const currentScrollY = window.scrollY;
 
     // Only close the menu if it's open AND we're actively scrolling past the threshold
@@ -270,9 +271,9 @@ export default function Header() {
                     )}
                   </button>
 
-                  <div className="absolute right-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out">
+                  <div className="absolute right-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-0 lg:duration-200 ease-in-out">
                     <div
-                      className="w-56 rounded-lg overflow-hidden transform transition-all duration-200 hover:scale-[1.02]"
+                      className="w-56 rounded-lg overflow-hidden transform transition-all duration-0 lg:duration-200 hover:scale-[1.02]"
                       style={{
                         backgroundColor: colors.background,
                         borderColor: colors.border,

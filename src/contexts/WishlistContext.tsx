@@ -20,9 +20,9 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const fetchWishlist = async () => {
     try {
-      const result = await wishlistService.getAllWishlist();
+      const result = await wishlistService.getUserWishlist();
       if (result.success) {
-        const productIds = result.data.wishlist.products.map(
+        const productIds = result.data.wishlist.map(
           (item) => item.productId._id
         );
         setWishlist(productIds);
