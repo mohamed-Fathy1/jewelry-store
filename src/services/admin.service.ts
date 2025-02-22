@@ -211,12 +211,16 @@ export const adminService = {
 
   async getAllOrders(
     page: number = 1,
-    status?: string
+    status?: string,
+    orderId?: string
   ): Promise<OrdersResponse> {
     try {
       let url = `/order/get-all-orders?page=${page}`;
       if (status && status !== "all") {
         url += `&status=${status}`;
+      }
+      if (orderId) {
+        url += `&orderId=${orderId}`;
       }
       const response = await api.get(url);
       return response.data;

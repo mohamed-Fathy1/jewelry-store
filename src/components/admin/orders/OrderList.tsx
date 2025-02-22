@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { EyeIcon, ShoppingBagIcon } from "@heroicons/react/24/outline";
+import {
+  EyeIcon,
+  ShoppingBagIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { colors } from "@/constants/colors";
 import { formatPrice } from "@/utils/format";
@@ -26,6 +30,7 @@ type OrderStatus =
 
 export default function OrderList({ onViewDetails }: OrderListProps) {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [searchId, setSearchId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentStatus, setCurrentStatus] = useState<OrderStatus | "all">(
@@ -33,10 +38,14 @@ export default function OrderList({ onViewDetails }: OrderListProps) {
   );
   const [totalPages, setTotalPages] = useState(1);
 
-  const fetchOrders = async (page: number, status: typeof currentStatus) => {
+  const fetchOrders = async (
+    page: number,
+    status: typeof currentStatus,
+    searchId
+  ) => {
     setIsLoading(true);
     try {
-      const response = await adminService.getAllOrders(page, status);
+      const response = await adminService.getAllOrders(page, status, searchId);
       setOrders(response.data.orders);
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {
@@ -47,7 +56,7 @@ export default function OrderList({ onViewDetails }: OrderListProps) {
   };
 
   useEffect(() => {
-    fetchOrders(currentPage, currentStatus);
+    fetchOrders(currentPage, currentStatus, searchId);
   }, [currentPage, currentStatus]);
 
   const getAvailableStatuses = (currentStatus: OrderStatus): OrderStatus[] => {
@@ -100,7 +109,7 @@ export default function OrderList({ onViewDetails }: OrderListProps) {
 
       await adminService.updateOrderStatus(orderId, newStatus);
       toast.success("Order status updated successfully");
-      fetchOrders(currentPage, currentStatus);
+      fetchOrders(currentPage, currentStatus, searchId);
     } catch (error) {
       toast.error("Failed to update order status");
     }
@@ -126,8 +135,44 @@ export default function OrderList({ onViewDetails }: OrderListProps) {
       .join(" ");
   };
 
+  const filteredOrders = orders.filter((order) =>
+    order._id.includes(searchId.replace("#", ""))
+  );
+
   return (
     <div>
+      {/* Search Bar */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          fetchOrders(currentPage, currentStatus, searchId.replace("#", ""));
+        }}
+        className="mb-4 flex gap-3 items-center"
+      >
+        <input
+          type="text"
+          value={searchId}
+          onChange={(e) => setSearchId(e.target.value)}
+          placeholder="Search by Order ID (8 characters)"
+          className="border rounded p-2 flex-1 max-w-96 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          style={{
+            borderColor: colors.border,
+            backgroundColor: colors.background,
+            color: colors.textPrimary,
+          }}
+        />
+        <button
+          type="submit"
+          className="bg-brown text-white rounded py-2 px-4 flex items-center"
+          style={{
+            backgroundColor: colors.brown,
+            borderColor: colors.border,
+          }}
+        >
+          <MagnifyingGlassIcon className="h-5 w-5" />
+        </button>
+      </form>
+
       {/* Status Filter */}
       <div className="mb-4 flex gap-2 w-full overflow-x-auto">
         {statusOptions.map((status) => (
