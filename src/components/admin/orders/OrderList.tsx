@@ -227,7 +227,10 @@ export default function OrderList({ onViewDetails }: OrderListProps) {
             </p>
             {currentStatus !== "all" && (
               <button
-                onClick={() => setCurrentStatus("all")}
+                onClick={() => {
+                  setSearchId("");
+                  setCurrentStatus("all");
+                }}
                 className="text-sm font-medium px-4 py-2 rounded-md transition-colors"
                 style={{
                   backgroundColor: colors.background,

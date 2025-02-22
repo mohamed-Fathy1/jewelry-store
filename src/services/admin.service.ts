@@ -220,7 +220,7 @@ export const adminService = {
         url += `&status=${status}`;
       }
       if (orderId) {
-        url += `&orderId=${orderId}`;
+        url += `&orderId=${orderId.replace("#", "")}`;
       }
       const response = await api.get(url);
       return response.data;
