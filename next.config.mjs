@@ -6,28 +6,19 @@
 const nextConfig = {
   output: "standalone",
   images: {
-    unoptimized: true,
+    unoptimized: false,
     remotePatterns: [
       {
-        protocol: "http",
-        hostname: "**", // Match any hostname
-        pathname: "**", // Match any path
-      },
-      {
         protocol: "https",
-        hostname: "**", // Match any hostname
-        pathname: "**", // Match any path
-      },
-      {
-        protocol: "https",
-        hostname: "https://atozaccessories.s3.us-east-1.amazonaws.com",
-        pathname: "/**", // Allows all paths in this bucket
-        port: "", // Leave empty for default HTTPS port
+        hostname: "atozaccessories.s3.us-east-1.amazonaws.com",
+        pathname: "/**",
       },
     ],
-    domains: ["atozaccessories.s3.us-east-1.amazonaws.com"],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    formats: ["image/webp"],
+    minimumCacheTTL: 60,
   },
-
   reactStrictMode: false,
   typescript: {
     ignoreBuildErrors: true,

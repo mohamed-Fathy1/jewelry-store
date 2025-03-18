@@ -128,6 +128,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
             alt={`${currentProduct.productName} - Main View`}
             width={1000}
             height={1000}
+            sizes="(max-width: 768px) 100vw, 50vw"
+            quality={85}
             className="w-full h-full object-cover transition-opacity duration-500"
             priority
           />
@@ -183,6 +185,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
                 alt={`${currentProduct.productName} - Thumbnail ${index + 1}`}
                 width={80}
                 height={80}
+                sizes="80px"
+                quality={75}
                 className="w-full h-full object-cover"
               />
             </button>

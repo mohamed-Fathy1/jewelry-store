@@ -84,6 +84,8 @@ export default function Hero() {
               alt={`Hero Slide ${currentSlide + 1}`}
               fill
               priority
+              sizes="100vw"
+              quality={85}
               className="object-cover"
             />
           </div>
@@ -95,6 +97,8 @@ export default function Hero() {
               alt={`Hero Slide ${currentSlide + 1}`}
               fill
               priority
+              sizes="100vw"
+              quality={90}
               className="object-cover"
             />
           </div>
