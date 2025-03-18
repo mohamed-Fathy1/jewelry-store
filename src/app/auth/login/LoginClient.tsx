@@ -5,15 +5,12 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { colors } from "@/constants/colors";
 import toast from "react-hot-toast";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export function LoginClient() {
-  const searchParams = useSearchParams();
-  const needsActivation = searchParams.get("needsActivation");
   const [email, setEmail] = useState("");
   const { registerEmail } = useAuth();
   const [isRegisterLoading, setIsRegisterLoading] = useState(false);
-
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,13 +19,13 @@ export function LoginClient() {
     try {
       const response = await registerEmail(email);
       if (response.success) {
-        toast.success(response.message);
-        router.push(`/activate-account?email=${encodeURIComponent(email)}`);
+        toast.success("Login successful!");
+        router.push("/");
       } else {
         toast.error(response.message);
       }
     } catch (error) {
-      toast.error("Failed to send login email. Please try again.", error);
+      toast.error("Failed to log in. Please try again.", error);
     } finally {
       setIsRegisterLoading(false);
     }
@@ -47,18 +44,6 @@ export function LoginClient() {
           <p className="mt-2 text-sm" style={{ color: colors.textSecondary }}>
             Sign in to your account to continue
           </p>
-          {needsActivation && (
-            <p className="mt-2 text-sm" style={{ color: colors.brown }}>
-              Please check your email and{" "}
-              <Link
-                href="/activate-account"
-                className="underline hover:opacity-80"
-              >
-                activate your account
-              </Link>{" "}
-              first
-            </p>
-          )}
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
@@ -98,7 +83,7 @@ export function LoginClient() {
               color: colors.textLight,
             }}
           >
-            {isRegisterLoading ? "Sending..." : "Send login link"}
+            {isRegisterLoading ? "Logging in..." : "Log in"}
           </button>
 
           <p className="text-center" style={{ color: colors.textSecondary }}>

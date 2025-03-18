@@ -29,9 +29,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const response = await authService.registerEmail(email);
         if (response.success) {
-          const userData = { email, id: response.data.id };
+          const userData = {
+            email,
+            id: response.data.id,
+            accessToken: response.data.accessToken,
+          };
           try {
             setAuthUser(userData);
+            localStorage.setItem("authUser", JSON.stringify(userData));
+            localStorage.setItem("accessToken", response.data.accessToken);
           } catch (error) {
             console.error("Failed to store user data:", error);
           }
@@ -140,10 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       pathname.startsWith(path)
     );
 
-    if (
-      requiresAuth &&
-      (!storedUser || !storedToken)
-    ) {
+    if (requiresAuth && (!storedUser || !storedToken)) {
       // Redirect to login if trying to access protected route while not authenticated
       router.push("/auth/login");
     }

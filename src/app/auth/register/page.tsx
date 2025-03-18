@@ -18,8 +18,8 @@ export default function RegisterPage() {
       setIsRegisterLoading(true);
       const response = await registerEmail(email);
       if (response.success) {
-        toast.success(response.message);
-        router.push(`/activate-account?email=${encodeURIComponent(email)}`);
+        toast.success("Registration successful!");
+        router.push("/");
       } else {
         toast.error(response.message);
       }
