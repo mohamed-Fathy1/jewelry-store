@@ -8,9 +8,12 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { colors } from "@/constants/colors";
 import { formatPrice } from "@/utils/format";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  const router = useRouter();
 
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
@@ -112,6 +115,9 @@ export default function OrdersPage() {
                       <div
                         key={index}
                         className="flex items-center border rounded-lg p-3"
+                        onClick={() =>
+                          router.push(`/products/${product.productId?._id}`)
+                        }
                       >
                         {typeof product.productId === "object" && (
                           <div className="h-16 w-16 relative flex-shrink-0">
