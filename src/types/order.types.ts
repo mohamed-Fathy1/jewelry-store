@@ -1,4 +1,7 @@
 interface UserInformation {
+  _id?: string;
+  firstName: string;
+  lastName: string;
   country: string;
   address: string;
   governorate: string;

@@ -67,7 +67,7 @@ export default function OrdersPage() {
                       Total: {formatPrice(selectedOrder.price)}
                     </p>
                     <p className="text-sm text-gray-600">
-                      Status: {selectedOrder.status}
+                      Status: {selectedOrder.status.toUpperCase()}
                     </p>
                   </div>
                   <div>
@@ -76,6 +76,10 @@ export default function OrdersPage() {
                         <h3 className="font-medium mb-2">
                           Customer Information
                         </h3>
+                        <p className="text-sm text-gray-600">
+                          Name: {selectedOrder.userInformation.firstName}{" "}
+                          {selectedOrder.userInformation.lastName}
+                        </p>
                         <p className="text-sm text-gray-600">
                           Phone: {selectedOrder.userInformation.primaryPhone}
                         </p>

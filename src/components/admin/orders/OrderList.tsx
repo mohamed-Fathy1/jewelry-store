@@ -302,6 +302,10 @@ export default function OrderList({ onViewDetails }: OrderListProps) {
                       <div className="flex flex-col">
                         {order.userInformation ? (
                           <>
+                            <div className="text-sm text-gray-900 font-medium">
+                              {order.userInformation.firstName}{" "}
+                              {order.userInformation.lastName}
+                            </div>
                             <div className="text-sm text-gray-900">
                               {order.userInformation.primaryPhone}
                             </div>
