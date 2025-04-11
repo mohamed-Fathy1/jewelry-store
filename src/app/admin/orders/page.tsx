@@ -114,9 +114,9 @@ export default function OrdersPage() {
                     {selectedOrder?.products?.map((product, index) => (
                       <div
                         key={index}
-                        className="flex items-center border rounded-lg p-3"
+                        className="flex items-center border rounded-lg p-3 cursor-pointer"
                         onClick={() =>
-                          router.push(`/products/${product.productId?._id}`)
+                          router.push(`/product/${product.productId?._id}`)
                         }
                       >
                         {typeof product.productId === "object" && (
