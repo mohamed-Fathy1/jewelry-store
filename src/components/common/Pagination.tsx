@@ -33,7 +33,7 @@ export default function Pagination({
         <button
           key={page}
           onClick={() => onPageChange(page)}
-          className="px-4 py-2 rounded-md transition-colors"
+          className="px-4 py-2 rounded-md transition-colors cursor-pointer"
           style={{
             backgroundColor:
               currentPage === page ? colors.brown : "transparent",
