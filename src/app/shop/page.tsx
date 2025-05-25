@@ -29,59 +29,64 @@ export default function ShopPage() {
   const isSale = searchParams.get("sale");
 
   useEffect(() => {
-    const sort = searchParams.get("sort");
-    const price = searchParams.get("price");
-    const page = searchParams.get("page");
-    setCurrentPage(page ? parseInt(page) : 1);
-    setSortConfig({ sortBy: sort || "" });
-    setActiveFilters({
-      ...activeFilters,
-      priceRange: price || "",
-    });
-  }, [searchParams]);
+    const fetchData = async () => {
+      // Get values from search params
+      const sort = searchParams.get("sort");
+      const price = searchParams.get("price");
+      const page = searchParams.get("page");
+      const categoryId = searchParams.get("categoryId");
 
-  useEffect(() => {
-    const fetchProducts = async () => {
+      // Update local state without triggering re-renders
+      const currentPageValue = page ? parseInt(page) : 1;
+      const currentFilters = {
+        ...activeFilters,
+        priceRange: price || "",
+      };
+      const currentSort = { sortBy: sort || "" };
+
+      // Set state values
+      setCurrentPage(currentPageValue);
+      setSortConfig(currentSort);
+      setActiveFilters(currentFilters);
+
+      // Fetch products
       setIsLoading(true);
       try {
-        const categoryId = searchParams.get("categoryId");
-        const sort = searchParams.get("sort");
-        const price = searchParams.get("price");
         let response;
 
         if (categoryId) {
           // If we have a category ID, fetch products for that category
           response = await productService.getProductsByCategoryId(
             categoryId,
-            currentPage,
+            currentPageValue,
             {
-              ...activeFilters,
+              ...currentFilters,
               sort: sort,
               priceRange: price,
             }
           );
         } else if (isSale === "true") {
           // If we're viewing sale items
-          response = await productService.getAllSaleProducts(currentPage);
+          response = await productService.getAllSaleProducts(currentPageValue);
         } else if (
-          Object.values(activeFilters).some((filter) =>
+          Object.values(currentFilters).some((filter) =>
             Array.isArray(filter) ? filter.length > 0 : filter !== ""
           ) ||
-          sortConfig.sortBy ||
+          currentSort.sortBy ||
           price
         ) {
           // If we have active filters
           response = await productService.getFilteredProducts(
             {
-              ...activeFilters,
+              ...currentFilters,
               sort: sort,
               priceRange: price,
             },
-            currentPage
+            currentPageValue
           );
         } else {
           // Default: fetch all products
-          response = await productService.getAllProducts(currentPage);
+          response = await productService.getAllProducts(currentPageValue);
         }
 
         if (response.success) {
@@ -95,12 +100,14 @@ export default function ShopPage() {
       }
     };
 
-    fetchProducts();
-  }, [currentPage, activeFilters, sortConfig, searchParams, isSale]);
+    fetchData();
+  }, [searchParams, isSale]);
 
   const handleFilterChange = (filters: typeof activeFilters) => {
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.set("page", "1");
+    router.push(`/shop?${newSearchParams.toString()}`);
     setActiveFilters(filters);
-    setCurrentPage(1);
   };
 
   const handleSortChange = (sortBy: string) => {
@@ -112,6 +119,7 @@ export default function ShopPage() {
     const newSearchParams = new URLSearchParams(searchParams.toString());
     newSearchParams.set("page", page.toString());
     router.push(`/shop?${newSearchParams.toString()}`);
+    setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
