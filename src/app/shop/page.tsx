@@ -27,10 +27,22 @@ export default function ShopPage() {
   const isSale = searchParams.get("sale");
 
   useEffect(() => {
+    const sort = searchParams.get("sort");
+    const price = searchParams.get("price");
+    setSortConfig({ sortBy: sort || "" });
+    setActiveFilters({
+      ...activeFilters,
+      priceRange: price || "",
+    });
+  }, [searchParams]);
+
+  useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
         const categoryId = searchParams.get("categoryId");
+        const sort = searchParams.get("sort");
+        const price = searchParams.get("price");
         let response;
 
         if (categoryId) {
@@ -40,7 +52,8 @@ export default function ShopPage() {
             currentPage,
             {
               ...activeFilters,
-              sort: `${sortConfig.sortBy}`,
+              sort: sort,
+              price: price,
             }
           );
         } else if (isSale === "true") {
@@ -56,7 +69,8 @@ export default function ShopPage() {
           response = await productService.getFilteredProducts(
             {
               ...activeFilters,
-              sort: `${sortConfig.sortBy}`,
+              sort: sortConfig.sortBy,
+              price: price,
             },
             currentPage
           );
@@ -77,7 +91,7 @@ export default function ShopPage() {
     };
 
     fetchProducts();
-  }, [currentPage, activeFilters, sortConfig, searchParams]);
+  }, [currentPage, activeFilters, sortConfig, searchParams, isSale]);
 
   const handleFilterChange = (filters: typeof activeFilters) => {
     setActiveFilters(filters);

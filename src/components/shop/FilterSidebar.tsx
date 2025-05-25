@@ -4,6 +4,7 @@ import { useState } from "react";
 import { colors } from "@/constants/colors";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { FunnelIcon } from "@heroicons/react/24/solid"; // Import the filter icon
+import { useSearchParams, useRouter } from "next/navigation";
 
 type FilterOption = {
   id: string;
@@ -38,6 +39,9 @@ export default function FilterSidebar({
   );
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isPricePopupOpen, setIsPricePopupOpen] = useState(false); // State for price popup
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const price = searchParams.get("price");
 
   const toggleFilter = (category: "material" | "style", value: string) => {
     const currentFilters = [...activeFilters[category]];
@@ -53,6 +57,9 @@ export default function FilterSidebar({
       ...activeFilters,
       [category]: currentFilters,
     });
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.set("price", price || "");
+    router.push(`/shop?${newSearchParams.toString()}`);
   };
 
   const handlePriceRangeChange = (value: string) => {
@@ -61,6 +68,9 @@ export default function FilterSidebar({
       priceRange: activeFilters.priceRange === value ? "" : value,
     });
     setIsPricePopupOpen(false); // Close the price popup after selecting a price range
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.set("price", value);
+    router.push(`/shop?${newSearchParams.toString()}`);
   };
 
   const toggleSection = (category: string) => {

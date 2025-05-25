@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { colors } from "@/constants/colors";
+import { useSearchParams, useRouter } from "next/navigation";
 
 const sortOptions = [
   { name: "Newest", value: "Newest" },
@@ -19,6 +20,11 @@ interface SortDropdownProps {
 }
 
 export default function SortDropdown({ value, onChange }: SortDropdownProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const sort = searchParams.get("sort");
+  const price = searchParams.get("price");
+
   const getCurrentSortName = () => {
     const option = sortOptions.find((opt) => opt.value === value.sortBy);
     return option?.name || "";
@@ -62,7 +68,15 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
               <Menu.Item key={option.value}>
                 {({ active }) => (
                   <button
-                    onClick={() => onChange(option.value)}
+                    onClick={() => {
+                      onChange(option.value);
+                      const newSearchParams = new URLSearchParams(
+                        searchParams.toString()
+                      );
+                      newSearchParams.set("sort", option.value);
+                      newSearchParams.set("price", price || "");
+                      router.push(`/shop?${newSearchParams.toString()}`);
+                    }}
                     className={`${
                       active ? "bg-opacity-10" : ""
                     } block w-full text-left px-4 py-2 text-sm
