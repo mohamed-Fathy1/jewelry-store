@@ -112,7 +112,6 @@ export default function ShopPage() {
     const newSearchParams = new URLSearchParams(searchParams.toString());
     newSearchParams.set("page", page.toString());
     router.push(`/shop?${newSearchParams.toString()}`);
-    setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
