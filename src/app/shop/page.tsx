@@ -52,8 +52,11 @@ export default function ShopPage() {
             currentPage,
             {
               ...activeFilters,
-              sort: sort,
-              price: price,
+              sort: sortConfig.sortBy as
+                | "Newest"
+                | "Low to High"
+                | "High to Low",
+              priceRange: price,
             }
           );
         } else if (isSale === "true") {
@@ -63,14 +66,18 @@ export default function ShopPage() {
           Object.values(activeFilters).some((filter) =>
             Array.isArray(filter) ? filter.length > 0 : filter !== ""
           ) ||
-          sortConfig.sortBy
+          sortConfig.sortBy ||
+          price
         ) {
           // If we have active filters
           response = await productService.getFilteredProducts(
             {
               ...activeFilters,
-              sort: sortConfig.sortBy,
-              price: price,
+              sort: sortConfig.sortBy as
+                | "Newest"
+                | "Low to High"
+                | "High to Low",
+              priceRange: price,
             },
             currentPage
           );
