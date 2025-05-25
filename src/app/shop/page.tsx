@@ -9,6 +9,7 @@ import ProductCard from "@/components/product/ProductCard";
 import FilterSidebar from "@/components/shop/FilterSidebar";
 import SortDropdown from "@/components/shop/SortDropdown";
 import Pagination from "@/components/common/Pagination";
+import router from "next/router";
 
 export default function ShopPage() {
   const searchParams = useSearchParams();
@@ -29,6 +30,8 @@ export default function ShopPage() {
   useEffect(() => {
     const sort = searchParams.get("sort");
     const price = searchParams.get("price");
+    const page = searchParams.get("page");
+    setCurrentPage(page ? parseInt(page) : 1);
     setSortConfig({ sortBy: sort || "" });
     setActiveFilters({
       ...activeFilters,
@@ -105,6 +108,9 @@ export default function ShopPage() {
   };
 
   const handlePageChange = (page: number) => {
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.set("page", page.toString());
+    router.push(`/shop?${newSearchParams.toString()}`);
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
