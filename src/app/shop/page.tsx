@@ -52,10 +52,7 @@ export default function ShopPage() {
             currentPage,
             {
               ...activeFilters,
-              sort: sortConfig.sortBy as
-                | "Newest"
-                | "Low to High"
-                | "High to Low",
+              sort: sort,
               priceRange: price,
             }
           );
@@ -73,10 +70,7 @@ export default function ShopPage() {
           response = await productService.getFilteredProducts(
             {
               ...activeFilters,
-              sort: sortConfig.sortBy as
-                | "Newest"
-                | "Low to High"
-                | "High to Low",
+              sort: sort,
               priceRange: price,
             },
             currentPage
