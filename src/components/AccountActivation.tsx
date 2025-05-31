@@ -57,7 +57,14 @@ const AccountActivation = () => {
       if (isAdmin(authUser)) {
         router.push("/admin");
       } else {
-        router.push("/");
+        // Check for return URL
+        const returnUrl = localStorage.getItem("returnUrl");
+        if (returnUrl) {
+          localStorage.removeItem("returnUrl"); // Clean up
+          router.push(returnUrl);
+        } else {
+          router.push("/"); // Default fallback
+        }
       }
     }
   }, [authUser, router]);

@@ -20,7 +20,14 @@ export function LoginClient() {
       const response = await registerEmail(email);
       if (response.success) {
         toast.success("Login successful!");
-        router.push("/");
+        // Check for return URL
+        const returnUrl = localStorage.getItem("returnUrl");
+        if (returnUrl) {
+          localStorage.removeItem("returnUrl"); // Clean up
+          router.push(returnUrl);
+        } else {
+          router.push("/"); // Default fallback
+        }
       } else {
         toast.error(response.message);
       }

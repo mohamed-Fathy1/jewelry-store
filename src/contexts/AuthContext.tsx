@@ -147,6 +147,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     if (requiresAuth && (!storedUser || !storedToken)) {
+      // Store the current path before redirecting
+      localStorage.setItem("returnUrl", pathname);
       // Redirect to login if trying to access protected route while not authenticated
       router.push("/auth/login");
     }
