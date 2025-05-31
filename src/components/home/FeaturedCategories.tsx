@@ -72,7 +72,9 @@ export default function FeaturedCategories() {
             transition={{ duration: 0.3 }}
             className="relative group"
           >
-            <div className="relative aspect-square rounded-lg overflow-hidden">
+                <Link
+                  href={`/shop?categoryId=${category._id}`}
+            className="block relative aspect-square rounded-lg overflow-hidden">
               <Image
                 src={category.image.mediaUrl}
                 alt={category.categoryName}
@@ -92,16 +94,17 @@ export default function FeaturedCategories() {
                   {category.categoryName}
                 </h3>
 
-                <Link
-                  href={`/shop?categoryId=${category._id}`}
-                  className="py-1 px-4 text-sm md:text-base md:px-6 md:py-2 rounded md:rounded-md font-medium transform transition-all duration-300 hover:scale-105"
-                  style={{
-                    backgroundColor: colors.background,
-                    color: colors.textPrimary,
-                  }}
-                >
-                  Shop Now
-                </Link>
+                {//  <Link
+              //    href={`/shop?categoryId=${category._id}`}
+              //    className="py-1 px-4 text-sm md:text-base md:px-6 md:py-2 rounded md:rounded-md font-medium transform transition-all duration-300 hover:scale-105"
+              //    style={{
+              //      backgroundColor: colors.background,
+              //      color: colors.textPrimary,
+              //    }}
+              //  >
+              //    Shop Now
+              //  </Link>
+              }
               </div>
               <p
                 className="absolute bottom-[2%] left-1/2 -translate-x-1/2 text-center text-sm mb-2 md:mb-4 text-shadow-light opacity-0 group-hover:opacity-100 transition-all duration-300"
@@ -109,7 +112,7 @@ export default function FeaturedCategories() {
               >
                 {category.slug}
               </p>
-            </div>
+            </Link>
           </motion.div>
         ))}
       </div>
