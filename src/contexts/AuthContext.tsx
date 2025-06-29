@@ -175,8 +175,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         );
 
         if (requiresAuth && !authUser?.accessToken) {
-          // Redirect to login if trying to make authenticated request while not logged in
-          return false; // Cancel the request
+          // Cancel the request by throwing an error
+          throw new axios.Cancel(
+            "Request canceled due to no authentication token"
+          );
         }
 
         // Add auth token to header if it exists
@@ -193,7 +195,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (response) => response,
       async (error: AxiosError) => {
         if (error.response?.status === 401) {
-          await logout();
+          // Try to refresh token first
+          try {
+            const refreshResponse = await authService.refreshToken();
+            if (refreshResponse.success && refreshResponse.data.accessToken) {
+              // Update stored token
+              localStorage.setItem(
+                "accessToken",
+                refreshResponse.data.accessToken
+              );
+              setAuthUser((prev) =>
+                prev
+                  ? { ...prev, accessToken: refreshResponse.data.accessToken }
+                  : null
+              );
+
+              // Retry the original request with new token
+              const originalRequest = error.config;
+              if (originalRequest) {
+                originalRequest.headers.Authorization = `Bearer ${refreshResponse.data.accessToken}`;
+                return api.request(originalRequest);
+              }
+            } else {
+              // Refresh failed, logout user
+              await logout();
+            }
+          } catch (refreshError) {
+            // Refresh failed, logout user
+            await logout();
+          }
         }
         return Promise.reject(error);
       }
@@ -214,17 +244,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initAuth();
-  }, []);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token && checkTokenExpiration(token)) {
-      const decoded = decodeToken(token);
-      if (decoded) {
-        setAuthUser(decoded.user);
-      }
-    }
-    setIsLoading(false);
   }, []);
 
   if (isLoading) {

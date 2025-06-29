@@ -1,4 +1,5 @@
 import api from "@/lib/axios";
+import axios from "axios";
 import { AuthResponse } from "@/types/auth.types";
 
 export const authService = {
@@ -27,16 +28,42 @@ export const authService = {
 
   // Logout user
   async logout(): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>(`/user/logout`);
-    return response.data;
+    try {
+      const response = await api.post<AuthResponse>(`/user/logout`);
+      return response.data;
+    } catch (error) {
+      // Even if logout fails on server, we should clear local storage
+      console.error("Logout error:", error);
+      return {
+        success: true,
+        message: "Logged out locally",
+        statusCode: 200,
+        data: {},
+      };
+    }
   },
 
-  // Refresh token - no email needed as it uses HTTP-only cookie
+  // Refresh token - uses HTTP-only cookie, no body needed
   async refreshToken(): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>(
-      `/authentication/refresh-token`
-    );
-    return response.data;
+    try {
+      // Create a new axios instance without interceptors to avoid infinite loops
+      const refreshApi = axios.create({
+        baseURL: process.env.NEXT_PUBLIC_API_URL,
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const response = await refreshApi.post<AuthResponse>(
+        `/authentication/refresh-token`,
+        {} // Empty body since it uses HTTP-only cookies
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Refresh token error:", error);
+      throw error;
+    }
   },
 
   // Token expiry check

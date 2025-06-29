@@ -17,6 +17,11 @@ api.interceptors.request.use((config) => {
     return config;
   }
 
+  // For refresh token endpoint, don't add auth header (uses HTTP-only cookie)
+  if (config.url?.includes("/authentication/refresh-token")) {
+    return config;
+  }
+
   // For protected endpoints, add the auth header if token exists
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -30,8 +35,13 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
+    // Don't automatically handle 401s here since AuthContext handles it
+    // Only handle non-auth related errors
+    if (
+      error.response?.status === 401 &&
+      !error.config?.url?.includes("/authentication/refresh-token")
+    ) {
+      // Handle unauthorized access for non-refresh requests
       localStorage.removeItem("accessToken");
       localStorage.removeItem("authUser");
     }

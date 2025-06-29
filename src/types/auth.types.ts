@@ -29,5 +29,5 @@ export interface AuthContextType {
   registerEmail: (email: string) => Promise<AuthResponse>;
   activateAccount: (email: string, activeCode: string) => Promise<AuthResponse>;
   logout: () => Promise<void>;
-  refreshToken: (email: string) => Promise<AuthResponse>;
+  refreshToken: () => Promise<AuthResponse>;
 }
