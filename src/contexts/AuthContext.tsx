@@ -234,7 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       api.interceptors.request.eject(requestInterceptor);
       api.interceptors.response.eject(responseInterceptor);
     };
-  }, [authUser, logout, router]);
+  }, [authUser, logout, router, pathname]);
 
   useEffect(() => {
     // Move any initialization logic here

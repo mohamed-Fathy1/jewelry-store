@@ -35,13 +35,12 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Don't automatically handle 401s here since AuthContext handles it
-    // Only handle non-auth related errors
+    // Basic cleanup for 401 errors - main handling is done in AuthContext
     if (
-      error.response?.status === 401 &&
-      !error.config?.url?.includes("/authentication/refresh-token")
+      error.response?.status === 401 ||
+      (error.response?.status === 400 &&
+        error.config?.url?.includes("/authentication/refresh-token"))
     ) {
-      // Handle unauthorized access for non-refresh requests
       localStorage.removeItem("accessToken");
       localStorage.removeItem("authUser");
     }

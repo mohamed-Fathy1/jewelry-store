@@ -49,7 +49,6 @@ export const authService = {
       // Create a new axios instance without interceptors to avoid infinite loops
       const refreshApi = axios.create({
         baseURL: process.env.NEXT_PUBLIC_API_URL,
-        withCredentials: true,
         headers: {
           "Content-Type": "application/json",
         },
