@@ -16,6 +16,7 @@ import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
 import LoadingSpinner from "../../components/LoadingSpinner"; // Import the new loading component
 import { useRouter } from "next/navigation";
+import { analytics } from "@/lib";
 
 interface ShippingFormData {
   firstName: string;
@@ -79,35 +80,23 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     setIsClient(true);
-    // Track initial checkout step
-    if (typeof window !== "undefined" && (window as any).fbq) {
-      const subtotal = cart.items.reduce(
-        (total, item) => total + (item.price || 0) * item.quantity,
-        0
-      );
-      const totalItems = cart.items.reduce(
-        (sum, item) => sum + item.quantity,
-        0
-      );
-      const isEligibleForFreeShipping = totalItems >= 3 || subtotal >= 1500;
-      const discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
-
-      (window as any).fbq("track", "InitiateCheckout", {
-        content_name: "Checkout Start",
-        content_category: "Checkout",
-        currency: "EGP",
-        num_items: totalItems,
-        value: subtotal - discount,
-        subtotal: subtotal,
-        discount_value: discount,
-        checkout_step: 1,
-        contents: cart.items.map((item) => ({
-          id: item.productId,
-          quantity: item.quantity,
-          price: item.price || 0,
-        })),
-      });
-    }
+    // Initiate checkout (no PII)
+    const subtotal = cart.items.reduce(
+      (total, item) => total + (item.price || 0) * item.quantity,
+      0
+    );
+    const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+    const discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
+    analytics.trackInitiateCheckout({
+      currency: "EGP",
+      numItems: totalItems,
+      value: subtotal - discount,
+      contents: cart.items.map((item) => ({
+        id: item.productId,
+        quantity: item.quantity,
+        price: item.price || 0,
+      })),
+    });
   }, []);
 
   useEffect(() => {
@@ -115,121 +104,7 @@ export default function CheckoutPage() {
     if (!cart.items.length && !orderSummaryPreview?.items.length && isClient) {
       router.push("/");
     } else if (cart.items.length && isClient) {
-      // Track cart view with contents
-      const cartTotal = calculateCartTotal(cart.items);
-      if (typeof window !== "undefined" && (window as any).fbq) {
-        const subtotal = cart.items.reduce(
-          (total, item) => total + (item.price || 0) * item.quantity,
-          0
-        );
-        const totalItems = cart.items.reduce(
-          (sum, item) => sum + item.quantity,
-          0
-        );
-        const isEligibleForFreeShipping = totalItems >= 3 || subtotal >= 1500;
-        const discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
-        const shippingCost =
-          selectedShipping && !isEligibleForFreeShipping
-            ? selectedShipping.cost
-            : 0;
-        const finalTotal = subtotal - discount + shippingCost;
-
-        (window as any).fbq("track", "ViewCart", {
-          content_type: "product",
-          contents: cart.items.map((item) => ({
-            id: item.productId,
-            quantity: item.quantity,
-            price: item.price || 0,
-          })),
-          currency: "EGP",
-          value: finalTotal,
-          subtotal: subtotal,
-          discount_value: discount,
-          shipping_cost: shippingCost,
-          shipping_method: selectedShipping?.category || "standard",
-          has_free_shipping: isEligibleForFreeShipping,
-          discount_code: subtotal >= 1500 ? "10_PERCENT_OFF" : null,
-          num_items: totalItems,
-        });
-      }
-    }
-  }, [cart.items, isClient]);
-
-  useEffect(() => {
-    if (cart.items.length) {
-      setOrderSummaryPreview(cart);
-    }
-  }, [currentStep]);
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [currentStep]);
-
-  const handleShippingSubmit = (data: ShippingFormData) => {
-    if (!selectedShipping) {
-      toast.error("please select a shpping method");
-      return;
-    }
-    if (!selectedAddress) {
-      toast.error("please select a shpping address");
-      return;
-    }
-    // Track shipping step completion
-    if (typeof window !== "undefined" && (window as any).fbq) {
-      const subtotal = cart.items.reduce(
-        (total, item) => total + (item.price || 0) * item.quantity,
-        0
-      );
-      const totalItems = cart.items.reduce(
-        (sum, item) => sum + item.quantity,
-        0
-      );
-      const isEligibleForFreeShipping = totalItems >= 3 || subtotal >= 1500;
-      const discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
-      const shippingCost =
-        selectedShipping && !isEligibleForFreeShipping
-          ? selectedShipping.cost
-          : 0;
-
-      // Track AddShippingInfo event
-      (window as any).fbq("track", "AddShippingInfo", {
-        address: {
-          city: selectedAddress.city,
-          state: selectedAddress.governorate,
-          country: selectedAddress.country,
-          postal_code: selectedAddress.postalCode,
-        },
-        shipping_method: selectedShipping?.category || "standard",
-        shipping_cost: shippingCost,
-        has_free_shipping: isEligibleForFreeShipping,
-      });
-
-      // Track checkout step progress
-      (window as any).fbq("trackCustom", "CheckoutStep", {
-        step: 2,
-        step_name: "payment",
-        previous_step: "shipping",
-        currency: "EGP",
-        num_items: totalItems,
-        value: subtotal - discount + shippingCost,
-        subtotal: subtotal,
-        discount_value: discount,
-        shipping_cost: shippingCost,
-        shipping_method: selectedShipping?.category || "standard",
-        has_free_shipping: isEligibleForFreeShipping,
-      });
-    }
-    setCurrentStep("payment");
-  };
-
-  const handlePaymentSubmit = async (data: PaymentFormData) => {
-    setPaymentData(data);
-    setLoading(true);
-    console.log(selectedAddress);
-    console.log(cart);
-
-    // Track payment step initiation
-    if (typeof window !== "undefined" && (window as any).fbq) {
+      // Track cart view (no PII)
       const subtotal = cart.items.reduce(
         (total, item) => total + (item.price || 0) * item.quantity,
         0
@@ -246,40 +121,165 @@ export default function CheckoutPage() {
           : 0;
       const finalTotal = subtotal - discount + shippingCost;
 
-      // Track payment info addition
-      (window as any).fbq("track", "AddPaymentInfo", {
-        value: finalTotal,
+      analytics.trackViewCart({
         currency: "EGP",
-        payment_method: data.paymentMethod,
+        numItems: totalItems,
+        value: finalTotal,
         contents: cart.items.map((item) => ({
           id: item.productId,
           quantity: item.quantity,
           price: item.price || 0,
         })),
-      });
-
-      // Track checkout step progress
-      (window as any).fbq("trackCustom", "CheckoutStep", {
-        step: 3,
-        step_name: "confirmation",
-        previous_step: "payment",
-        value: finalTotal,
-        currency: "EGP",
-        num_items: totalItems,
-        contents: cart.items.map((item) => ({
-          id: item.productId,
-          quantity: item.quantity,
-          price: item.price || 0,
-        })),
-        subtotal: subtotal,
-        discount_value: discount,
-        shipping_cost: shippingCost,
-        shipping_method: selectedShipping?.category || "standard",
-        has_free_shipping: isEligibleForFreeShipping,
-        discount_code: subtotal >= 1500 ? "10_PERCENT_OFF" : null,
-        payment_method: data.paymentMethod,
       });
     }
+  }, [cart.items, isClient]);
+
+  useEffect(() => {
+    if (cart.items.length) {
+      setOrderSummaryPreview(cart);
+    }
+  }, [currentStep]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentStep]);
+
+  // Emit step-entered event on each step change (no PII)
+  useEffect(() => {
+    if (!isClient) return;
+    const hasItems = cart.items.length || orderSummaryPreview?.items?.length;
+    if (!hasItems) return;
+
+    const subtotal = cart.items.reduce(
+      (total, item) => total + (item.price || 0) * item.quantity,
+      0
+    );
+    const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+    const isEligibleForFreeShipping = totalItems >= 3 || subtotal >= 1500;
+    const discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
+    const shippingCost =
+      selectedShipping && !isEligibleForFreeShipping
+        ? selectedShipping.cost
+        : 0;
+    const finalTotal = subtotal - discount + shippingCost;
+
+    const stepMap: Record<CheckoutStep, 1 | 2 | 3> = {
+      shipping: 1,
+      payment: 2,
+      confirmation: 3,
+    };
+
+    analytics.trackCheckoutStep(stepMap[currentStep], {
+      stepName: currentStep,
+      currency: "EGP",
+      numItems: totalItems,
+      value: finalTotal,
+      contents: cart.items.map((item) => ({
+        id: item.productId,
+        quantity: item.quantity,
+        price: item.price || 0,
+      })),
+    });
+  }, [
+    currentStep,
+    isClient,
+    cart.items,
+    selectedShipping,
+    orderSummaryPreview,
+  ]);
+
+  const handleShippingSubmit = (data: ShippingFormData) => {
+    if (!selectedShipping) {
+      toast.error("please select a shpping method");
+      return;
+    }
+    if (!selectedAddress) {
+      toast.error("please select a shpping address");
+      return;
+    }
+    // Track shipping step completion (no PII)
+    const subtotal = cart.items.reduce(
+      (total, item) => total + (item.price || 0) * item.quantity,
+      0
+    );
+    const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+    const isEligibleForFreeShipping = totalItems >= 3 || subtotal >= 1500;
+    const discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
+    const shippingCost =
+      selectedShipping && !isEligibleForFreeShipping
+        ? selectedShipping.cost
+        : 0;
+
+    analytics.trackAddShippingInfo({
+      currency: "EGP",
+      numItems: totalItems,
+      value: subtotal - discount + shippingCost,
+      shippingMethod: selectedShipping?.category || "standard",
+      shippingCost,
+      contents: cart.items.map((item) => ({
+        id: item.productId,
+        quantity: item.quantity,
+        price: item.price || 0,
+      })),
+    });
+
+    analytics.trackCheckoutStep(2, {
+      stepName: "payment",
+      currency: "EGP",
+      numItems: totalItems,
+      value: subtotal - discount + shippingCost,
+      contents: cart.items.map((item) => ({
+        id: item.productId,
+        quantity: item.quantity,
+        price: item.price || 0,
+      })),
+    });
+    setCurrentStep("payment");
+  };
+
+  const handlePaymentSubmit = async (data: PaymentFormData) => {
+    setPaymentData(data);
+    setLoading(true);
+    console.log(selectedAddress);
+    console.log(cart);
+
+    // Track payment step initiation
+    const subtotal = cart.items.reduce(
+      (total, item) => total + (item.price || 0) * item.quantity,
+      0
+    );
+    const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+    const isEligibleForFreeShipping = totalItems >= 3 || subtotal >= 1500;
+    const discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
+    const shippingCost =
+      selectedShipping && !isEligibleForFreeShipping
+        ? selectedShipping.cost
+        : 0;
+    const finalTotal = subtotal - discount + shippingCost;
+
+    analytics.trackAddPaymentInfo({
+      currency: "EGP",
+      numItems: totalItems,
+      value: finalTotal,
+      paymentMethod: data.paymentMethod,
+      contents: cart.items.map((item) => ({
+        id: item.productId,
+        quantity: item.quantity,
+        price: item.price || 0,
+      })),
+    });
+
+    analytics.trackCheckoutStep(3, {
+      stepName: "confirmation",
+      currency: "EGP",
+      numItems: totalItems,
+      value: finalTotal,
+      contents: cart.items.map((item) => ({
+        id: item.productId,
+        quantity: item.quantity,
+        price: item.price || 0,
+      })),
+    });
 
     // Prepare order data
     const orderData = {
@@ -298,7 +298,7 @@ export default function CheckoutPage() {
         toast.success(result.message);
 
         // Track successful purchase
-        if (typeof window !== "undefined" && (window as any).fbq) {
+        {
           const subtotal = cart.items.reduce(
             (total, item) => total + (item.price || 0) * item.quantity,
             0
@@ -315,23 +315,15 @@ export default function CheckoutPage() {
               : 0;
           const finalTotal = subtotal - discount + shippingCost;
 
-          // Track final purchase completion
-          (window as any).fbq("track", "Purchase", {
-            value: finalTotal,
-            subtotal: subtotal,
-            discount_value: discount,
-            shipping_cost: shippingCost,
-            shipping_method: selectedShipping?.category || "standard",
-            has_free_shipping: isEligibleForFreeShipping,
-            discount_code: subtotal >= 1500 ? "10_PERCENT_OFF" : null,
+          analytics.trackPurchase({
             currency: "EGP",
+            numItems: totalItems,
+            value: finalTotal,
             contents: cart.items.map((item) => ({
               id: item.productId,
               quantity: item.quantity,
               price: item.price || 0,
             })),
-            content_type: "product",
-            checkout_complete: true,
           });
         }
 
