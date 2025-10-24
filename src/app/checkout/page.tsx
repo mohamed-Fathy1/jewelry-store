@@ -192,16 +192,18 @@ export default function CheckoutPage() {
 
   // Reflect current step in the URL query (preserve existing params like utm, fbclid)
   useEffect(() => {
-    if (!isClient) return;
+    if (!pathname) return;
     try {
       const params = new URLSearchParams(searchParams?.toString() || "");
+      const currentInUrl = params.get("step");
+      if (currentInUrl === currentStep) return;
       params.set("step", currentStep);
       const nextUrl = `${pathname}?${params.toString()}`;
       router.replace(nextUrl, { scroll: false });
     } catch {
       // ignore URL errors; do not interrupt checkout
     }
-  }, [currentStep]);
+  }, [currentStep, pathname, searchParams, router, isClient]);
 
   const handleShippingSubmit = (data: ShippingFormData) => {
     if (!selectedShipping) {
