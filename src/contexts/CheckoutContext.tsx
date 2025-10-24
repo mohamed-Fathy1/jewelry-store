@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import { Address } from "@/types/address.types";
+import { Shipping } from "@/types/shipping.types";
 
 interface CheckoutContextType {
   shippingData: ShippingFormData | null;
@@ -8,6 +9,8 @@ interface CheckoutContextType {
   setShippingData: (data: ShippingFormData) => void;
   setPaymentData: (data: PaymentFormData) => void;
   setSelectedAddress: (address: Address) => void;
+  selectedShipping: Shipping | null;
+  setSelectedShipping: (shipping: Shipping | null) => void;
 }
 
 const CheckoutContext = createContext<CheckoutContextType | undefined>(
@@ -22,7 +25,9 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({
   );
   const [paymentData, setPaymentData] = useState<PaymentFormData | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [selectedShipping, setSelectedShipping] = useState<string>("");
+  const [selectedShipping, setSelectedShipping] = useState<Shipping | null>(
+    null
+  );
 
   return (
     <CheckoutContext.Provider

@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
 import LoadingSpinner from "../../components/LoadingSpinner"; // Import the new loading component
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { analytics } from "@/lib";
 
 interface ShippingFormData {
@@ -77,6 +77,8 @@ export default function CheckoutPage() {
   const [isClient, setIsClient] = useState(false);
   const [orderSummaryPreview, setOrderSummaryPreview] = useState(null);
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     setIsClient(true);
@@ -187,6 +189,19 @@ export default function CheckoutPage() {
     selectedShipping,
     orderSummaryPreview,
   ]);
+
+  // Reflect current step in the URL query (preserve existing params like utm, fbclid)
+  useEffect(() => {
+    if (!isClient) return;
+    try {
+      const params = new URLSearchParams(searchParams?.toString() || "");
+      params.set("step", currentStep);
+      const nextUrl = `${pathname}?${params.toString()}`;
+      router.replace(nextUrl, { scroll: false });
+    } catch {
+      // ignore URL errors; do not interrupt checkout
+    }
+  }, [currentStep]);
 
   const handleShippingSubmit = (data: ShippingFormData) => {
     if (!selectedShipping) {

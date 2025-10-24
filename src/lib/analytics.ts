@@ -38,14 +38,56 @@ function hasFbq(): boolean {
   return Boolean(window.fbq);
 }
 
+type FbqMethod = "track" | "trackCustom";
+
+const pendingQueue: Array<{
+  method: FbqMethod;
+  event: string;
+  payload: FbqParams;
+}> = [];
+let checkTimer: number | undefined;
+const CHECK_INTERVAL_MS = 250;
+const CHECK_TIMEOUT_MS = 5000;
+let startedAt = 0;
+
+function startFbqWatcher(): void {
+  if (typeof window === "undefined") return;
+  if (checkTimer !== undefined) return;
+  startedAt = Date.now();
+  checkTimer = window.setInterval(() => {
+    if (hasFbq() || Date.now() - startedAt > CHECK_TIMEOUT_MS) {
+      if (checkTimer !== undefined) {
+        clearInterval(checkTimer);
+        checkTimer = undefined;
+      }
+      if (hasFbq()) {
+        // Flush queued events
+        for (const item of pendingQueue.splice(0, pendingQueue.length)) {
+          window.fbq!(item.method, item.event, item.payload);
+        }
+      } else {
+        // Give up quietly after timeout
+        pendingQueue.splice(0, pendingQueue.length);
+      }
+    }
+  }, CHECK_INTERVAL_MS);
+}
+
+function emit(method: FbqMethod, eventName: string, payload: FbqParams): void {
+  if (hasFbq()) {
+    window.fbq!(method, eventName, payload);
+    return;
+  }
+  pendingQueue.push({ method, event: eventName, payload });
+  startFbqWatcher();
+}
+
 function trackStandard(eventName: string, payload: FbqParams): void {
-  if (!hasFbq()) return;
-  window.fbq!("track", eventName, payload);
+  emit("track", eventName, payload);
 }
 
 function trackCustom(eventName: string, payload: FbqParams): void {
-  if (!hasFbq()) return;
-  window.fbq!("trackCustom", eventName, payload);
+  emit("trackCustom", eventName, payload);
 }
 
 function clampNumber(n: number): number {

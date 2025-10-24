@@ -9,7 +9,7 @@ interface ISelectedAddress {
   firstName: string;
   lastName: string;
   apartmentSuite?: string;
-  governorate: string;
+  governorate?: string;
   address: string;
   postalCode: string;
   primaryPhone: string;
