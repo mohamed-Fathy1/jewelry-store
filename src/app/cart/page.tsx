@@ -72,6 +72,10 @@ export default function CartPage() {
       return {
         ...prev,
         items: updatedCart.filter((item) => item.quantity > 0),
+        totalAmount: updatedCart.reduce(
+          (total, item) => total + (item.price || 0) * item.quantity,
+          0
+        ),
       };
     });
   };
