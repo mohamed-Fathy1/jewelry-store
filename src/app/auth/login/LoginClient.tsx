@@ -5,13 +5,14 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { colors } from "@/constants/colors";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export function LoginClient() {
   const [email, setEmail] = useState("");
   const { registerEmail } = useAuth();
   const [isRegisterLoading, setIsRegisterLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,10 +22,33 @@ export function LoginClient() {
       if (response.success) {
         toast.success("Login successful!");
         // Check for return URL
-        const returnUrl = localStorage.getItem("returnUrl");
-        if (returnUrl) {
-          localStorage.removeItem("returnUrl"); // Clean up
-          router.push(returnUrl);
+        const returnUrlFromQuery = searchParams.get("returnUrl");
+        let storedReturnUrl: string | null = null;
+
+        try {
+          if (returnUrlFromQuery) {
+            localStorage.setItem("returnUrl", returnUrlFromQuery);
+          }
+          storedReturnUrl = localStorage.getItem("returnUrl");
+        } catch (storageError: unknown) {
+          console.error(
+            "Failed to access returnUrl in localStorage",
+            storageError
+          );
+        }
+
+        const destination = returnUrlFromQuery || storedReturnUrl;
+
+        if (destination) {
+          try {
+            localStorage.removeItem("returnUrl"); // Clean up
+          } catch (removeError: unknown) {
+            console.error(
+              "Failed to remove returnUrl from localStorage",
+              removeError
+            );
+          }
+          router.push(destination);
         } else {
           router.push("/"); // Default fallback
         }

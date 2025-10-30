@@ -9,12 +9,13 @@ import { formatPrice } from "@/utils/format";
 import { useEffect, useState } from "react";
 import { cartService } from "@/services/cart.service";
 import toast from "react-hot-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function CartPage() {
   const { cart, setCart, updateQuantity, removeFromCart, clearCart } =
     useCart();
   const [isCartQuantityChecked, setIsCartQuantityChecked] = useState(false);
-
+  const { authUser } = useAuth();
   // New function to check available stock
   const checkAvailableStock = async () => {
     const productIds = cart.items.map((item) => item.productId); // Assuming each cart item has an 'id'
@@ -246,7 +247,11 @@ export default function CartPage() {
             </div>
 
             <Link
-              href="/checkout"
+              href={
+                authUser
+                  ? "/checkout?step=shipping"
+                  : "/auth/login?returnUrl=/checkout?step=shipping"
+              }
               className="w-full block text-center py-3 px-4 rounded-md transition-colors duration-200"
               style={{ backgroundColor: colors.brown, color: colors.textLight }}
             >

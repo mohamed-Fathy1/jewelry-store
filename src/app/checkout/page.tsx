@@ -71,6 +71,7 @@ export default function CheckoutPage() {
     selectedShipping,
   } = useCheckout();
   const { cart, clearCart } = useCart();
+  const { isAuthenticated, isLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("shipping");
   const [loading, setLoading] = useState(false);
   const [orderMessage, setOrderMessage] = useState("");
@@ -79,6 +80,25 @@ export default function CheckoutPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const searchParamsString = searchParams.toString();
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (isAuthenticated) return;
+
+    const fullPath = searchParamsString
+      ? `${pathname}?${searchParamsString}`
+      : pathname;
+
+    try {
+      localStorage.setItem("returnUrl", fullPath);
+    } catch (storageError: unknown) {
+      console.error("Failed to store returnUrl before redirect", storageError);
+    }
+
+    const encodedReturnUrl = encodeURIComponent(fullPath);
+    router.replace(`/auth/login?returnUrl=${encodedReturnUrl}`);
+  }, [isAuthenticated, isLoading, pathname, searchParamsString, router]);
 
   useEffect(() => {
     setIsClient(true);
@@ -362,6 +382,10 @@ export default function CheckoutPage() {
   // const handleAddressSelect = (address: Address) => {
   //   setSelectedAddress(address);
   // };
+
+  if (isLoading || !isAuthenticated) {
+    return <LoadingSpinner />;
+  }
 
   return cart.items.length || orderSummaryPreview?.items.length ? (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

@@ -11,7 +11,7 @@ import { authService } from "@/services/auth.service";
 import LoadingSpinner from "../components/LoadingSpinner"; // Import the new loading component
 import axios, { AxiosError } from "axios";
 import api from "@/lib/axios";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { decodeToken, checkTokenExpiration } from "@/utils/auth.utils";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +22,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isloaded, setIsloaded] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchParamsString = searchParams.toString();
 
   const registerEmail = useCallback(
     async (email: string): Promise<AuthResponse> => {
@@ -148,11 +150,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (requiresAuth && (!storedUser || !storedToken)) {
       // Store the current path before redirecting
-      localStorage.setItem("returnUrl", pathname);
+      const fullPath = searchParamsString
+        ? `${pathname}?${searchParamsString}`
+        : pathname;
+
+      try {
+        localStorage.setItem("returnUrl", fullPath);
+      } catch (storageError: unknown) {
+        console.error(
+          "Failed to store returnUrl in localStorage",
+          storageError
+        );
+      }
+
       // Redirect to login if trying to access protected route while not authenticated
-      router.push("/auth/login");
+      const encodedReturnUrl = encodeURIComponent(fullPath);
+      router.push(`/auth/login?returnUrl=${encodedReturnUrl}`);
     }
-  }, [pathname, authUser, router]);
+  }, [pathname, searchParamsString, authUser, router]);
 
   useEffect(() => {
     // Setup request interceptor to check auth
