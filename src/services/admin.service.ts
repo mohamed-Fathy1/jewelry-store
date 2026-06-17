@@ -64,7 +64,7 @@ export const adminService = {
     }));
 
     const response = await api.post(
-      "https://api.atozaccessory.com/aws/get-presigned-url?type=octet-stream",
+      "http://localhost:5000/aws/get-presigned-url?type=octet-stream",
       {
         folder: "imageSlider",
         files: fileData,
