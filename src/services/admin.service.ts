@@ -58,7 +58,10 @@ export const adminService = {
     }
   },
 
-  async getPresignedUrls(files: File[]): Promise<string[]> {
+  async getPresignedUrls(
+    files: File[],
+    folder: string = "imageSlider"
+  ): Promise<string[]> {
     const fileData = files.map((file) => ({
       contentType: file.type,
     }));
@@ -66,7 +69,7 @@ export const adminService = {
     const response = await api.post(
       "http://localhost:5000/aws/get-presigned-url?type=octet-stream",
       {
-        folder: "imageSlider",
+        folder,
         files: fileData,
       }
     );
@@ -83,9 +86,12 @@ export const adminService = {
     }
   },
 
-  async uploadImages(files: File[]): Promise<string[]> {
+  async uploadImages(
+    files: File[],
+    folder: string = "imageSlider"
+  ): Promise<string[]> {
     try {
-      const presignedUrls = await this.getPresignedUrls(files);
+      const presignedUrls = await this.getPresignedUrls(files, folder);
       if (!presignedUrls || presignedUrls.length === 0) {
         throw new Error("No presigned URLs returned");
       }

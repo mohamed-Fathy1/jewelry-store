@@ -16,6 +16,10 @@ import {
   Bars3Icon,
   XMarkIcon,
   HeartIcon,
+  TagIcon,
+  SwatchIcon,
+  Squares2X2Icon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { colors } from "@/constants/colors";
 
@@ -24,6 +28,10 @@ const navigation = [
   { name: "Products", href: "/admin/products", icon: CubeIcon },
   { name: "Orders", href: "/admin/orders", icon: ShoppingBagIcon },
   { name: "Categories", href: "/admin/categories", icon: FolderIcon },
+  { name: "Offers", href: "/admin/offers", icon: TagIcon },
+  { name: "Colors", href: "/admin/colors", icon: SwatchIcon },
+  { name: "Sizes", href: "/admin/sizes", icon: Squares2X2Icon },
+  { name: "Icons", href: "/admin/icons", icon: SparklesIcon },
   // { name: "Customers", href: "/admin/customers", icon: UsersIcon },
   // { name: "Analytics", href: "/admin/analytics", icon: ChartBarIcon },
   // { name: "Settings", href: "/admin/settings", icon: Cog6ToothIcon },

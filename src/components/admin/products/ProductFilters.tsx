@@ -1,117 +1,90 @@
 "use client";
 
-import { useState } from "react";
-import { MagnifyingGlassIcon, FunnelIcon } from "@heroicons/react/24/outline";
-import { Dialog } from "@headlessui/react";
-import { colors } from "@/constants/colors";
-import { useDebounce } from "@/hooks/useDebounce";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { Category } from "@/types/category.types";
 
 interface ProductFiltersProps {
-  onSearch: (query: string) => void;
-  onFilterChange: (filter: "all" | "sale" | "soldout" | "wishlisted") => void;
+  categories: Category[];
+  search: string;
+  category: string;
+  isBestSeller: "" | "true" | "false";
+  sort: "" | "price" | "createdAt" | "soldItems";
+  onSearchChange: (value: string) => void;
+  onCategoryChange: (value: string) => void;
+  onIsBestSellerChange: (value: "" | "true" | "false") => void;
+  onSortChange: (value: "" | "price" | "createdAt" | "soldItems") => void;
 }
 
+const selectClass =
+  "p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-brown";
+
 export default function ProductFilters({
-  onSearch,
-  onFilterChange,
-  selectedFilter,
+  categories,
+  search,
+  category,
+  isBestSeller,
+  sort,
+  onSearchChange,
+  onCategoryChange,
+  onIsBestSellerChange,
+  onSortChange,
 }: ProductFiltersProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  // Use debounce hook for search
-  const debouncedSearch = useDebounce((value: string) => {
-    onSearch(0, value);
-  }, 300);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    debouncedSearch(value);
-  };
-
-  const handleFilterSelect = (
-    filter: "all" | "sale" | "soldout" | "wishlisted"
-  ) => {
-    onFilterChange(filter);
-    setSearchQuery(""); // Clear search when changing filters
-    setIsFilterOpen(false);
-  };
-
-  const filterOptions = [
-    { value: "all", label: "All Products" },
-    { value: "sale", label: "On Sale" },
-    { value: "soldout", label: "Sold Out" },
-    { value: "wishlisted", label: "Most Wishlisted" },
-  ];
-
   return (
-    <div className="mb-6">
-      <div className="flex items-center gap-4">
-        {/* Search Input */}
-        <div className="relative flex-1">
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-brown"
-          />
-          <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-        </div>
-
-        {/* Filter Button */}
-        <button
-          onClick={() => setIsFilterOpen(true)}
-          className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900"
-        >
-          <FunnelIcon className="h-5 w-5 mr-2" />
-          Filter
-        </button>
+    <div className="mb-6 flex flex-wrap items-center gap-4">
+      {/* Search */}
+      <div className="relative flex-1 min-w-[220px]">
+        <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Search products by name or description..."
+          className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-brown"
+        />
       </div>
 
-      {/* Filter Dialog */}
-      <Dialog
-        open={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
-        className="fixed inset-0 z-50 overflow-y-auto"
+      {/* Category */}
+      <select
+        value={category}
+        onChange={(e) => onCategoryChange(e.target.value)}
+        className={selectClass}
       >
-        <div className="flex items-center justify-center min-h-screen">
-          <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+        <option value="">All Categories</option>
+        {categories.map((cat) => (
+          <option key={cat._id} value={cat._id}>
+            {cat.categoryName}
+          </option>
+        ))}
+      </select>
 
-          <div className="relative bg-white rounded-lg w-full max-w-md mx-auto p-6">
-            <Dialog.Title className="text-lg font-medium mb-4">
-              Filter Products
-            </Dialog.Title>
+      {/* Best Seller */}
+      <select
+        value={isBestSeller}
+        onChange={(e) =>
+          onIsBestSellerChange(e.target.value as "" | "true" | "false")
+        }
+        className={selectClass}
+      >
+        <option value="">All Best Sellers</option>
+        <option value="true">Best Seller</option>
+        <option value="false">Not Best Seller</option>
+      </select>
 
-            <div className="space-y-4">
-              {filterOptions.map((option) => (
-                <label
-                  key={option.value}
-                  className="flex items-center space-x-3"
-                >
-                  <input
-                    type="radio"
-                    checked={selectedFilter === option.value}
-                    onChange={() => handleFilterSelect(option.value)}
-                    className="form-radio text-brown"
-                  />
-                  <span>{option.label}</span>
-                </label>
-              ))}
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setIsFilterOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      </Dialog>
+      {/* Sort */}
+      <select
+        value={sort}
+        onChange={(e) =>
+          onSortChange(
+            e.target.value as "" | "price" | "createdAt" | "soldItems"
+          )
+        }
+        className={selectClass}
+      >
+        <option value="">Sort: Newest</option>
+        <option value="createdAt">Sort: Date</option>
+        <option value="price">Sort: Price</option>
+        <option value="soldItems">Sort: Best Selling</option>
+      </select>
     </div>
   );
 }

@@ -6,11 +6,13 @@ import CategoryList, {
   CategoryListRef,
 } from "@/components/admin/categories/CategoryList";
 import CategoryModal from "@/components/admin/categories/CategoryModal";
+import { AdminCategory } from "@/types/admin-category.types";
 import { colors } from "@/constants/colors";
 
 export default function CategoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] =
+    useState<AdminCategory | null>(null);
   const listRef = useRef<CategoryListRef>(null);
 
   const handleAddCategory = () => {
@@ -18,7 +20,7 @@ export default function CategoriesPage() {
     setIsModalOpen(true);
   };
 
-  const handleEditCategory = (category) => {
+  const handleEditCategory = (category: AdminCategory) => {
     setSelectedCategory(category);
     setIsModalOpen(true);
   };

@@ -6,11 +6,15 @@ import ProductList, {
   ProductListRef,
 } from "@/components/admin/products/ProductList";
 import ProductModal from "@/components/admin/products/ProductModal";
+import ProductAnalytics from "@/components/admin/products/ProductAnalytics";
+import { AdminProduct } from "@/types/admin-product.types";
 import { colors } from "@/constants/colors";
 
 export default function ProductsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState<AdminProduct | null>(
+    null
+  );
   const listRef = useRef<ProductListRef>(null);
 
   const handleAddProduct = () => {
@@ -18,7 +22,7 @@ export default function ProductsPage() {
     setIsModalOpen(true);
   };
 
-  const handleEditProduct = (product) => {
+  const handleEditProduct = (product: AdminProduct) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
   };
@@ -45,6 +49,8 @@ export default function ProductsPage() {
           Add Product
         </button>
       </div>
+
+      <ProductAnalytics />
 
       <ProductList ref={listRef} onEdit={handleEditProduct} />
 

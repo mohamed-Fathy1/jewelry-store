@@ -1,0 +1,17 @@
+
+> jewelry-store@0.1.0 dev
+> next dev
+
+   ▲ Next.js 14.0.3
+   - Local:        http://localhost:3000
+   - Environments: .env.local
+
+ ✓ Ready in 8.8s
+ ○ Compiling / ...
+Browserslist: browsers data (caniuse-lite) is 17 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+ ✓ Compiled / in 19.4s (1410 modules)
+ ✓ Compiled in 856ms (662 modules)
+   Reload env: .env.local
+ ✓ Compiled in 529ms (1361 modules)

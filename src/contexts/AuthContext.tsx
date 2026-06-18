@@ -180,6 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const publicPaths = [
           "/authentication/register-email",
           "/authentication/active-account",
+          "/authentication/email-new-code",
           "/authentication/refresh-token",
           // Add other public paths here
         ];

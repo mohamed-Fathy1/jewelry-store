@@ -8,9 +8,10 @@ import toast from "react-hot-toast";
 
 interface ImageUploadProps {
   onUpload: (urls: string[]) => void;
+  folder?: string;
 }
 
-export default function ImageUpload({ onUpload }: ImageUploadProps) {
+export default function ImageUpload({ onUpload, folder }: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,7 +51,7 @@ export default function ImageUpload({ onUpload }: ImageUploadProps) {
     setIsUploading(true);
 
     try {
-      const urls = await adminService.uploadImages(imageFiles);
+      const urls = await adminService.uploadImages(imageFiles, folder);
       console.log(urls);
 
       onUpload(urls);

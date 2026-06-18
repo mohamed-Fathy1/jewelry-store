@@ -1,64 +1,75 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { authService } from "@/services/auth.service";
 import { colors } from "@/constants/colors";
 import toast from "react-hot-toast";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+
+type Step = "email" | "otp";
 
 export function LoginClient() {
-  const [email, setEmail] = useState("");
-  const { registerEmail } = useAuth();
-  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+  const { registerEmail, activateAccount } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [step, setStep] = useState<Step>("email");
+  const [email, setEmail] = useState("");
+  const [activeCode, setActiveCode] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Step 1 — request a login code
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsRegisterLoading(true);
+    setIsLoading(true);
     try {
       const response = await registerEmail(email);
       if (response.success) {
-        toast.success("Login successful!");
-        // Check for return URL
-        const returnUrlFromQuery = searchParams.get("returnUrl");
-        let storedReturnUrl: string | null = null;
-
-        try {
-          if (returnUrlFromQuery) {
-            localStorage.setItem("returnUrl", returnUrlFromQuery);
-          }
-          storedReturnUrl = localStorage.getItem("returnUrl");
-        } catch (storageError: unknown) {
-          console.error(
-            "Failed to access returnUrl in localStorage",
-            storageError
-          );
-        }
-
-        const destination = returnUrlFromQuery || storedReturnUrl;
-
-        if (destination) {
-          try {
-            localStorage.removeItem("returnUrl"); // Clean up
-          } catch (removeError: unknown) {
-            console.error(
-              "Failed to remove returnUrl from localStorage",
-              removeError
-            );
-          }
-          router.push(destination);
-        } else {
-          router.push("/"); // Default fallback
-        }
+        toast.success("Code sent successfully");
+        setStep("otp");
       } else {
         toast.error(response.message);
       }
     } catch (error) {
-      toast.error("Failed to log in. Please try again.", error);
+      toast.error("Failed to send code. Please try again.");
     } finally {
-      setIsRegisterLoading(false);
+      setIsLoading(false);
+    }
+  };
+
+  // Step 2 — verify the 6-digit code
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const response = await activateAccount(email, activeCode);
+      if (response?.success && response.data?.accessToken) {
+        toast.success("Login successful!");
+        router.push("/");
+      } else {
+        toast.error(response?.message || "Invalid or expired code");
+      }
+    } catch (error) {
+      toast.error("Failed to verify code. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Resend a fresh code
+  const handleResend = async () => {
+    setIsLoading(true);
+    try {
+      const response = await authService.emailNewCode(email);
+      if (response.success) {
+        toast.success("A new code has been sent");
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      toast.error("Failed to resend code. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -73,61 +84,120 @@ export function LoginClient() {
             Welcome Back
           </h2>
           <p className="mt-2 text-sm" style={{ color: colors.textSecondary }}>
-            Sign in to your account to continue
+            {step === "email"
+              ? "Enter your email to receive a login code"
+              : "Enter the code we sent to your email"}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium"
-                style={{ color: colors.textPrimary }}
-              >
-                Email Address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full px-4 py-3 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                }}
-                placeholder="Enter your email"
-              />
+        {step === "email" ? (
+          <form onSubmit={handleEmailSubmit} className="mt-8 space-y-6">
+            <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium"
+                  style={{ color: colors.textPrimary }}
+                >
+                  Email Address
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mt-1 w-full px-4 py-3 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                    color: colors.textPrimary,
+                  }}
+                  placeholder="Enter your email"
+                />
+              </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={isRegisterLoading}
-            className="w-full py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
-            style={{
-              backgroundColor: colors.brown,
-              color: colors.textLight,
-            }}
-          >
-            {isRegisterLoading ? "Logging in..." : "Log in"}
-          </button>
-
-          <p className="text-center" style={{ color: colors.textSecondary }}>
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/auth/register"
-              className="font-medium hover:underline"
-              style={{ color: colors.brown }}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
+              style={{
+                backgroundColor: colors.brown,
+                color: colors.textLight,
+              }}
             >
-              Sign up
-            </Link>
-          </p>
-        </form>
+              {isLoading ? "Sending..." : "Send Code"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleOtpSubmit} className="mt-8 space-y-6">
+            <div className="space-y-4">
+              <p
+                className="text-center text-sm"
+                style={{ color: colors.textSecondary }}
+              >
+                Code sent to{" "}
+                <span style={{ color: colors.textPrimary }}>{email}</span>
+              </p>
+
+              <div>
+                <label
+                  htmlFor="activeCode"
+                  className="block text-sm font-medium"
+                  style={{ color: colors.textPrimary }}
+                >
+                  Verification Code
+                </label>
+                <input
+                  id="activeCode"
+                  name="activeCode"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d{6}"
+                  maxLength={6}
+                  required
+                  value={activeCode}
+                  onChange={(e) =>
+                    setActiveCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  className="mt-1 w-full px-4 py-3 rounded-md border tracking-[0.5em] text-center focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                    color: colors.textPrimary,
+                  }}
+                  placeholder="000000"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading || activeCode.length !== 6}
+              className="w-full py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
+              style={{
+                backgroundColor: colors.brown,
+                color: colors.textLight,
+              }}
+            >
+              {isLoading ? "Verifying..." : "Verify"}
+            </button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={isLoading}
+                className="font-medium hover:underline disabled:opacity-50"
+                style={{ color: colors.brown }}
+              >
+                Resend Code
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
