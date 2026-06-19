@@ -9,10 +9,29 @@ import {
   BanknotesIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { colors } from "@/constants/colors";
 import { formatPrice } from "@/utils/format";
 import { ProductAnalysis } from "@/types/admin-product.types";
 import { productsService } from "@/services/products.service";
+import { Card, StatCard, Skeleton } from "@/components/admin/ui";
+
+const GRID_CLASS =
+  "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8";
+
+function AnalyticsSkeleton() {
+  return (
+    <div className={GRID_CLASS}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Card key={i} className="flex items-center gap-4">
+          <Skeleton className="h-11 w-11 rounded-lg" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-3 w-2/3" />
+            <Skeleton className="h-5 w-1/2" />
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
 
 export default function ProductAnalytics() {
   const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
@@ -33,7 +52,8 @@ export default function ProductAnalytics() {
     fetchAnalysis();
   }, []);
 
-  if (isLoading || !analysis) return null;
+  if (isLoading) return <AnalyticsSkeleton />;
+  if (!analysis) return null;
 
   const cards = [
     {
@@ -52,7 +72,7 @@ export default function ProductAnalytics() {
       icon: ShoppingBagIcon,
     },
     {
-      name: "Today's Sales",
+      name: "Today’s Sales",
       value: formatPrice(analysis.orders?.todaySales ?? 0),
       icon: CurrencyDollarIcon,
     },
@@ -69,32 +89,14 @@ export default function ProductAnalytics() {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+    <div className={GRID_CLASS}>
       {cards.map((card) => (
-        <div key={card.name} className="bg-white rounded-lg shadow-sm p-4">
-          <div className="flex items-center">
-            <div
-              className="p-2 rounded-lg"
-              style={{ backgroundColor: `${colors.brown}20` }}
-            >
-              <card.icon className="h-5 w-5" style={{ color: colors.brown }} />
-            </div>
-            <div className="ml-3">
-              <p
-                className="text-xs font-medium"
-                style={{ color: colors.textSecondary }}
-              >
-                {card.name}
-              </p>
-              <p
-                className="text-lg font-semibold mt-0.5"
-                style={{ color: colors.textPrimary }}
-              >
-                {card.value}
-              </p>
-            </div>
-          </div>
-        </div>
+        <StatCard
+          key={card.name}
+          label={card.name}
+          value={card.value}
+          icon={card.icon}
+        />
       ))}
     </div>
   );

@@ -5,7 +5,7 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import OfferList, { OfferListRef } from "@/components/admin/offers/OfferList";
 import OfferModal from "@/components/admin/offers/OfferModal";
 import { Offer } from "@/types/offer.types";
-import { colors } from "@/constants/colors";
+import { Button, PageHeader } from "@/components/admin/ui";
 
 export default function OffersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,22 +28,15 @@ export default function OffersPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1
-          className="text-2xl font-semibold"
-          style={{ color: colors.textPrimary }}
-        >
-          Offers
-        </h1>
-        <button
-          onClick={handleAddOffer}
-          className="flex items-center px-4 py-2 rounded-md text-white"
-          style={{ backgroundColor: colors.brown }}
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Add Offer
-        </button>
-      </div>
+      <PageHeader
+        title="Offers"
+        description="Create and manage promotional offers for the store."
+        actions={
+          <Button onClick={handleAddOffer} leftIcon={<PlusIcon className="h-5 w-5" />}>
+            Add Offer
+          </Button>
+        }
+      />
 
       <OfferList ref={listRef} onEdit={handleEditOffer} />
 

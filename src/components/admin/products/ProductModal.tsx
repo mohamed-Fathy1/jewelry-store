@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 import { XMarkIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
-import { colors } from "@/constants/colors";
 import {
   AdminProduct,
   CreateProductDto,
@@ -18,6 +17,7 @@ import { categoryService } from "@/services/category.service";
 import { colorsService } from "@/services/colors.service";
 import { sizesService } from "@/services/sizes.service";
 import { Select } from "@/components/ui/Select";
+import { Button, IconButton, adminInputClass } from "@/components/admin/ui";
 import ImageUpload from "./ImageUpload";
 
 interface ProductModalProps {
@@ -27,10 +27,9 @@ interface ProductModalProps {
   onSuccess?: () => void;
 }
 
-const inputClass =
-  "mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown";
+const inputClass = `${adminInputClass} mt-1`;
 
-const labelClass = "block text-sm font-medium text-gray-700";
+const labelClass = "block text-sm font-medium text-admin-ink";
 
 // A titled, card-like section to group related fields within the modal.
 function FormSection({
@@ -45,17 +44,12 @@ function FormSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-gray-200 p-4 sm:p-5">
+    <section className="rounded-lg border border-admin-hairline bg-admin-surface p-4 sm:p-5">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3
-            className="text-sm font-semibold"
-            style={{ color: colors.textPrimary }}
-          >
-            {title}
-          </h3>
+          <h3 className="text-sm font-semibold text-admin-heading">{title}</h3>
           {description && (
-            <p className="text-xs text-gray-400 mt-0.5">{description}</p>
+            <p className="text-xs text-admin-ink-muted mt-0.5">{description}</p>
           )}
         </div>
         {action}
@@ -290,22 +284,21 @@ export default function ProductModal({
       className="fixed inset-0 z-50 overflow-y-auto"
     >
       <div className="flex items-center justify-center min-h-screen p-4">
-        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+        <Dialog.Overlay
+          className="fixed inset-0"
+          style={{ backgroundColor: "var(--admin-overlay)" }}
+        />
 
-        <div className="relative bg-white rounded-lg w-full max-w-3xl mx-auto p-6 max-h-[90vh] overflow-y-auto">
+        <div className="relative bg-admin-surface rounded-xl ring-1 ring-admin-hairline shadow-admin-popover w-full max-w-3xl mx-auto p-6 max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
-            <Dialog.Title
-              className="text-xl font-semibold"
-              style={{ color: colors.textPrimary }}
-            >
+            <Dialog.Title className="text-xl font-semibold text-admin-heading">
               {product ? "Edit Product" : "Add New Product"}
             </Dialog.Title>
-            <button
+            <IconButton
+              label="Close"
+              icon={<XMarkIcon />}
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
+            />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -334,7 +327,7 @@ export default function ProductModal({
                     onChange={(e) =>
                       setField("productDescription", e.target.value)
                     }
-                    placeholder="Describe the product..."
+                    placeholder="Describe the product…"
                     rows={3}
                     className={inputClass}
                     required
@@ -373,12 +366,12 @@ export default function ProductModal({
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2.5">
+                <div className="flex items-center justify-between rounded-md border border-admin-hairline px-3 py-2.5">
                   <div>
-                    <span className="block text-sm font-medium text-gray-700">
+                    <span className="block text-sm font-medium text-admin-ink">
                       Best Seller
                     </span>
-                    <span className="block text-xs text-gray-400">
+                    <span className="block text-xs text-admin-ink-muted">
                       Feature this product as a best seller
                     </span>
                   </div>
@@ -389,15 +382,14 @@ export default function ProductModal({
                     onClick={() =>
                       setField("isBestSeller", !formData.isBestSeller)
                     }
-                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none flex-shrink-0"
-                    style={{
-                      backgroundColor: formData.isBestSeller
-                        ? colors.brown
-                        : "#D1D5DB",
-                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none flex-shrink-0 ${
+                      formData.isBestSeller
+                        ? "bg-admin-brown"
+                        : "bg-admin-hairline"
+                    }`}
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      className={`inline-block h-4 w-4 transform rounded-full bg-admin-surface transition-transform ${
                         formData.isBestSeller
                           ? "translate-x-6"
                           : "translate-x-1"
@@ -447,7 +439,7 @@ export default function ProductModal({
                     placeholder="0.00"
                     className={inputClass}
                   />
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-admin-ink-muted mt-1">
                     Must be less than the final selling price.
                   </p>
                 </div>
@@ -470,12 +462,12 @@ export default function ProductModal({
                       <img
                         src={formData.defaultImage}
                         alt="Default"
-                        className="w-24 h-24 object-cover rounded-md border border-gray-200"
+                        className="w-24 h-24 object-cover rounded-md border border-admin-hairline"
                       />
                       <button
                         type="button"
                         onClick={() => setField("defaultImage", "")}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        className="absolute -top-2 -right-2 bg-admin-danger text-admin-on-accent rounded-full p-1 hover:bg-admin-danger-hover"
                         title="Remove image"
                       >
                         <XMarkIcon className="h-4 w-4" />
@@ -489,7 +481,7 @@ export default function ProductModal({
                   <ImageUpload onUpload={handleAlbumImagesUpload} />
 
                   {albumImages.length === 0 ? (
-                    <p className="text-xs text-gray-400 mt-2">
+                    <p className="text-xs text-admin-ink-muted mt-2">
                       No album images yet. Upload to add.
                     </p>
                   ) : (
@@ -501,12 +493,12 @@ export default function ProductModal({
                             <img
                               src={url}
                               alt={`Album ${index + 1}`}
-                              className="w-full h-24 object-cover rounded-md border border-gray-200"
+                              className="w-full h-24 object-cover rounded-md border border-admin-hairline"
                             />
                             <button
                               type="button"
                               onClick={() => removeAlbumImage(index)}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                              className="absolute -top-2 -right-2 bg-admin-danger text-admin-on-accent rounded-full p-1 hover:bg-admin-danger-hover"
                               title="Remove image"
                             >
                               <XMarkIcon className="h-4 w-4" />
@@ -525,26 +517,20 @@ export default function ProductModal({
               title="Variants"
               description="Color, size and stock combinations for this product."
               action={
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
+                  size="sm"
                   onClick={addVariant}
-                  className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border transition-colors hover:bg-[#F5E6D3]"
-                  style={{ color: colors.brown, borderColor: colors.brown }}
+                  leftIcon={<PlusIcon className="h-4 w-4" />}
                 >
-                  <PlusIcon className="h-4 w-4 mr-1.5" />
                   Add Variant
-                </button>
+                </Button>
               }
             >
               {variants.length === 0 ? (
-                <div
-                  className="text-center py-8 px-4 border-2 border-dashed rounded-lg"
-                  style={{ borderColor: colors.border }}
-                >
-                  <p
-                    className="text-sm"
-                    style={{ color: colors.textSecondary }}
-                  >
+                <div className="text-center py-8 px-4 border-2 border-dashed border-admin-hairline rounded-lg">
+                  <p className="text-sm text-admin-ink-muted">
                     No variants added yet. Click{" "}
                     <span className="font-medium">+ Add Variant</span> to begin.
                   </p>
@@ -554,12 +540,11 @@ export default function ProductModal({
                   {variants.map((variant, index) => (
                     <div
                       key={variant._id ?? `new-${index}`}
-                      className="rounded-lg border border-gray-200 p-3"
-                      style={{ backgroundColor: colors.background }}
+                      className="rounded-lg border border-admin-hairline bg-admin-surface-muted p-3"
                     >
                       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
                         <div className="sm:col-span-5">
-                          <label className="block text-xs font-medium text-gray-500">
+                          <label className="block text-xs font-medium text-admin-ink-muted">
                             Color
                           </label>
                           <Select
@@ -568,7 +553,7 @@ export default function ProductModal({
                               updateVariant(index, "color", value)
                             }
                             placeholder="Select color"
-                            className={`${inputClass} border bg-white`}
+                            className={inputClass}
                             options={colorOptions.map((color) => ({
                               value: color._id,
                               label: color.name,
@@ -577,7 +562,7 @@ export default function ProductModal({
                           />
                         </div>
                         <div className="sm:col-span-3">
-                          <label className="block text-xs font-medium text-gray-500">
+                          <label className="block text-xs font-medium text-admin-ink-muted">
                             Size
                           </label>
                           <select
@@ -596,7 +581,7 @@ export default function ProductModal({
                           </select>
                         </div>
                         <div className="sm:col-span-3">
-                          <label className="block text-xs font-medium text-gray-500">
+                          <label className="block text-xs font-medium text-admin-ink-muted">
                             Available Items
                           </label>
                           <input
@@ -614,14 +599,12 @@ export default function ProductModal({
                           />
                         </div>
                         <div className="sm:col-span-1 flex justify-end pb-1">
-                          <button
-                            type="button"
+                          <IconButton
+                            label="Delete variant"
+                            icon={<TrashIcon />}
+                            variant="danger"
                             onClick={() => removeVariant(index)}
-                            className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                            title="Delete variant"
-                          >
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
+                          />
                         </div>
                       </div>
                     </div>
@@ -631,25 +614,16 @@ export default function ProductModal({
             </FormSection>
 
             <div className="flex justify-end space-x-3 pt-1">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
-              >
+              <Button type="button" variant="secondary" onClick={onClose}>
                 Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-4 py-2 rounded-md text-white disabled:opacity-60"
-                style={{ backgroundColor: colors.brown }}
-              >
+              </Button>
+              <Button type="submit" variant="primary" loading={isSubmitting}>
                 {isSubmitting
-                  ? "Saving..."
+                  ? "Saving…"
                   : product
                   ? "Update Product"
                   : "Create Product"}
-              </button>
+              </Button>
             </div>
           </form>
         </div>

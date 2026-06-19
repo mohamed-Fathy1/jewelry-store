@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/auth.service";
 import { isAdmin } from "@/utils/auth.utils";
-import { colors } from "@/constants/colors";
+import { Button } from "@/components/admin/ui";
 import toast from "react-hot-toast";
 
 type Step = "email" | "otp";
@@ -83,112 +83,114 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex justify-center mt-[15vh] px-4">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2
-            className="text-3xl font-light"
-            style={{ color: colors.textPrimary }}
-          >
-            Admin Login
-          </h2>
-          <p className="mt-2 text-sm" style={{ color: colors.textSecondary }}>
-            {step === "email"
-              ? "Enter your admin email to receive a login code"
-              : `Enter the 6-digit code sent to ${email}`}
-          </p>
+    <div className="admin-theme flex min-h-screen items-center justify-center bg-admin-canvas px-4">
+      <div className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <span className="block text-3xl font-normal italic leading-none text-admin-heading">
+            A&nbsp;to&nbsp;Z
+          </span>
+          <span
+            className="mx-auto mt-2 block h-px w-12 bg-admin-gold"
+            aria-hidden="true"
+          />
+          <span className="mt-2 block text-[11px] font-semibold uppercase tracking-[0.22em] text-admin-ink-muted">
+            Admin
+          </span>
         </div>
 
-        {step === "email" ? (
-          <form onSubmit={handleEmailSubmit} className="mt-8 space-y-6">
-            <div>
-              <label
-                htmlFor="admin-email"
-                className="block text-sm font-medium"
-                style={{ color: colors.textPrimary }}
-              >
-                Email Address
-              </label>
-              <input
-                id="admin-email"
-                name="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full px-4 py-3 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                }}
-                placeholder="Enter your admin email"
-              />
-            </div>
+        <div className="rounded-xl bg-admin-surface p-8 shadow-admin-card ring-1 ring-admin-hairline/60">
+          <div className="text-center">
+            <h1 className="text-2xl font-normal italic text-admin-heading">
+              {step === "email" ? "Welcome Back" : "Check Your Email"}
+            </h1>
+            <p className="mt-2 text-pretty text-sm text-admin-ink-muted">
+              {step === "email"
+                ? "Enter your admin email to receive a login code."
+                : `Enter the 6-digit code sent to ${email}.`}
+            </p>
+          </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
-              style={{ backgroundColor: colors.brown, color: colors.textLight }}
-            >
-              {isLoading ? "Sending..." : "Send login code"}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleOtpSubmit} className="mt-8 space-y-6">
-            <div>
-              <label
-                htmlFor="admin-otp"
-                className="block text-sm font-medium"
-                style={{ color: colors.textPrimary }}
-              >
-                Verification Code
-              </label>
-              <input
-                id="admin-otp"
-                name="activeCode"
-                type="text"
-                inputMode="numeric"
-                pattern="\d{6}"
-                maxLength={6}
-                required
-                value={activeCode}
-                onChange={(e) =>
-                  setActiveCode(e.target.value.replace(/\D/g, "").slice(0, 6))
-                }
-                className="mt-1 w-full px-4 py-3 rounded-md border tracking-[0.5em] text-center focus:outline-none focus:ring-2 transition-all duration-200"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                }}
-                placeholder="000000"
-              />
-            </div>
+          {step === "email" ? (
+            <form onSubmit={handleEmailSubmit} className="mt-7 space-y-5">
+              <div>
+                <label
+                  htmlFor="admin-email"
+                  className="block text-sm font-medium text-admin-ink"
+                >
+                  Email Address
+                </label>
+                <input
+                  id="admin-email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  spellCheck={false}
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mt-1.5 w-full rounded-md border border-admin-hairline bg-admin-surface px-4 py-3 text-admin-ink transition-colors placeholder:text-admin-ink-subtle"
+                  placeholder="you@example.com"
+                />
+              </div>
 
-            <button
-              type="submit"
-              disabled={isLoading || activeCode.length !== 6}
-              className="w-full py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
-              style={{ backgroundColor: colors.brown, color: colors.textLight }}
-            >
-              {isLoading ? "Verifying..." : "Verify & sign in"}
-            </button>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={isLoading}
-                className="font-medium hover:underline disabled:opacity-50"
-                style={{ color: colors.brown }}
+              <Button
+                type="submit"
+                loading={isLoading}
+                className="w-full justify-center py-3"
               >
-                Resend code
-              </button>
-            </div>
-          </form>
-        )}
+                Send Login Code
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleOtpSubmit} className="mt-7 space-y-5">
+              <div>
+                <label
+                  htmlFor="admin-otp"
+                  className="block text-sm font-medium text-admin-ink"
+                >
+                  Verification Code
+                </label>
+                <input
+                  id="admin-otp"
+                  name="activeCode"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  spellCheck={false}
+                  pattern="\d{6}"
+                  maxLength={6}
+                  required
+                  value={activeCode}
+                  onChange={(e) =>
+                    setActiveCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  className="tabular mt-1.5 w-full rounded-md border border-admin-hairline bg-admin-surface px-4 py-3 text-center text-lg tracking-[0.5em] text-admin-ink transition-colors placeholder:text-admin-ink-subtle"
+                  placeholder="000000"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                loading={isLoading}
+                disabled={activeCode.length !== 6}
+                className="w-full justify-center py-3"
+              >
+                Verify &amp; Sign In
+              </Button>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={isLoading}
+                  className="text-sm font-medium text-admin-brown hover:underline disabled:opacity-50"
+                >
+                  Resend code
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

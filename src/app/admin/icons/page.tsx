@@ -5,7 +5,7 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import IconList, { IconListRef } from "@/components/admin/icons/IconList";
 import IconModal from "@/components/admin/icons/IconModal";
 import { Icon } from "@/types/icon.types";
-import { colors } from "@/constants/colors";
+import { Button, PageHeader } from "@/components/admin/ui";
 
 export default function IconsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,22 +28,15 @@ export default function IconsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1
-          className="text-2xl font-semibold"
-          style={{ color: colors.textPrimary }}
-        >
-          Icons
-        </h1>
-        <button
-          onClick={handleAddIcon}
-          className="flex items-center px-4 py-2 rounded-md text-white"
-          style={{ backgroundColor: colors.brown }}
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Add Icon
-        </button>
-      </div>
+      <PageHeader
+        title="Icons"
+        description="Manage the icons available across the storefront."
+        actions={
+          <Button onClick={handleAddIcon} leftIcon={<PlusIcon className="h-5 w-5" />}>
+            Add Icon
+          </Button>
+        }
+      />
 
       <IconList ref={listRef} onEdit={handleEditIcon} />
 

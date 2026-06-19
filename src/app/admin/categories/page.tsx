@@ -7,7 +7,7 @@ import CategoryList, {
 } from "@/components/admin/categories/CategoryList";
 import CategoryModal from "@/components/admin/categories/CategoryModal";
 import { AdminCategory } from "@/types/admin-category.types";
-import { colors } from "@/constants/colors";
+import { Button, PageHeader } from "@/components/admin/ui";
 
 export default function CategoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,22 +31,18 @@ export default function CategoriesPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1
-          className="text-2xl font-semibold"
-          style={{ color: colors.textPrimary }}
-        >
-          Categories
-        </h1>
-        <button
-          onClick={handleAddCategory}
-          className="flex items-center px-4 py-2 rounded-md text-white"
-          style={{ backgroundColor: colors.brown }}
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Add Category
-        </button>
-      </div>
+      <PageHeader
+        title="Categories"
+        description="Manage the categories that organize your products."
+        actions={
+          <Button
+            onClick={handleAddCategory}
+            leftIcon={<PlusIcon className="h-5 w-5" />}
+          >
+            Add Category
+          </Button>
+        }
+      />
 
       <CategoryList ref={listRef} onEdit={handleEditCategory} />
 

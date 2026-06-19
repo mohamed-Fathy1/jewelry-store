@@ -5,7 +5,7 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import ColorList, { ColorListRef } from "@/components/admin/colors/ColorList";
 import ColorModal from "@/components/admin/colors/ColorModal";
 import { Color } from "@/types/color.types";
-import { colors } from "@/constants/colors";
+import { Button, PageHeader } from "@/components/admin/ui";
 
 export default function ColorsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,22 +28,15 @@ export default function ColorsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1
-          className="text-2xl font-semibold"
-          style={{ color: colors.textPrimary }}
-        >
-          Colors
-        </h1>
-        <button
-          onClick={handleAddColor}
-          className="flex items-center px-4 py-2 rounded-md text-white"
-          style={{ backgroundColor: colors.brown }}
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Add Color
-        </button>
-      </div>
+      <PageHeader
+        title="Colors"
+        description="Manage the color options shown on products."
+        actions={
+          <Button onClick={handleAddColor} leftIcon={<PlusIcon className="h-5 w-5" />}>
+            Add Color
+          </Button>
+        }
+      />
 
       <ColorList ref={listRef} onEdit={handleEditColor} />
 

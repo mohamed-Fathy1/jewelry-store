@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "@headlessui/react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
-import { colors } from "@/constants/colors";
 import { Offer, OfferType, CreateOfferDto } from "@/types/offer.types";
 import { offersService } from "@/services/offers.service";
 import { OFFER_TYPE_LABELS } from "./OfferList";
 import ImageUpload from "../products/ImageUpload";
+import { Modal, Field, Button, adminInputClass } from "@/components/admin/ui";
 
 interface OfferModalProps {
   isOpen: boolean;
@@ -46,9 +44,6 @@ const FIELD_CONFIG: Record<
 
 const OFFER_TYPES = Object.keys(OFFER_TYPE_LABELS) as OfferType[];
 
-const inputClass =
-  "mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown";
-
 const emptyForm = {
   title: "",
   description: "",
@@ -67,7 +62,7 @@ const emptyForm = {
 
 type FormState = typeof emptyForm;
 
-// "665e...,665f..." <-> array of ids (objects are populated on GET).
+// "665e…,665f…" <-> array of ids (objects are populated on GET).
 const parseIds = (value: string): string[] =>
   value
     .split(",")
@@ -213,296 +208,241 @@ export default function OfferModal({
       onClose();
       onSuccess?.();
     } catch (error) {
-      toast.error(
-        offer ? "Failed to update offer" : "Failed to create offer"
-      );
+      toast.error(offer ? "Failed to update offer" : "Failed to create offer");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Dialog
+    <Modal
       open={isOpen}
       onClose={onClose}
-      className="fixed inset-0 z-50 overflow-y-auto"
+      title={offer ? "Edit Offer" : "Add New Offer"}
+      size="lg"
     >
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Title */}
+        <Field label="Title" htmlFor="offer-title" required>
+          <input
+            id="offer-title"
+            type="text"
+            value={formData.title}
+            onChange={(e) => setField("title", e.target.value)}
+            placeholder="Offer Title"
+            className={adminInputClass}
+            required
+          />
+        </Field>
 
-        <div className="relative bg-white rounded-lg w-full max-w-lg mx-auto p-6 max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <Dialog.Title
-              className="text-xl font-semibold"
-              style={{ color: colors.textPrimary }}
-            >
-              {offer ? "Edit Offer" : "Add New Offer"}
-            </Dialog.Title>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
-          </div>
+        {/* Description */}
+        <Field label="Description" htmlFor="offer-description">
+          <textarea
+            id="offer-description"
+            value={formData.description}
+            onChange={(e) => setField("description", e.target.value)}
+            placeholder="Description"
+            rows={3}
+            className={adminInputClass}
+          />
+        </Field>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Title
-              </label>
+        {/* Image */}
+        <Field label="Image" htmlFor="offer-image">
+          <ImageUpload folder="offers" onUpload={handleImageUpload} />
+
+          {formData.imageUrl && (
+            <div className="mt-4 overflow-hidden rounded-md border border-admin-hairline bg-admin-surface-muted">
+              <img
+                src={formData.imageUrl}
+                alt="Offer"
+                className="h-32 w-full object-cover"
+              />
+            </div>
+          )}
+        </Field>
+
+        {/* Offer Type */}
+        <Field label="Offer Type" htmlFor="offer-type" required>
+          <select
+            id="offer-type"
+            value={formData.offerType}
+            onChange={(e) =>
+              setField("offerType", e.target.value as OfferType)
+            }
+            className={adminInputClass}
+            required
+          >
+            <option value="">Select an offer type</option>
+            {OFFER_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {OFFER_TYPE_LABELS[type]}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        {/* Conditional fields */}
+        {config?.minQuantity && (
+          <Field label="Minimum Quantity" htmlFor="offer-min-quantity" required>
+            <input
+              id="offer-min-quantity"
+              type="number"
+              min={1}
+              value={formData.minQuantity}
+              onChange={(e) => setField("minQuantity", e.target.value)}
+              placeholder="Minimum item count"
+              className={adminInputClass}
+              required
+            />
+          </Field>
+        )}
+
+        {config?.minAmount && (
+          <Field label="Minimum Amount (EGP)" htmlFor="offer-min-amount" required>
+            <input
+              id="offer-min-amount"
+              type="number"
+              min={0}
+              step="0.01"
+              value={formData.minAmount}
+              onChange={(e) => setField("minAmount", e.target.value)}
+              placeholder="Minimum cart amount"
+              className={adminInputClass}
+              required
+            />
+          </Field>
+        )}
+
+        {config?.discountPercentage && (
+          <Field
+            label="Discount Percentage"
+            htmlFor="offer-discount"
+            required
+          >
+            <input
+              id="offer-discount"
+              type="number"
+              min={0}
+              max={100}
+              value={formData.discountPercentage}
+              onChange={(e) => setField("discountPercentage", e.target.value)}
+              placeholder="0 – 100"
+              className={adminInputClass}
+              required
+            />
+          </Field>
+        )}
+
+        {config?.freeItemMaxValue && (
+          <Field
+            label="Free Item Max Value (EGP)"
+            htmlFor="offer-free-item-max"
+            required
+          >
+            <input
+              id="offer-free-item-max"
+              type="number"
+              min={0}
+              step="0.01"
+              value={formData.freeItemMaxValue}
+              onChange={(e) => setField("freeItemMaxValue", e.target.value)}
+              placeholder="Max value of the free item"
+              className={adminInputClass}
+              required
+            />
+          </Field>
+        )}
+
+        {config?.excludedCategories && (
+          <Field label="Excluded Categories" htmlFor="offer-excluded">
+            <input
+              id="offer-excluded"
+              type="text"
+              value={formData.excludedCategories}
+              onChange={(e) => setField("excludedCategories", e.target.value)}
+              placeholder="Comma-separated Category IDs"
+              className={adminInputClass}
+            />
+          </Field>
+        )}
+
+        {config?.timing && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Start Date" htmlFor="offer-start-date" required>
               <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => setField("title", e.target.value)}
-                placeholder="Offer Title"
-                className={inputClass}
+                id="offer-start-date"
+                type="datetime-local"
+                value={formData.startDate}
+                onChange={(e) => setField("startDate", e.target.value)}
+                className={adminInputClass}
                 required
               />
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setField("description", e.target.value)}
-                placeholder="Description"
-                rows={3}
-                className={inputClass}
-              />
-            </div>
-
-            {/* Image */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Image
-              </label>
-              <ImageUpload folder="offers" onUpload={handleImageUpload} />
-
-              {formData.imageUrl && (
-                <div className="mt-4">
-                  <img
-                    src={formData.imageUrl}
-                    alt="Offer"
-                    className="w-full h-32 object-cover rounded-md"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Offer Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Offer Type
-              </label>
-              <select
-                value={formData.offerType}
-                onChange={(e) =>
-                  setField("offerType", e.target.value as OfferType)
-                }
-                className={inputClass}
+            </Field>
+            <Field label="End Date" htmlFor="offer-end-date" required>
+              <input
+                id="offer-end-date"
+                type="datetime-local"
+                value={formData.endDate}
+                onChange={(e) => setField("endDate", e.target.value)}
+                className={adminInputClass}
                 required
-              >
-                <option value="">Select an offer type</option>
-                {OFFER_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {OFFER_TYPE_LABELS[type]}
-                  </option>
-                ))}
-              </select>
-            </div>
+              />
+            </Field>
+          </div>
+        )}
 
-            {/* Conditional fields */}
-            {config?.minQuantity && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Minimum Quantity
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  value={formData.minQuantity}
-                  onChange={(e) => setField("minQuantity", e.target.value)}
-                  placeholder="Minimum item count"
-                  className={inputClass}
-                  required
-                />
-              </div>
-            )}
+        {config?.targetProducts && (
+          <Field label="Target Products" htmlFor="offer-target-products" required>
+            <input
+              id="offer-target-products"
+              type="text"
+              value={formData.targetProducts}
+              onChange={(e) => setField("targetProducts", e.target.value)}
+              placeholder="Comma-separated Product IDs"
+              className={adminInputClass}
+              required
+            />
+          </Field>
+        )}
 
-            {config?.minAmount && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Minimum Amount (EGP)
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={formData.minAmount}
-                  onChange={(e) => setField("minAmount", e.target.value)}
-                  placeholder="Minimum cart amount"
-                  className={inputClass}
-                  required
-                />
-              </div>
-            )}
-
-            {config?.discountPercentage && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Discount Percentage
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={formData.discountPercentage}
-                  onChange={(e) =>
-                    setField("discountPercentage", e.target.value)
-                  }
-                  placeholder="0 - 100"
-                  className={inputClass}
-                  required
-                />
-              </div>
-            )}
-
-            {config?.freeItemMaxValue && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Free Item Max Value (EGP)
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={formData.freeItemMaxValue}
-                  onChange={(e) =>
-                    setField("freeItemMaxValue", e.target.value)
-                  }
-                  placeholder="Max value of the free item"
-                  className={inputClass}
-                  required
-                />
-              </div>
-            )}
-
-            {config?.excludedCategories && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Excluded Categories
-                </label>
-                <input
-                  type="text"
-                  value={formData.excludedCategories}
-                  onChange={(e) =>
-                    setField("excludedCategories", e.target.value)
-                  }
-                  placeholder="Comma-separated Category IDs"
-                  className={inputClass}
-                />
-              </div>
-            )}
-
-            {config?.timing && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Start Date
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={formData.startDate}
-                    onChange={(e) => setField("startDate", e.target.value)}
-                    className={inputClass}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    End Date
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={formData.endDate}
-                    onChange={(e) => setField("endDate", e.target.value)}
-                    className={inputClass}
-                    required
-                  />
-                </div>
-              </div>
-            )}
-
-            {config?.targetProducts && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Target Products
-                </label>
-                <input
-                  type="text"
-                  value={formData.targetProducts}
-                  onChange={(e) => setField("targetProducts", e.target.value)}
-                  placeholder="Comma-separated Product IDs"
-                  className={inputClass}
-                  required
-                />
-              </div>
-            )}
-
-            {/* Active toggle */}
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">
-                Active
-              </label>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={formData.isActive}
-                onClick={() => setField("isActive", !formData.isActive)}
-                className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
-                style={{
-                  backgroundColor: formData.isActive
-                    ? colors.brown
-                    : "#D1D5DB",
-                }}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    formData.isActive ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-4 py-2 rounded-md text-white"
-                style={{ backgroundColor: colors.brown }}
-              >
-                {isSubmitting
-                  ? "Saving..."
-                  : offer
-                  ? "Update Offer"
-                  : "Create Offer"}
-              </button>
-            </div>
-          </form>
+        {/* Active toggle */}
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor="offer-active"
+            className="block text-sm font-medium text-admin-ink"
+          >
+            Active
+          </label>
+          <button
+            id="offer-active"
+            type="button"
+            role="switch"
+            aria-checked={formData.isActive}
+            onClick={() => setField("isActive", !formData.isActive)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+              formData.isActive
+                ? "bg-admin-brown"
+                : "bg-admin-surface-muted"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-admin-surface transition-transform ${
+                formData.isActive ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
         </div>
-      </div>
-    </Dialog>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="secondary" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" loading={isSubmitting}>
+            Save
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }

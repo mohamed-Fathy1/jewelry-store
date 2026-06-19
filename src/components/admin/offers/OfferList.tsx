@@ -1,17 +1,26 @@
 "use client";
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import {
-  PencilIcon,
-  TrashIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  TagIcon,
-} from "@heroicons/react/24/outline";
+import { PencilIcon, TrashIcon, TagIcon } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
-import { colors } from "@/constants/colors";
-import { Offer, OfferStatus, OfferType } from "@/types/offer.types";
+import { Offer, OfferType } from "@/types/offer.types";
 import { offersService } from "@/services/offers.service";
+import {
+  TableShell,
+  Thead,
+  Tbody,
+  Th,
+  Td,
+  Tr,
+  IconButton,
+  Pagination,
+  SkeletonTable,
+  EmptyState,
+  Badge,
+  StatusBadge,
+  ConfirmDialog,
+  adminInputClass,
+} from "@/components/admin/ui";
 import toast from "react-hot-toast";
 
 interface OfferListProps {
@@ -34,18 +43,6 @@ export const OFFER_TYPE_LABELS: Record<OfferType, string> = {
 
 const OFFER_TYPES = Object.keys(OFFER_TYPE_LABELS) as OfferType[];
 
-const getStatusColor = (status: OfferStatus) => {
-  const statusColors: Record<OfferStatus, string> = {
-    scheduled: "bg-yellow-100 text-yellow-800",
-    active: "bg-green-100 text-green-800",
-    expired: "bg-gray-100 text-gray-800",
-  };
-  return statusColors[status] || "bg-gray-100 text-gray-800";
-};
-
-const formatStatus = (status: string) =>
-  status.charAt(0).toUpperCase() + status.slice(1);
-
 const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,6 +50,8 @@ const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => 
   const [totalPages, setTotalPages] = useState(1);
   const [typeFilter, setTypeFilter] = useState<OfferType | "">("");
   const [activeFilter, setActiveFilter] = useState<"" | "true" | "false">("");
+  const [pendingDelete, setPendingDelete] = useState<Offer | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchOffers = async (page: number = currentPage) => {
     setIsLoading(true);
@@ -98,15 +97,18 @@ const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => 
     }
   };
 
-  const handleDelete = async (offerId: string) => {
-    if (window.confirm("Are you sure you want to delete this offer?")) {
-      try {
-        await offersService.deleteOffer(offerId);
-        toast.success("Offer deleted successfully");
-        setOffers((prev) => prev.filter((o) => o._id !== offerId));
-      } catch (error) {
-        toast.error("Failed to delete offer");
-      }
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setIsDeleting(true);
+    try {
+      await offersService.deleteOffer(pendingDelete._id);
+      toast.success("Offer deleted successfully");
+      setOffers((prev) => prev.filter((o) => o._id !== pendingDelete._id));
+      setPendingDelete(null);
+    } catch (error) {
+      toast.error("Failed to delete offer");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -120,7 +122,7 @@ const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => 
             setTypeFilter(e.target.value as OfferType | "");
             setCurrentPage(1);
           }}
-          className="p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-brown"
+          className={`${adminInputClass} w-auto`}
         >
           <option value="">All Types</option>
           {OFFER_TYPES.map((type) => (
@@ -136,7 +138,7 @@ const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => 
             setActiveFilter(e.target.value as "" | "true" | "false");
             setCurrentPage(1);
           }}
-          className="p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-brown"
+          className={`${adminInputClass} w-auto`}
         >
           <option value="">All</option>
           <option value="true">Active</option>
@@ -145,174 +147,103 @@ const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => 
       </div>
 
       {isLoading ? (
-        <div>Loading...</div>
+        <SkeletonTable rows={6} cols={6} />
       ) : !offers || offers.length === 0 ? (
-        <div
-          className="text-center py-12 px-4 border-2 border-dashed rounded-lg"
-          style={{ borderColor: colors.border }}
-        >
-          <TagIcon
-            className="mx-auto h-16 w-16 mb-4"
-            style={{ color: colors.textSecondary }}
-          />
-          <h3
-            className="text-lg font-medium mb-2"
-            style={{ color: colors.textPrimary }}
-          >
-            No Offers Found
-          </h3>
-          <p className="text-sm" style={{ color: colors.textSecondary }}>
-            There are no offers matching the current filters.
-          </p>
-        </div>
+        <EmptyState
+          icon={TagIcon}
+          title="No offers found"
+          description="There are no offers matching the current filters."
+        />
       ) : (
         <>
-          <div className="overflow-x-auto min-h-[40vh]">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Title
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Offer Type
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Status
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Active
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Created At
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {offers.map((offer) => (
-                  <tr key={offer._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {offer.title}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {OFFER_TYPE_LABELS[offer.offerType] || offer.offerType}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+          <TableShell>
+            <Thead>
+              <tr>
+                <Th>Title</Th>
+                <Th>Offer Type</Th>
+                <Th>Status</Th>
+                <Th>Active</Th>
+                <Th>Created At</Th>
+                <Th className="text-right">Actions</Th>
+              </tr>
+            </Thead>
+            <Tbody>
+              {offers.map((offer) => (
+                <Tr key={offer._id}>
+                  <Td className="font-medium text-admin-ink">{offer.title}</Td>
+                  <Td>
+                    <Badge tone="default">
+                      {OFFER_TYPE_LABELS[offer.offerType] || offer.offerType}
+                    </Badge>
+                  </Td>
+                  <Td>
+                    <StatusBadge status={offer.status} />
+                  </Td>
+                  <Td>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={offer.isActive}
+                      aria-label={`Toggle ${offer.title}`}
+                      onClick={() => handleToggle(offer)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                        offer.isActive
+                          ? "bg-admin-brown"
+                          : "bg-admin-surface-muted"
+                      }`}
+                    >
                       <span
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
-                          offer.status
-                        )}`}
-                      >
-                        {formatStatus(offer.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={offer.isActive}
-                        onClick={() => handleToggle(offer)}
-                        className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
-                        style={{
-                          backgroundColor: offer.isActive
-                            ? colors.brown
-                            : "#D1D5DB",
-                        }}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            offer.isActive ? "translate-x-6" : "translate-x-1"
-                          }`}
-                        />
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">
-                        {offer.createdAt
-                          ? format(new Date(offer.createdAt), "MMM d, yyyy")
-                          : "-"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
+                        className={`inline-block h-4 w-4 transform rounded-full bg-admin-surface transition-transform ${
+                          offer.isActive ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </Td>
+                  <Td className="tabular text-admin-ink-muted">
+                    {offer.createdAt
+                      ? format(new Date(offer.createdAt), "MMM d, yyyy")
+                      : "-"}
+                  </Td>
+                  <Td className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <IconButton
+                        label={`Edit ${offer.title}`}
+                        icon={<PencilIcon />}
                         onClick={() => onEdit(offer)}
-                        className="text-indigo-600 hover:text-indigo-900 mr-4"
-                      >
-                        <PencilIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(offer._id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      />
+                      <IconButton
+                        label={`Delete ${offer.title}`}
+                        icon={<TrashIcon />}
+                        variant="danger"
+                        onClick={() => setPendingDelete(offer)}
+                      />
+                    </div>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </TableShell>
 
-          {/* Pagination */}
-          <div className="flex justify-between items-center my-4">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="flex items-center px-3 py-2 rounded-md text-sm"
-              style={{
-                backgroundColor: currentPage === 1 ? "#eee" : colors.brown,
-                color: currentPage === 1 ? "#666" : "white",
-              }}
-            >
-              <ChevronLeftIcon className="h-4 w-4 mr-1" />
-              Previous
-            </button>
-            <span className="text-sm text-gray-700">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="flex items-center px-3 py-2 rounded-md text-sm"
-              style={{
-                backgroundColor:
-                  currentPage === totalPages ? "#eee" : colors.brown,
-                color: currentPage === totalPages ? "#666" : "white",
-              }}
-            >
-              Next
-              <ChevronRightIcon className="h-4 w-4 ml-1" />
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </>
       )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete offer"
+        description={
+          pendingDelete ? `“${pendingDelete.title}” will be permanently removed.` : ""
+        }
+        confirmLabel="Delete"
+        danger
+        loading={isDeleting}
+      />
     </div>
   );
 });

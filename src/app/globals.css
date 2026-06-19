@@ -8,19 +8,11 @@
 :root {
   --background: #faf9f6;
   --foreground: #171717;
-
-  /* Admin Orders theme — single source for the orders UI palette so it can be
-     swapped without touching components. Mapped to the jewelry brand. */
-  --color-primary: #8b4513; /* brand accent (active states, badges, filled buttons) */
-  --color-primary-light: #f5e6d3; /* light tint — badge backgrounds */
-  --color-primary-text: #6b4423; /* dark shade — text on light primary bg */
-  --color-danger: #b91c1c; /* destructive (cancel) only */
-  --color-bg-page: #faf9f6; /* page background */
-  --color-bg-surface: #ffffff; /* cards & panels */
-  --color-text-primary: #1a1a1a;
-  --color-text-muted: #6b6b6b;
-  --color-border: #e7ddca; /* subtle border matching page tone */
 }
+
+/* The admin `--color-*` palette moved to src/app/admin/admin-theme.css, scoped
+   under `.admin-theme` (and aliased to the new `--admin-*` tokens). It was only
+   ever read by admin pages, so the storefront is unaffected. */
 
 * {
   /* outline: 1px solid lightgreen; */

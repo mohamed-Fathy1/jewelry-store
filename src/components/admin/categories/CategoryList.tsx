@@ -6,13 +6,24 @@ import {
   TrashIcon,
   ArchiveBoxXMarkIcon,
   FolderIcon,
-  XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Dialog } from "@headlessui/react";
-import { colors } from "@/constants/colors";
 import { AdminCategory } from "@/types/admin-category.types";
 import { categoriesService } from "@/services/categories.service";
 import { iconsService } from "@/services/icons.service";
+import {
+  TableShell,
+  Thead,
+  Tbody,
+  Th,
+  Td,
+  Tr,
+  IconButton,
+  SegmentedToggle,
+  StatusBadge,
+  SkeletonTable,
+  EmptyState,
+  ConfirmDialog,
+} from "@/components/admin/ui";
 import toast from "react-hot-toast";
 
 interface CategoryListProps {
@@ -31,10 +42,15 @@ const CategoryList = forwardRef<CategoryListRef, CategoryListProps>(
     // Active categories by default (isDeleted=false).
     const [isDeleted, setIsDeleted] = useState<"false" | "true">("false");
 
+    // Soft-delete confirmation (Active tab).
+    const [pendingDelete, setPendingDelete] = useState<AdminCategory | null>(
+      null
+    );
+    const [isDeleting, setIsDeleting] = useState(false);
+
     // Hard-delete (type-to-confirm) modal state, used on the Deleted tab.
-    const [hardDeleteTarget, setHardDeleteTarget] =
+    const [pendingHardDelete, setPendingHardDelete] =
       useState<AdminCategory | null>(null);
-    const [confirmText, setConfirmText] = useState("");
     const [isHardDeleting, setIsHardDeleting] = useState(false);
 
     const fetchCategories = async () => {
@@ -89,8 +105,8 @@ const CategoryList = forwardRef<CategoryListRef, CategoryListProps>(
       fetchIcons();
     }, []);
 
-    const handleIsDeletedChange = (value: "false" | "true") => {
-      setIsDeleted(value);
+    const handleIsDeletedChange = (value: string) => {
+      setIsDeleted(value as "false" | "true");
     };
 
     // icon_id may be a populated object (with svg), a raw id string, or null.
@@ -101,72 +117,35 @@ const CategoryList = forwardRef<CategoryListRef, CategoryListProps>(
       return iconMap[icon] || null;
     };
 
-    const handleSoftDelete = async (category: AdminCategory) => {
-      if (
-        !window.confirm(
-          `Soft delete "${category.categoryName}"? It will be marked as deleted but its products remain.`
-        )
-      ) {
-        return;
-      }
+    const confirmSoftDelete = async () => {
+      if (!pendingDelete) return;
+      setIsDeleting(true);
       try {
-        await categoriesService.softDeleteCategory(category._id);
+        await categoriesService.softDeleteCategory(pendingDelete._id);
         toast.success("Category deleted successfully");
         setCategories((prev) =>
           prev.map((c) =>
-            c._id === category._id ? { ...c, isDeleted: true } : c
+            c._id === pendingDelete._id ? { ...c, isDeleted: true } : c
           )
         );
+        setPendingDelete(null);
       } catch (error) {
         toast.error("Failed to delete category");
+      } finally {
+        setIsDeleting(false);
       }
-    };
-
-    const handleHardDelete = async (category: AdminCategory) => {
-      if (
-        !window.confirm(
-          `This will permanently delete "${category.categoryName}" and ALL its products, variants, and images. This is irreversible.\n\nAre you sure you want to continue?`
-        )
-      ) {
-        return;
-      }
-      try {
-        const response = await categoriesService.hardDeleteCategory(
-          category._id
-        );
-        const { deletedProducts, deletedVariants } = response.data || {};
-        toast.success(
-          `Category permanently deleted (${deletedProducts ?? 0} products, ${
-            deletedVariants ?? 0
-          } variants)`
-        );
-        setCategories((prev) => prev.filter((c) => c._id !== category._id));
-      } catch (error) {
-        toast.error("Failed to permanently delete category");
-      }
-    };
-
-    // Deleted tab uses a type-to-confirm modal instead of window.confirm.
-    const openHardDelete = (category: AdminCategory) => {
-      setHardDeleteTarget(category);
-      setConfirmText("");
-    };
-
-    const closeHardDelete = () => {
-      setHardDeleteTarget(null);
-      setConfirmText("");
     };
 
     const confirmHardDelete = async () => {
-      if (!hardDeleteTarget || confirmText !== "delete") return;
+      if (!pendingHardDelete) return;
       setIsHardDeleting(true);
       try {
-        await categoriesService.hardDeleteCategory(hardDeleteTarget._id);
+        await categoriesService.hardDeleteCategory(pendingHardDelete._id);
         toast.success("Category permanently deleted");
         setCategories((prev) =>
-          prev.filter((c) => c._id !== hardDeleteTarget._id)
+          prev.filter((c) => c._id !== pendingHardDelete._id)
         );
-        closeHardDelete();
+        setPendingHardDelete(null);
       } catch (error) {
         toast.error("Failed to permanently delete category");
       } finally {
@@ -174,280 +153,147 @@ const CategoryList = forwardRef<CategoryListRef, CategoryListProps>(
       }
     };
 
-    // Active / Deleted toggle copied from the products page.
-    const Toggle = (
+    const toggle = (
       <div className="mb-6">
-        <div
-          className="inline-flex items-center rounded-lg p-1"
-          style={{ backgroundColor: colors.accentLight }}
-        >
-          {(
-            [
-              { value: "false", label: "Active" },
-              { value: "true", label: "Deleted" },
-            ] as const
-          ).map((option) => {
-            const active = isDeleted === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => handleIsDeletedChange(option.value)}
-                className="px-5 py-1.5 rounded-md text-sm font-medium transition-colors"
-                style={
-                  active
-                    ? { backgroundColor: colors.brown, color: "white" }
-                    : {
-                        backgroundColor: "transparent",
-                        color: colors.textSecondary,
-                      }
-                }
-              >
-                {option.label}
-              </button>
-            );
-          })}
-        </div>
+        <SegmentedToggle
+          value={isDeleted}
+          onChange={handleIsDeletedChange}
+          options={[
+            { value: "false", label: "Active" },
+            { value: "true", label: "Deleted" },
+          ]}
+        />
       </div>
     );
 
-    // Hard delete confirmation (type-to-confirm), used on the Deleted tab.
-    const HardDeleteDialog = (
-      <Dialog
-        open={!!hardDeleteTarget}
-        onClose={closeHardDelete}
-        className="fixed inset-0 z-50 overflow-y-auto"
-      >
-        <div className="flex items-center justify-center min-h-screen p-4">
-          <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
-
-          <div className="relative bg-white rounded-lg w-full max-w-md mx-auto p-6">
-            <div className="flex justify-between items-center mb-4">
-              <Dialog.Title
-                className="text-xl font-semibold"
-                style={{ color: colors.textPrimary }}
-              >
-                Hard Delete Category
-              </Dialog.Title>
-              <button
-                onClick={closeHardDelete}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <XMarkIcon className="h-6 w-6" />
-              </button>
-            </div>
-
-            <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200">
-              <p className="text-sm text-red-800">
-                This will permanently delete the category and ALL its products,
-                variants, and images. This is irreversible.
-              </p>
-            </div>
-
-            <p className="text-sm text-gray-600 mb-2">
-              Type{" "}
-              <span className="font-semibold text-gray-900">delete</span> to
-              confirm.
-            </p>
-            <input
-              type="text"
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-              placeholder="delete"
-              autoFocus
-              className="p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown mb-4"
-            />
-
-            <div className="flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={closeHardDelete}
-                className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmHardDelete}
-                disabled={confirmText !== "delete" || isHardDeleting}
-                className="px-4 py-2 rounded-md text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ backgroundColor: "#B91C1C" }}
-              >
-                {isHardDeleting ? "Deleting..." : "Delete Permanently"}
-              </button>
-            </div>
-          </div>
-        </div>
-      </Dialog>
-    );
-
-    if (isLoading) {
-      return (
-        <div>
-          {Toggle}
-          <div>Loading...</div>
-        </div>
-      );
-    }
-
-    if (!categories || categories.length === 0) {
-      return (
-        <div>
-          {Toggle}
-          <div
-            className="text-center py-12 px-4 border-2 border-dashed rounded-lg"
-            style={{ borderColor: colors.border }}
-          >
-            <FolderIcon
-              className="mx-auto h-16 w-16 mb-4"
-              style={{ color: colors.textSecondary }}
-            />
-            <h3
-              className="text-lg font-medium mb-2"
-              style={{ color: colors.textPrimary }}
-            >
-              No Categories Found
-            </h3>
-            <p className="text-sm" style={{ color: colors.textSecondary }}>
-              {isDeleted === "true"
-                ? "There are no deleted categories."
-                : "There are no categories in the system yet."}
-            </p>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div>
-        {Toggle}
-        <div className="overflow-x-auto min-h-[40vh]">
-          <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Image
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Category Name
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Slug
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Icon
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Is Deleted
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {categories.map((category) => {
-              const iconSvg = resolveIconSvg(category);
-              return (
-                <tr key={category._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {category.image?.mediaUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={category.image.mediaUrl}
-                        alt={category.categoryName}
-                        className="h-10 w-10 rounded object-cover border border-gray-200"
-                      />
-                    ) : (
-                      <span className="text-sm text-gray-400">—</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+        {toggle}
+
+        {isLoading ? (
+          <SkeletonTable rows={6} cols={6} />
+        ) : !categories || categories.length === 0 ? (
+          <EmptyState
+            icon={FolderIcon}
+            title="No categories found"
+            description={
+              isDeleted === "true"
+                ? "There are no deleted categories."
+                : "There are no categories in the system yet."
+            }
+          />
+        ) : (
+          <TableShell>
+            <Thead>
+              <tr>
+                <Th>Image</Th>
+                <Th>Category Name</Th>
+                <Th>Slug</Th>
+                <Th>Icon</Th>
+                <Th>Status</Th>
+                <Th className="text-right">Actions</Th>
+              </tr>
+            </Thead>
+            <Tbody>
+              {categories.map((category) => {
+                const iconSvg = resolveIconSvg(category);
+                return (
+                  <Tr key={category._id}>
+                    <Td>
+                      {category.image?.mediaUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={category.image.mediaUrl}
+                          alt={category.categoryName}
+                          width={40}
+                          height={40}
+                          className="h-10 w-10 rounded object-cover ring-1 ring-admin-hairline"
+                        />
+                      ) : (
+                        <span className="text-sm text-admin-ink-subtle">—</span>
+                      )}
+                    </Td>
+                    <Td className="font-medium text-admin-ink">
                       {category.categoryName}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{category.slug}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {iconSvg ? (
-                      <div
-                        className="h-8 w-8 flex items-center justify-center [&>svg]:h-full [&>svg]:w-full"
-                        style={{ color: colors.textPrimary }}
-                        dangerouslySetInnerHTML={{ __html: iconSvg }}
+                    </Td>
+                    <Td className="text-admin-ink-muted">{category.slug}</Td>
+                    <Td>
+                      {iconSvg ? (
+                        <span
+                          className="grid h-9 w-9 place-items-center text-admin-ink [&>svg]:h-5 [&>svg]:w-5"
+                          dangerouslySetInnerHTML={{ __html: iconSvg }}
+                        />
+                      ) : (
+                        <span className="text-sm text-admin-ink-subtle">—</span>
+                      )}
+                    </Td>
+                    <Td>
+                      <StatusBadge
+                        status={category.isDeleted ? "deleted" : "active"}
                       />
-                    ) : (
-                      <span className="text-sm text-gray-400">—</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        category.isDeleted
-                          ? "bg-red-100 text-red-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {category.isDeleted ? "Deleted" : "Active"}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => onEdit(category)}
-                      className="text-indigo-600 hover:text-indigo-900 mr-4"
-                      title="Edit"
-                    >
-                      <PencilIcon className="h-5 w-5" />
-                    </button>
-                    {isDeleted === "false" && (
-                      <button
-                        onClick={() => handleSoftDelete(category)}
-                        className="text-yellow-600 hover:text-yellow-800 mr-4"
-                        title="Soft delete"
-                      >
-                        <ArchiveBoxXMarkIcon className="h-5 w-5" />
-                      </button>
-                    )}
-                    {isDeleted === "true" && (
-                      <button
-                        onClick={() =>
-                          isDeleted === "true"
-                            ? openHardDelete(category)
-                            : handleHardDelete(category)
-                        }
-                        className="text-red-600 hover:text-red-900"
-                        title="Hard delete (permanent)"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        </div>
-        {HardDeleteDialog}
+                    </Td>
+                    <Td className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <IconButton
+                          label={`Edit ${category.categoryName}`}
+                          icon={<PencilIcon />}
+                          onClick={() => onEdit(category)}
+                        />
+                        {isDeleted === "false" && (
+                          <IconButton
+                            label={`Delete ${category.categoryName}`}
+                            icon={<ArchiveBoxXMarkIcon />}
+                            variant="danger"
+                            onClick={() => setPendingDelete(category)}
+                          />
+                        )}
+                        {isDeleted === "true" && (
+                          <IconButton
+                            label={`Permanently delete ${category.categoryName}`}
+                            icon={<TrashIcon />}
+                            variant="danger"
+                            onClick={() => setPendingHardDelete(category)}
+                          />
+                        )}
+                      </div>
+                    </Td>
+                  </Tr>
+                );
+              })}
+            </Tbody>
+          </TableShell>
+        )}
+
+        <ConfirmDialog
+          open={!!pendingDelete}
+          onClose={() => setPendingDelete(null)}
+          onConfirm={confirmSoftDelete}
+          title="Delete category"
+          description={
+            pendingDelete
+              ? `“${pendingDelete.categoryName}” will be marked as deleted but its products remain.`
+              : ""
+          }
+          confirmLabel="Delete"
+          danger
+          loading={isDeleting}
+        />
+
+        <ConfirmDialog
+          open={!!pendingHardDelete}
+          onClose={() => setPendingHardDelete(null)}
+          onConfirm={confirmHardDelete}
+          title="Permanently delete category"
+          description={
+            pendingHardDelete
+              ? `This will permanently delete “${pendingHardDelete.categoryName}” and ALL its products, variants, and images. This is irreversible.`
+              : ""
+          }
+          confirmLabel="Delete Permanently"
+          danger
+          loading={isHardDeleting}
+          requireText="delete"
+        />
       </div>
     );
   }

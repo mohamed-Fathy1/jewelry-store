@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "@headlessui/react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
-import { colors } from "@/constants/colors";
 import { Icon, CreateIconDto } from "@/types/icon.types";
 import { iconsService } from "@/services/icons.service";
+import { Modal, Field, Button, adminInputClass } from "@/components/admin/ui";
 
 interface IconModalProps {
   isOpen: boolean;
@@ -14,9 +12,6 @@ interface IconModalProps {
   icon?: Icon | null;
   onSuccess?: () => void;
 }
-
-const inputClass =
-  "mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown";
 
 export default function IconModal({
   isOpen,
@@ -105,146 +100,103 @@ export default function IconModal({
   };
 
   return (
-    <Dialog
+    <Modal
       open={isOpen}
       onClose={onClose}
-      className="fixed inset-0 z-50 overflow-y-auto"
+      title={icon ? "Edit Icon" : "Add New Icon"}
+      size="md"
     >
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
-
-        <div className="relative bg-white rounded-lg w-full max-w-lg mx-auto p-6 max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <Dialog.Title
-              className="text-xl font-semibold"
-              style={{ color: colors.textPrimary }}
-            >
-              {icon ? "Edit Icon" : "Add New Icon"}
-            </Dialog.Title>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
-          </div>
-
-          {formError && (
-            <div className="mb-4 rounded-md bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
-              {formError}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Key */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Key
-              </label>
-              <input
-                type="text"
-                value={formData.key}
-                onChange={(e) => {
-                  setFormData((prev) => ({ ...prev, key: e.target.value }));
-                  if (keyError) setKeyError("");
-                }}
-                placeholder="Unique key (e.g. facebook)"
-                className={inputClass}
-                required
-              />
-              {keyError && (
-                <p className="mt-1 text-sm text-red-600">{keyError}</p>
-              )}
-            </div>
-
-            {/* SVG */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                SVG Markup
-              </label>
-              <textarea
-                value={formData.svg}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, svg: e.target.value }))
-                }
-                placeholder="<svg ...>...</svg>"
-                rows={6}
-                className={`${inputClass} font-mono text-xs`}
-                required
-              />
-            </div>
-
-            {/* Live preview */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Preview
-              </label>
-              <div
-                className="flex items-center justify-center h-24 rounded-md border border-gray-200 bg-gray-50"
-                style={{ color: colors.textPrimary }}
-              >
-                {formData.svg.trim() ? (
-                  <div
-                    className="h-12 w-12 flex items-center justify-center [&>svg]:h-full [&>svg]:w-full"
-                    dangerouslySetInnerHTML={{ __html: formData.svg }}
-                  />
-                ) : (
-                  <span className="text-sm text-gray-400">
-                    Paste SVG markup to preview
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Active toggle */}
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">
-                Active
-              </label>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={formData.isActive}
-                onClick={() =>
-                  setFormData((prev) => ({ ...prev, isActive: !prev.isActive }))
-                }
-                className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
-                style={{
-                  backgroundColor: formData.isActive ? colors.brown : "#D1D5DB",
-                }}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    formData.isActive ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-4 py-2 rounded-md text-white"
-                style={{ backgroundColor: colors.brown }}
-              >
-                {isSubmitting
-                  ? "Saving..."
-                  : icon
-                  ? "Update Icon"
-                  : "Create Icon"}
-              </button>
-            </div>
-          </form>
+      {formError && (
+        <div className="mb-4 rounded-md border border-admin-danger/30 bg-admin-danger/10 px-4 py-2 text-sm text-admin-danger">
+          {formError}
         </div>
-      </div>
-    </Dialog>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Key */}
+        <Field label="Key" htmlFor="icon-key" required error={keyError}>
+          <input
+            id="icon-key"
+            type="text"
+            value={formData.key}
+            onChange={(e) => {
+              setFormData((prev) => ({ ...prev, key: e.target.value }));
+              if (keyError) setKeyError("");
+            }}
+            placeholder="Unique key (e.g. facebook)"
+            className={adminInputClass}
+            required
+          />
+        </Field>
+
+        {/* SVG */}
+        <Field label="SVG Markup" htmlFor="icon-svg" required>
+          <textarea
+            id="icon-svg"
+            value={formData.svg}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, svg: e.target.value }))
+            }
+            placeholder="<svg …>…</svg>"
+            rows={6}
+            className={`${adminInputClass} font-mono text-xs`}
+            required
+          />
+        </Field>
+
+        {/* Live preview */}
+        <Field label="Preview">
+          <div className="flex items-center justify-center h-24 rounded-md border border-admin-hairline bg-admin-surface-muted text-admin-ink">
+            {formData.svg.trim() ? (
+              <div
+                className="h-12 w-12 flex items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+                dangerouslySetInnerHTML={{ __html: formData.svg }}
+              />
+            ) : (
+              <span className="text-sm text-admin-ink-subtle">
+                Paste SVG markup to preview
+              </span>
+            )}
+          </div>
+        </Field>
+
+        {/* Active toggle */}
+        <div className="flex items-center justify-between">
+          <label
+            htmlFor="icon-active"
+            className="block text-sm font-medium text-admin-ink"
+          >
+            Active
+          </label>
+          <button
+            id="icon-active"
+            type="button"
+            role="switch"
+            aria-checked={formData.isActive}
+            onClick={() =>
+              setFormData((prev) => ({ ...prev, isActive: !prev.isActive }))
+            }
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+              formData.isActive ? "bg-admin-brown" : "bg-admin-hairline"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-admin-surface transition-transform ${
+                formData.isActive ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="secondary" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" loading={isSubmitting}>
+            {icon ? "Update Icon" : "Create Icon"}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }

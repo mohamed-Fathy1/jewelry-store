@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  ShoppingBagIcon,
-  MagnifyingGlassIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  CubeIcon,
-} from "@heroicons/react/24/outline";
+import { ShoppingBagIcon, CubeIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { format, isToday } from "date-fns";
 import { formatEGP } from "@/utils/format";
@@ -18,8 +12,21 @@ import {
 } from "@/types/admin-order.types";
 import { useAdminOrders } from "@/hooks/useAdminOrders";
 import { getApiErrorMessage } from "@/utils/apiError";
-import OrderStatusBadge from "./OrderStatusBadge";
 import { ORDER_STATUS_LABELS, shortOrderId, orderTotal } from "./orderStatus";
+import {
+  PageHeader,
+  TableShell,
+  Thead,
+  Tbody,
+  Th,
+  Td,
+  Tr,
+  StatusBadge,
+  SearchInput,
+  Pagination,
+  SkeletonTable,
+  EmptyState,
+} from "@/components/admin/ui";
 
 interface OrderListProps {
   onViewDetails: (orderId: string) => void;
@@ -102,61 +109,38 @@ export default function OrderList({ onViewDetails }: OrderListProps) {
   };
 
   return (
-    <div style={{ background: "var(--color-bg-page)" }}>
-      {/* Header */}
-      <header className="mb-6">
-        <h1
-          className="italic"
-          style={{
-            fontSize: 32,
-            fontWeight: 400,
-            color: "var(--color-text-primary)",
-          }}
-        >
-          Orders
-        </h1>
-        <p
-          className="mt-1"
-          style={{ fontSize: 13, color: "var(--color-text-muted)" }}
-        >
-          Filter by status, drill in to confirm, ship, or cancel an order.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        title="Orders"
+        description="Filter by status, drill in to confirm, ship, or cancel an order."
+      />
 
       {/* Filter tabs (pill group) + search */}
-      <div className="flex flex-col xl:flex-row xl:items-center gap-4 mb-6">
-        <div
-          className="inline-flex flex-wrap items-center gap-1 p-1"
-          style={{
-            borderRadius: 999,
-            background: "var(--color-bg-surface)",
-            border: "1px solid var(--color-border)",
-          }}
-        >
+      <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-center">
+        <div className="inline-flex flex-wrap items-center gap-1 rounded-full border border-admin-hairline bg-admin-surface p-1">
           {FILTER_TABS.map((tab) => {
             const active = status === tab.value;
             const count = tabCount(tab.value);
             return (
               <button
                 key={tab.value || "all"}
+                type="button"
                 onClick={() => selectTab(tab.value)}
-                className="inline-flex items-center gap-2 px-4 py-1.5 text-sm font-medium transition-colors"
-                style={{
-                  borderRadius: 999,
-                  background: active ? "var(--color-primary)" : "transparent",
-                  color: active ? "#fff" : "var(--color-text-muted)",
-                }}
+                aria-pressed={active}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-admin-brown text-admin-on-accent"
+                    : "text-admin-ink-muted hover:bg-admin-surface-muted"
+                }`}
               >
                 <span>{tab.label}</span>
                 {count > 0 && (
                   <span
-                    className="inline-flex items-center justify-center text-xs font-semibold rounded-full px-1.5 min-w-[18px] h-[18px]"
-                    style={{
-                      background: active
-                        ? "rgba(255,255,255,0.25)"
-                        : "var(--color-primary-light)",
-                      color: active ? "#fff" : "var(--color-primary-text)",
-                    }}
+                    className={`tabular inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1.5 text-xs font-semibold ${
+                      active
+                        ? "bg-white/20 text-admin-on-accent"
+                        : "bg-admin-surface-muted text-admin-ink-muted"
+                    }`}
                   >
                     {count}
                   </span>
@@ -166,36 +150,18 @@ export default function OrderList({ onViewDetails }: OrderListProps) {
           })}
         </div>
 
-        <div className="relative xl:ml-auto w-full xl:w-72">
-          <MagnifyingGlassIcon
-            className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2"
-            style={{ color: "var(--color-text-muted)" }}
-          />
-          <input
-            type="text"
+        <div className="w-full xl:ml-auto xl:w-72">
+          <SearchInput
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search by order number"
-            className="w-full pl-10 pr-4 py-2 focus:outline-none"
-            style={{
-              borderRadius: 8,
-              border: "1px solid var(--color-border)",
-              background: "var(--color-bg-surface)",
-              color: "var(--color-text-primary)",
-            }}
+            placeholder="Search by order number…"
+            ariaLabel="Search orders"
           />
         </div>
       </div>
 
       {/* Stats bar */}
-      <div
-        className="grid grid-cols-2 md:grid-cols-4 mb-6"
-        style={{
-          background: "var(--color-bg-page)",
-          border: "1px solid var(--color-border)",
-          borderRadius: 12,
-        }}
-      >
+      <div className="mb-6 grid grid-cols-2 overflow-hidden rounded-xl bg-admin-surface shadow-admin-card ring-1 ring-admin-hairline/60 md:grid-cols-4">
         <Stat label="On this page" value={String(stats.onPage)} />
         <Stat
           label="Pending action"
@@ -209,186 +175,111 @@ export default function OrderList({ onViewDetails }: OrderListProps) {
 
       {/* List */}
       {isError ? (
-        <div
-          className="text-center py-12 px-4 rounded-xl"
-          style={{ border: "1px solid var(--color-border)" }}
-        >
-          <p className="text-sm" style={{ color: "var(--color-danger)" }}>
-            {getApiErrorMessage(error, "Failed to fetch orders")}
-          </p>
-        </div>
+        <EmptyState
+          icon={ShoppingBagIcon}
+          title="Couldn’t load orders"
+          description={getApiErrorMessage(error, "Failed to fetch orders")}
+        />
       ) : isLoading ? (
-        <div
-          className="py-12 text-center"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          Loading orders…
-        </div>
+        <SkeletonTable rows={8} cols={5} />
       ) : orders.length === 0 ? (
-        <div
-          className="text-center py-12 px-4 rounded-xl"
-          style={{
-            border: "1px solid var(--color-border)",
-            background: "var(--color-bg-surface)",
-          }}
-        >
-          <ShoppingBagIcon
-            className="mx-auto h-16 w-16 mb-4"
-            style={{ color: "var(--color-text-muted)" }}
-          />
-          <h3
-            className="text-lg font-medium mb-2"
-            style={{ color: "var(--color-text-primary)" }}
-          >
-            No Orders Found
-          </h3>
-          <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-            No orders match the current filters.
-          </p>
-        </div>
+        <EmptyState
+          icon={ShoppingBagIcon}
+          title="No orders found"
+          description="No orders match the current filters."
+        />
       ) : (
-        <div
-          className="overflow-hidden"
-          style={{
-            background: "var(--color-bg-surface)",
-            border: "1px solid var(--color-border)",
-            borderRadius: 12,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-            opacity: isFetching ? 0.6 : 1,
-          }}
-        >
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
-                  {["Order", "Customer", "Date", "Status", "Total"].map(
-                    (h, i) => (
-                      <th
-                        key={h}
-                        className="px-6 py-3 text-left"
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          letterSpacing: "0.08em",
-                          textTransform: "uppercase",
-                          color: "var(--color-text-muted)",
-                          textAlign: i === 4 ? "right" : "left",
-                        }}
-                      >
-                        {h}
-                      </th>
-                    )
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => {
-                  const firstLine = order.products?.[0];
-                  return (
-                    <tr
-                      key={order._id}
-                      onClick={() => onViewDetails(order._id)}
-                      className="cursor-pointer transition-colors hover:bg-black/[0.02]"
-                      style={{ borderBottom: "1px solid var(--color-border)" }}
-                    >
-                      {/* Order (number + first item thumb) */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 relative flex-shrink-0">
-                            {firstLine?.productId?.defaultImage?.mediaUrl ? (
-                              <Image
-                                src={firstLine.productId.defaultImage.mediaUrl}
-                                alt={firstLine.productName}
-                                fill
-                                className="rounded-md object-cover"
-                              />
-                            ) : (
-                              <div
-                                className="h-9 w-9 rounded-md flex items-center justify-center"
-                                style={{ background: "var(--color-bg-page)" }}
-                              >
-                                <CubeIcon className="h-4 w-4 text-gray-300" />
-                              </div>
-                            )}
-                          </div>
-                          <span
-                            className="text-sm font-semibold"
-                            style={{ color: "var(--color-text-primary)" }}
-                          >
-                            #{shortOrderId(order._id)}
-                          </span>
+        <div style={{ opacity: isFetching ? 0.6 : 1 }}>
+          <TableShell>
+            <Thead>
+              <tr>
+                <Th>Order</Th>
+                <Th>Customer</Th>
+                <Th>Date</Th>
+                <Th>Status</Th>
+                <Th className="text-right">Total</Th>
+              </tr>
+            </Thead>
+            <Tbody>
+              {orders.map((order) => {
+                const firstLine = order.products?.[0];
+                return (
+                  <Tr
+                    key={order._id}
+                    onClick={() => onViewDetails(order._id)}
+                    className="cursor-pointer"
+                  >
+                    {/* Order (number + first item thumb) */}
+                    <Td className="whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-9 w-9 flex-shrink-0">
+                          {firstLine?.productId?.defaultImage?.mediaUrl ? (
+                            <Image
+                              src={firstLine.productId.defaultImage.mediaUrl}
+                              alt={firstLine.productName}
+                              fill
+                              className="rounded-md object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-admin-surface-muted">
+                              <CubeIcon className="h-4 w-4 text-admin-ink-subtle" />
+                            </div>
+                          )}
                         </div>
-                      </td>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewDetails(order._id);
+                          }}
+                          aria-label={`View order #${shortOrderId(order._id)}`}
+                          className="tabular text-sm font-semibold text-admin-heading hover:text-admin-brown"
+                        >
+                          #{shortOrderId(order._id)}
+                        </button>
+                      </div>
+                    </Td>
 
-                      {/* Customer */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {order.userInformation ? (
-                          <span
-                            className="text-sm"
-                            style={{ color: "var(--color-text-primary)" }}
-                          >
-                            {order.userInformation.firstName}{" "}
-                            {order.userInformation.lastName}
-                          </span>
-                        ) : (
-                          <span
-                            className="text-sm"
-                            style={{ color: "var(--color-text-muted)" }}
-                          >
-                            —
-                          </span>
-                        )}
-                      </td>
+                    {/* Customer */}
+                    <Td className="whitespace-nowrap">
+                      {order.userInformation ? (
+                        <span className="text-admin-ink">
+                          {order.userInformation.firstName}{" "}
+                          {order.userInformation.lastName}
+                        </span>
+                      ) : (
+                        <span className="text-admin-ink-muted">—</span>
+                      )}
+                    </Td>
 
-                      {/* Date */}
-                      <td
-                        className="px-6 py-4 whitespace-nowrap text-sm"
-                        style={{ color: "var(--color-text-muted)" }}
-                      >
-                        {format(new Date(order.createdAt), "MMM d, yyyy")}
-                      </td>
+                    {/* Date */}
+                    <Td className="tabular whitespace-nowrap text-admin-ink-muted">
+                      {format(new Date(order.createdAt), "MMM d, yyyy")}
+                    </Td>
 
-                      {/* Status */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <OrderStatusBadge status={order.status} />
-                      </td>
+                    {/* Status */}
+                    <Td className="whitespace-nowrap">
+                      <StatusBadge
+                        status={order.status}
+                        label={ORDER_STATUS_LABELS[order.status]}
+                      />
+                    </Td>
 
-                      {/* Total */}
-                      <td
-                        className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold"
-                        style={{ color: "var(--color-text-primary)" }}
-                      >
-                        {formatEGP(orderTotal(order))}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+                    {/* Total */}
+                    <Td className="tabular whitespace-nowrap text-right font-semibold text-admin-ink">
+                      {formatEGP(orderTotal(order))}
+                    </Td>
+                  </Tr>
+                );
+              })}
+            </Tbody>
+          </TableShell>
 
-      {/* Pagination (server-driven, 20/page) */}
-      {!isLoading && !isError && orders.length > 0 && (
-        <div className="flex justify-between items-center mt-4">
-          <PillButton
-            onClick={() => setPage((p) => Math.max(p - 1, 1))}
-            disabled={currentPage <= 1}
-          >
-            <ChevronLeftIcon className="h-4 w-4 mr-1" />
-            Previous
-          </PillButton>
-          <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-            Page {currentPage} of {totalPages} · {totalItems} orders
-          </span>
-          <PillButton
-            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-            disabled={currentPage >= totalPages}
-          >
-            Next
-            <ChevronRightIcon className="h-4 w-4 ml-1" />
-          </PillButton>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
         </div>
       )}
     </div>
@@ -407,61 +298,17 @@ function Stat({
   divider?: boolean;
 }) {
   return (
-    <div
-      className="px-6 py-6"
-      style={{
-        borderLeft: divider ? "1px solid var(--color-border)" : undefined,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "var(--color-text-muted)",
-        }}
-      >
+    <div className={`px-6 py-6 ${divider ? "border-l border-admin-hairline" : ""}`}>
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-admin-ink-muted">
         {label}
       </div>
       <div
-        className="mt-1"
-        style={{
-          fontSize: 22,
-          fontWeight: 600,
-          color: attention
-            ? "var(--color-primary)"
-            : "var(--color-text-primary)",
-        }}
+        className={`tabular mt-1 text-2xl font-semibold ${
+          attention ? "text-admin-brown" : "text-admin-heading"
+        }`}
       >
         {value}
       </div>
     </div>
-  );
-}
-
-function PillButton({
-  children,
-  onClick,
-  disabled,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="flex items-center px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      style={{
-        borderRadius: 999,
-        border: "1px solid var(--color-border)",
-        background: "var(--color-bg-surface)",
-        color: "var(--color-text-primary)",
-      }}
-    >
-      {children}
-    </button>
   );
 }

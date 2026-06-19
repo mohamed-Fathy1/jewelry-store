@@ -8,15 +8,7 @@ import { isAdmin } from "@/utils/auth.utils";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { ShoppingBagIcon } from "@heroicons/react/24/outline";
-
-const navigation = [
-  {
-    name: "Orders",
-    href: "/admin/orders",
-    icon: ShoppingBagIcon,
-  },
-];
+import "./admin-theme.css";
 
 export default function AdminLayout({
   children,
@@ -65,12 +57,12 @@ export default function AdminLayout({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex h-screen bg-gray-100">
+      <div className="admin-theme flex h-screen bg-admin-canvas text-admin-ink">
         <AdminSidebar />
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden">
           <AdminHeader />
-          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
-            <div className="container mx-auto px-6 py-8">{children}</div>
+          <main className="flex-1 overflow-y-auto overflow-x-hidden bg-admin-canvas">
+            <div className="mx-auto max-w-7xl px-6 py-8">{children}</div>
           </main>
         </div>
       </div>

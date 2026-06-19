@@ -4,8 +4,8 @@ import { useState } from "react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import ShippingList from "@/components/admin/shipping/ShippingList";
 import ShippingModal from "@/components/admin/shipping/ShippingModal";
-import { colors } from "@/constants/colors";
 import { Shipping } from "@/types/shipping.types";
+import { Button, PageHeader } from "@/components/admin/ui";
 
 export default function ShippingPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,22 +25,15 @@ export default function ShippingPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1
-          className="text-2xl font-semibold"
-          style={{ color: colors.textPrimary }}
-        >
-          Shipping Options
-        </h1>
-        <button
-          onClick={handleAddShipping}
-          className="flex items-center px-4 py-2 rounded-md text-white"
-          style={{ backgroundColor: colors.brown }}
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Add Shipping Option
-        </button>
-      </div>
+      <PageHeader
+        title="Shipping Options"
+        description="Manage delivery regions and their costs."
+        actions={
+          <Button onClick={handleAddShipping} leftIcon={<PlusIcon className="h-5 w-5" />}>
+            Add Shipping Option
+          </Button>
+        }
+      />
 
       <ShippingList onEdit={handleEditShipping} />
 

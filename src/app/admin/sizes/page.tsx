@@ -5,7 +5,7 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import SizeList, { SizeListRef } from "@/components/admin/sizes/SizeList";
 import SizeModal from "@/components/admin/sizes/SizeModal";
 import { Size } from "@/types/size.types";
-import { colors } from "@/constants/colors";
+import { Button, PageHeader } from "@/components/admin/ui";
 
 export default function SizesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,22 +28,15 @@ export default function SizesPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1
-          className="text-2xl font-semibold"
-          style={{ color: colors.textPrimary }}
-        >
-          Sizes
-        </h1>
-        <button
-          onClick={handleAddSize}
-          className="flex items-center px-4 py-2 rounded-md text-white"
-          style={{ backgroundColor: colors.brown }}
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Add Size
-        </button>
-      </div>
+      <PageHeader
+        title="Sizes"
+        description="Manage the size options shown on products."
+        actions={
+          <Button onClick={handleAddSize} leftIcon={<PlusIcon className="h-5 w-5" />}>
+            Add Size
+          </Button>
+        }
+      />
 
       <SizeList ref={listRef} onEdit={handleEditSize} />
 

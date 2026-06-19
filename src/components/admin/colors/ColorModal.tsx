@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "@headlessui/react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
-import { colors } from "@/constants/colors";
 import { Color, CreateColorDto } from "@/types/color.types";
 import { colorsService } from "@/services/colors.service";
+import { Modal, Field, Button, adminInputClass } from "@/components/admin/ui";
 
 interface ColorModalProps {
   isOpen: boolean;
@@ -14,9 +12,6 @@ interface ColorModalProps {
   color?: Color | null;
   onSuccess?: () => void;
 }
-
-const inputClass =
-  "mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown";
 
 // Matches the server's accepted hex formats: #RRGGBB or #RGB.
 const HEX_PATTERN = /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/;
@@ -110,106 +105,69 @@ export default function ColorModal({
   };
 
   return (
-    <Dialog
+    <Modal
       open={isOpen}
       onClose={onClose}
-      className="fixed inset-0 z-50 overflow-y-auto"
+      title={color ? "Edit Color" : "Add New Color"}
+      size="sm"
     >
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Name" htmlFor="color-name" required error={nameError}>
+          <input
+            id="color-name"
+            type="text"
+            value={formData.name}
+            onChange={(e) => {
+              setFormData((prev) => ({ ...prev, name: e.target.value }));
+              if (nameError) setNameError("");
+            }}
+            placeholder="Color Name…"
+            className={adminInputClass}
+            required
+          />
+        </Field>
 
-        <div className="relative bg-white rounded-lg w-full max-w-md mx-auto p-6">
-          <div className="flex justify-between items-center mb-4">
-            <Dialog.Title
-              className="text-xl font-semibold"
-              style={{ color: colors.textPrimary }}
-            >
-              {color ? "Edit Color" : "Add New Color"}
-            </Dialog.Title>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
+        <Field
+          label="Hex Code"
+          htmlFor="color-hex"
+          required
+          error={
+            formData.hex && !isValidHex
+              ? "Hex must match #RRGGBB or #RGB"
+              : undefined
+          }
+        >
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={normalizeHex(formData.hex)}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, hex: e.target.value }))
+              }
+              className="h-10 w-10 flex-shrink-0 cursor-pointer rounded-md border border-admin-hairline p-0"
+              title="Pick a color"
+              aria-label="Pick a color"
+            />
+            <input
+              id="color-hex"
+              type="text"
+              value={formData.hex}
+              readOnly
+              placeholder="#RRGGBB"
+              className={`${adminInputClass} bg-admin-surface-muted uppercase tabular-nums`}
+            />
           </div>
+        </Field>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Name
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => {
-                  setFormData((prev) => ({ ...prev, name: e.target.value }));
-                  if (nameError) setNameError("");
-                }}
-                placeholder="Color Name"
-                className={inputClass}
-                required
-              />
-              {nameError && (
-                <p className="mt-1 text-sm text-red-600">{nameError}</p>
-              )}
-            </div>
-
-            {/* Hex */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Hex Code
-              </label>
-              <div className="mt-1 flex items-center gap-3">
-                <input
-                  type="color"
-                  value={normalizeHex(formData.hex)}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, hex: e.target.value }))
-                  }
-                  className="h-10 w-10 flex-shrink-0 rounded-md border border-gray-200 cursor-pointer p-0"
-                  title="Pick a color"
-                />
-                <input
-                  type="text"
-                  value={formData.hex}
-                  readOnly
-                  placeholder="#RRGGBB"
-                  className="p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown bg-gray-50 uppercase"
-                />
-              </div>
-              {formData.hex && !isValidHex && (
-                <p className="mt-1 text-sm text-red-600">
-                  Hex must match #RRGGBB or #RGB
-                </p>
-              )}
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-4 py-2 rounded-md text-white"
-                style={{ backgroundColor: colors.brown }}
-              >
-                {isSubmitting
-                  ? "Saving..."
-                  : color
-                  ? "Update Color"
-                  : "Create Color"}
-              </button>
-            </div>
-          </form>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="secondary" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" loading={isSubmitting}>
+            Save
+          </Button>
         </div>
-      </div>
-    </Dialog>
+      </form>
+    </Modal>
   );
 }

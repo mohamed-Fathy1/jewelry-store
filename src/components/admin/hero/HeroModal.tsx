@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "@headlessui/react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
 import { HeroSlider } from "@/types/hero.types";
 import { adminService } from "@/services/admin.service";
 import toast from "react-hot-toast";
-import { colors } from "@/constants/colors";
 import ImageUpload from "../products/ImageUpload";
+import { Modal, Field, Button } from "@/components/admin/ui";
 
 interface HeroModalProps {
   isOpen: boolean;
@@ -43,11 +41,11 @@ export default function HeroModal({ isOpen, onClose, slider }: HeroModalProps) {
     try {
       const images = {
         image1: {
-          imageUrl: formData.smallImage.mediaUrl,
+          imageUrl: formData.smallImage,
           imageType: "small" as const,
         },
         image2: {
-          imageUrl: formData.largeImage.mediaUrl,
+          imageUrl: formData.largeImage,
           imageType: "large" as const,
         },
       };
@@ -90,85 +88,50 @@ export default function HeroModal({ isOpen, onClose, slider }: HeroModalProps) {
   };
 
   return (
-    <Dialog
+    <Modal
       open={isOpen}
       onClose={onClose}
-      className="fixed inset-0 z-50 overflow-y-auto"
+      title={slider ? "Edit Hero Slider" : "Add New Hero Slider"}
+      size="lg"
     >
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
-
-        <div className="relative bg-white rounded-lg w-full max-w-2xl mx-auto p-6">
-          <div className="flex justify-between items-center mb-4">
-            <Dialog.Title
-              className="text-xl font-semibold"
-              style={{ color: colors.textPrimary }}
-            >
-              {slider ? "Edit Hero Slider" : "Add New Hero Slider"}
-            </Dialog.Title>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Small Image Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Small Image
-              </label>
-              <ImageUpload onUpload={handleSmallImageUpload} />
-              {formData.smallImage && (
-                <div className="mt-2">
-                  <img
-                    src={formData.smallImage.mediaUrl}
-                    alt="Small preview"
-                    className="h-32 w-full object-cover rounded-lg"
-                  />
-                </div>
-              )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Small Image Upload */}
+        <Field label="Small Image" htmlFor="hero-small-image">
+          <ImageUpload onUpload={handleSmallImageUpload} />
+          {formData.smallImage && (
+            <div className="mt-2 overflow-hidden rounded-lg border border-admin-hairline bg-admin-surface-muted">
+              <img
+                src={formData.smallImage}
+                alt="Small preview"
+                className="h-32 w-full object-cover"
+              />
             </div>
+          )}
+        </Field>
 
-            {/* Large Image Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Large Image
-              </label>
-              <ImageUpload onUpload={handleLargeImageUpload} />
-              {formData.largeImage && (
-                <div className="mt-2">
-                  <img
-                    src={formData.largeImage.mediaUrl}
-                    alt="Large preview"
-                    className="h-32 w-full object-cover rounded-lg"
-                  />
-                </div>
-              )}
+        {/* Large Image Upload */}
+        <Field label="Large Image" htmlFor="hero-large-image">
+          <ImageUpload onUpload={handleLargeImageUpload} />
+          {formData.largeImage && (
+            <div className="mt-2 overflow-hidden rounded-lg border border-admin-hairline bg-admin-surface-muted">
+              <img
+                src={formData.largeImage}
+                alt="Large preview"
+                className="h-32 w-full object-cover"
+              />
             </div>
+          )}
+        </Field>
 
-            <div className="flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-4 py-2 rounded-md text-white"
-                style={{ backgroundColor: colors.brown }}
-              >
-                {isSubmitting ? "Saving..." : slider ? "Update" : "Create"}
-              </button>
-            </div>
-          </form>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="secondary" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" loading={isSubmitting}>
+            Save
+          </Button>
         </div>
-      </div>
-    </Dialog>
+      </form>
+    </Modal>
   );
 }

@@ -1,20 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import WishlistList from "@/components/admin/wishlists/WishlistList";
-import { colors } from "@/constants/colors";
+import { PageHeader } from "@/components/admin/ui";
 
 export default function WishlistsPage() {
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1
-          className="text-2xl font-semibold"
-          style={{ color: colors.textPrimary }}
-        >
-          Wishlists
-        </h1>
-      </div>
+      <PageHeader
+        title="Wishlists"
+        description="Products customers have saved."
+      />
 
       <WishlistList />
     </div>

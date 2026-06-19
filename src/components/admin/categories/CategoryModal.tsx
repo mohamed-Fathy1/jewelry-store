@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Dialog } from "@headlessui/react";
-import { XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
-import { colors } from "@/constants/colors";
 import {
   AdminCategory,
   CreateCategoryDto,
@@ -13,6 +11,7 @@ import {
 import { Icon } from "@/types/icon.types";
 import { categoriesService } from "@/services/categories.service";
 import { iconsService } from "@/services/icons.service";
+import { Modal, Field, Button, adminInputClass } from "@/components/admin/ui";
 import ImageUpload from "../products/ImageUpload";
 
 interface CategoryModalProps {
@@ -21,9 +20,6 @@ interface CategoryModalProps {
   category?: AdminCategory | null;
   onSuccess?: () => void;
 }
-
-const inputClass =
-  "mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown";
 
 // Resolve the current icon id from a category's icon_id, which may be a
 // populated object, a raw id string, or null.
@@ -64,23 +60,17 @@ function IconSelect({
 
   const IconGlyph = ({ svg }: { svg: string }) => (
     <span
-      className="h-5 w-5 flex-shrink-0 flex items-center justify-center [&>svg]:h-full [&>svg]:w-full"
-      style={{ color: colors.textPrimary }}
+      className="h-5 w-5 flex-shrink-0 flex items-center justify-center text-admin-ink [&>svg]:h-full [&>svg]:w-full"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );
 
   return (
-    <div className="relative mt-1" ref={selectRef}>
+    <div className="relative" ref={selectRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2 text-left border rounded-md flex items-center justify-between transition-colors"
-        style={{
-          backgroundColor: colors.background,
-          borderColor: colors.border,
-          color: colors.textPrimary,
-        }}
+        className="w-full px-4 py-2 text-left rounded-md border border-admin-hairline bg-admin-surface text-admin-ink flex items-center justify-between transition-colors hover:bg-admin-surface-muted"
       >
         <span className="flex items-center gap-2 min-w-0">
           {selected && <IconGlyph svg={selected.svg} />}
@@ -89,33 +79,23 @@ function IconSelect({
           </span>
         </span>
         <ChevronDownIcon
-          className={`w-5 h-5 flex-shrink-0 transition-transform ${
+          className={`w-5 h-5 flex-shrink-0 text-admin-ink-muted transition-transform ${
             isOpen ? "rotate-180" : ""
           }`}
-          style={{ color: colors.textSecondary }}
         />
       </button>
 
       {isOpen && (
-        <div
-          className="absolute z-10 w-full mt-1 border rounded-md shadow-lg max-h-60 overflow-auto"
-          style={{
-            backgroundColor: colors.background,
-            borderColor: colors.border,
-          }}
-        >
+        <div className="absolute z-10 w-full mt-1 rounded-md border border-admin-hairline bg-admin-surface shadow-admin-popover max-h-60 overflow-auto">
           <button
             type="button"
             onClick={() => {
               onChange("");
               setIsOpen(false);
             }}
-            className="w-full px-4 py-2 text-left transition-colors first:rounded-t-md flex items-center gap-2"
-            style={{
-              color: colors.textPrimary,
-              backgroundColor:
-                value === "" ? `${colors.brown}15` : colors.background,
-            }}
+            className={`w-full px-4 py-2 text-left text-admin-ink transition-colors first:rounded-t-md flex items-center gap-2 hover:bg-admin-surface-muted ${
+              value === "" ? "bg-admin-surface-muted" : ""
+            }`}
           >
             <span className="truncate">No icon</span>
           </button>
@@ -127,12 +107,9 @@ function IconSelect({
                 onChange(icon._id);
                 setIsOpen(false);
               }}
-              className="w-full px-4 py-2 text-left transition-colors last:rounded-b-md flex items-center gap-2"
-              style={{
-                color: colors.textPrimary,
-                backgroundColor:
-                  icon._id === value ? `${colors.brown}15` : colors.background,
-              }}
+              className={`w-full px-4 py-2 text-left text-admin-ink transition-colors last:rounded-b-md flex items-center gap-2 hover:bg-admin-surface-muted ${
+                icon._id === value ? "bg-admin-surface-muted" : ""
+              }`}
             >
               <IconGlyph svg={icon.svg} />
               <span className="truncate">{icon.key}</span>
@@ -190,7 +167,7 @@ export default function CategoryModal({
 
         setIcons(all);
       } catch (error) {
-        /* dropdown just shows "No icon" if icons can't be loaded */
+        /* dropdown just shows “No icon” if icons can't be loaded */
       }
     };
 
@@ -259,108 +236,67 @@ export default function CategoryModal({
   };
 
   return (
-    <Dialog
+    <Modal
       open={isOpen}
       onClose={onClose}
-      className="fixed inset-0 z-50 overflow-y-auto"
+      title={category ? "Edit Category" : "Add New Category"}
+      size="md"
     >
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Category Name */}
+        <Field label="Category Name" htmlFor="category-name" required>
+          <input
+            id="category-name"
+            type="text"
+            value={formData.categoryName}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                categoryName: e.target.value,
+              }))
+            }
+            placeholder="Category Name"
+            className={adminInputClass}
+            required
+          />
+        </Field>
 
-        <div className="relative bg-white rounded-lg w-full max-w-md mx-auto p-6 max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <Dialog.Title
-              className="text-xl font-semibold"
-              style={{ color: colors.textPrimary }}
-            >
-              {category ? "Edit Category" : "Add New Category"}
-            </Dialog.Title>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
-          </div>
+        {/* Image (upload only) */}
+        <Field label="Category Image">
+          <ImageUpload folder="categories" onUpload={handleImageUpload} />
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Category Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Category Name
-              </label>
-              <input
-                type="text"
-                value={formData.categoryName}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    categoryName: e.target.value,
-                  }))
-                }
-                placeholder="Category Name"
-                className={inputClass}
-                required
+          {formData.imageUrl && (
+            <div className="mt-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={formData.imageUrl}
+                alt="Category"
+                className="w-full h-32 object-cover rounded-md"
               />
             </div>
+          )}
+        </Field>
 
-            {/* Image (upload only) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category Image
-              </label>
-              <ImageUpload folder="categories" onUpload={handleImageUpload} />
+        {/* Icon */}
+        <Field label="Icon">
+          <IconSelect
+            value={formData.iconId}
+            onChange={(value) =>
+              setFormData((prev) => ({ ...prev, iconId: value }))
+            }
+            icons={icons}
+          />
+        </Field>
 
-              {formData.imageUrl && (
-                <div className="mt-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={formData.imageUrl}
-                    alt="Category"
-                    className="w-full h-32 object-cover rounded-md"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Icon */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Icon
-              </label>
-              <IconSelect
-                value={formData.iconId}
-                onChange={(value) =>
-                  setFormData((prev) => ({ ...prev, iconId: value }))
-                }
-                icons={icons}
-              />
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-4 py-2 rounded-md text-white"
-                style={{ backgroundColor: colors.brown }}
-              >
-                {isSubmitting
-                  ? "Saving..."
-                  : category
-                  ? "Update Category"
-                  : "Create Category"}
-              </button>
-            </div>
-          </form>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="secondary" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" loading={isSubmitting}>
+            {category ? "Update Category" : "Create Category"}
+          </Button>
         </div>
-      </div>
-    </Dialog>
+      </form>
+    </Modal>
   );
 }

@@ -1,18 +1,24 @@
 "use client";
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import {
-  PencilIcon,
-  TrashIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  MagnifyingGlassIcon,
-  SwatchIcon,
-} from "@heroicons/react/24/outline";
-import { colors } from "@/constants/colors";
+import { PencilIcon, TrashIcon, SwatchIcon } from "@heroicons/react/24/outline";
 import { Color } from "@/types/color.types";
 import { colorsService } from "@/services/colors.service";
 import { useDebounce } from "@/hooks/useDebounce";
+import {
+  TableShell,
+  Thead,
+  Tbody,
+  Th,
+  Td,
+  Tr,
+  IconButton,
+  SearchInput,
+  Pagination,
+  SkeletonTable,
+  EmptyState,
+  ConfirmDialog,
+} from "@/components/admin/ui";
 import toast from "react-hot-toast";
 
 interface ColorListProps {
@@ -29,6 +35,8 @@ const ColorList = forwardRef<ColorListRef, ColorListProps>(({ onEdit }, ref) => 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<Color | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchColors = async (
     page: number = currentPage,
@@ -69,164 +77,106 @@ const ColorList = forwardRef<ColorListRef, ColorListProps>(({ onEdit }, ref) => 
     debouncedSearch(value);
   };
 
-  const handleDelete = async (colorId: string) => {
-    if (window.confirm("Are you sure you want to delete this color?")) {
-      try {
-        await colorsService.deleteColor(colorId);
-        toast.success("Color deleted successfully");
-        setColorsList((prev) => prev.filter((c) => c._id !== colorId));
-      } catch (error) {
-        toast.error("Failed to delete color");
-      }
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setIsDeleting(true);
+    try {
+      await colorsService.deleteColor(pendingDelete._id);
+      toast.success("Color deleted successfully");
+      setColorsList((prev) => prev.filter((c) => c._id !== pendingDelete._id));
+      setPendingDelete(null);
+    } catch (error) {
+      toast.error("Failed to delete color");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
     <div>
-      {/* Search */}
       <div className="mb-6">
-        <div className="relative flex-1">
-          <input
-            type="text"
-            placeholder="Search colors..."
-            value={search}
-            onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-brown"
-          />
-          <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={handleSearchChange}
+          placeholder="Search colors…"
+          ariaLabel="Search colors"
+          className="max-w-sm"
+        />
       </div>
 
       {isLoading ? (
-        <div>Loading...</div>
+        <SkeletonTable rows={6} cols={4} />
       ) : !colorsList || colorsList.length === 0 ? (
-        <div
-          className="text-center py-12 px-4 border-2 border-dashed rounded-lg"
-          style={{ borderColor: colors.border }}
-        >
-          <SwatchIcon
-            className="mx-auto h-16 w-16 mb-4"
-            style={{ color: colors.textSecondary }}
-          />
-          <h3
-            className="text-lg font-medium mb-2"
-            style={{ color: colors.textPrimary }}
-          >
-            No Colors Found
-          </h3>
-          <p className="text-sm" style={{ color: colors.textSecondary }}>
-            {search
-              ? `No colors match "${search}".`
-              : "There are no colors in the system yet."}
-          </p>
-        </div>
+        <EmptyState
+          icon={SwatchIcon}
+          title="No colors found"
+          description={
+            search ? `No colors match “${search}”.` : "There are no colors yet. Add your first one."
+          }
+        />
       ) : (
         <>
-          <div className="overflow-x-auto min-h-[40vh]">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Preview
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Name
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Hex Code
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {colorsList.map((color) => (
-                  <tr key={color._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className="inline-block h-8 w-8 rounded-full border border-gray-200"
-                        style={{ backgroundColor: color.hex }}
-                        title={color.hex}
-                      />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {color.name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500 uppercase">
-                        {color.hex}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
+          <TableShell>
+            <Thead>
+              <tr>
+                <Th>Preview</Th>
+                <Th>Name</Th>
+                <Th>Hex Code</Th>
+                <Th className="text-right">Actions</Th>
+              </tr>
+            </Thead>
+            <Tbody>
+              {colorsList.map((color) => (
+                <Tr key={color._id}>
+                  <Td>
+                    <span
+                      className="inline-block h-8 w-8 rounded-full ring-1 ring-admin-hairline"
+                      style={{ backgroundColor: color.hex }}
+                      title={color.hex}
+                    />
+                  </Td>
+                  <Td className="font-medium text-admin-ink">{color.name}</Td>
+                  <Td className="tabular uppercase text-admin-ink-muted">{color.hex}</Td>
+                  <Td className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <IconButton
+                        label={`Edit ${color.name}`}
+                        icon={<PencilIcon />}
                         onClick={() => onEdit(color)}
-                        className="text-indigo-600 hover:text-indigo-900 mr-4"
-                      >
-                        <PencilIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(color._id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      />
+                      <IconButton
+                        label={`Delete ${color.name}`}
+                        icon={<TrashIcon />}
+                        variant="danger"
+                        onClick={() => setPendingDelete(color)}
+                      />
+                    </div>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </TableShell>
 
-          {/* Pagination */}
-          <div className="flex justify-between items-center my-4">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="flex items-center px-3 py-2 rounded-md text-sm"
-              style={{
-                backgroundColor: currentPage === 1 ? "#eee" : colors.brown,
-                color: currentPage === 1 ? "#666" : "white",
-              }}
-            >
-              <ChevronLeftIcon className="h-4 w-4 mr-1" />
-              Previous
-            </button>
-            <span className="text-sm text-gray-700">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="flex items-center px-3 py-2 rounded-md text-sm"
-              style={{
-                backgroundColor:
-                  currentPage === totalPages ? "#eee" : colors.brown,
-                color: currentPage === totalPages ? "#666" : "white",
-              }}
-            >
-              Next
-              <ChevronRightIcon className="h-4 w-4 ml-1" />
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </>
       )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete color"
+        description={
+          pendingDelete ? `“${pendingDelete.name}” will be permanently removed.` : ""
+        }
+        confirmLabel="Delete"
+        danger
+        loading={isDeleting}
+      />
     </div>
   );
 });

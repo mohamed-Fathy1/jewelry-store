@@ -1,16 +1,23 @@
 "use client";
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import {
-  PencilIcon,
-  TrashIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  SparklesIcon,
-} from "@heroicons/react/24/outline";
-import { colors } from "@/constants/colors";
+import { PencilIcon, TrashIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { Icon } from "@/types/icon.types";
 import { iconsService } from "@/services/icons.service";
+import {
+  TableShell,
+  Thead,
+  Tbody,
+  Th,
+  Td,
+  Tr,
+  IconButton,
+  Pagination,
+  SkeletonTable,
+  EmptyState,
+  StatusBadge,
+  ConfirmDialog,
+} from "@/components/admin/ui";
 import toast from "react-hot-toast";
 
 interface IconListProps {
@@ -26,6 +33,8 @@ const IconList = forwardRef<IconListRef, IconListProps>(({ onEdit }, ref) => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [pendingDelete, setPendingDelete] = useState<Icon | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchIcons = async (page: number = currentPage) => {
     setIsLoading(true);
@@ -49,153 +58,98 @@ const IconList = forwardRef<IconListRef, IconListProps>(({ onEdit }, ref) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
-  const handleDelete = async (iconId: string) => {
-    if (window.confirm("Are you sure you want to delete this icon?")) {
-      try {
-        await iconsService.deleteIcon(iconId);
-        toast.success("Icon deleted successfully");
-        setIcons((prev) => prev.filter((i) => i._id !== iconId));
-      } catch (error) {
-        toast.error("Failed to delete icon");
-      }
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setIsDeleting(true);
+    try {
+      await iconsService.deleteIcon(pendingDelete._id);
+      toast.success("Icon deleted successfully");
+      setIcons((prev) => prev.filter((i) => i._id !== pendingDelete._id));
+      setPendingDelete(null);
+    } catch (error) {
+      toast.error("Failed to delete icon");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!icons || icons.length === 0) {
-    return (
-      <div
-        className="text-center py-12 px-4 border-2 border-dashed rounded-lg"
-        style={{ borderColor: colors.border }}
-      >
-        <SparklesIcon
-          className="mx-auto h-16 w-16 mb-4"
-          style={{ color: colors.textSecondary }}
-        />
-        <h3
-          className="text-lg font-medium mb-2"
-          style={{ color: colors.textPrimary }}
-        >
-          No Icons Found
-        </h3>
-        <p className="text-sm" style={{ color: colors.textSecondary }}>
-          There are no icons in the system yet.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div>
-      <div className="overflow-x-auto min-h-[40vh]">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Preview
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Key
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Is Active
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {icons.map((icon) => (
-              <tr key={icon._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div
-                    className="h-8 w-8 flex items-center justify-center text-gray-700 [&>svg]:h-full [&>svg]:w-full"
-                    style={{ color: colors.textPrimary }}
-                    dangerouslySetInnerHTML={{ __html: icon.svg }}
-                  />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    {icon.key}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      icon.isActive
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {icon.isActive ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => onEdit(icon)}
-                    className="text-indigo-600 hover:text-indigo-900 mr-4"
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(icon._id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                </td>
+      {isLoading ? (
+        <SkeletonTable rows={6} cols={4} />
+      ) : !icons || icons.length === 0 ? (
+        <EmptyState
+          icon={SparklesIcon}
+          title="No icons found"
+          description="There are no icons in the system yet. Add your first one."
+        />
+      ) : (
+        <>
+          <TableShell>
+            <Thead>
+              <tr>
+                <Th>Preview</Th>
+                <Th>Key</Th>
+                <Th>Is Active</Th>
+                <Th className="text-right">Actions</Th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </Thead>
+            <Tbody>
+              {icons.map((icon) => (
+                <Tr key={icon._id}>
+                  <Td>
+                    <span
+                      className="grid h-9 w-9 place-items-center text-admin-ink [&>svg]:h-full [&>svg]:w-full"
+                      dangerouslySetInnerHTML={{ __html: icon.svg }}
+                    />
+                  </Td>
+                  <Td className="font-medium text-admin-ink">{icon.key}</Td>
+                  <Td>
+                    <StatusBadge
+                      status={icon.isActive ? "active" : "inactive"}
+                      label={icon.isActive ? "Active" : "Inactive"}
+                    />
+                  </Td>
+                  <Td className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <IconButton
+                        label={`Edit ${icon.key}`}
+                        icon={<PencilIcon />}
+                        onClick={() => onEdit(icon)}
+                      />
+                      <IconButton
+                        label={`Delete ${icon.key}`}
+                        icon={<TrashIcon />}
+                        variant="danger"
+                        onClick={() => setPendingDelete(icon)}
+                      />
+                    </div>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </TableShell>
 
-      {/* Pagination */}
-      <div className="flex justify-between items-center my-4">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="flex items-center px-3 py-2 rounded-md text-sm"
-          style={{
-            backgroundColor: currentPage === 1 ? "#eee" : colors.brown,
-            color: currentPage === 1 ? "#666" : "white",
-          }}
-        >
-          <ChevronLeftIcon className="h-4 w-4 mr-1" />
-          Previous
-        </button>
-        <span className="text-sm text-gray-700">
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          className="flex items-center px-3 py-2 rounded-md text-sm"
-          style={{
-            backgroundColor: currentPage === totalPages ? "#eee" : colors.brown,
-            color: currentPage === totalPages ? "#666" : "white",
-          }}
-        >
-          Next
-          <ChevronRightIcon className="h-4 w-4 ml-1" />
-        </button>
-      </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </>
+      )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete icon"
+        description={
+          pendingDelete ? `“${pendingDelete.key}” will be permanently removed.` : ""
+        }
+        confirmLabel="Delete"
+        danger
+        loading={isDeleting}
+      />
     </div>
   );
 });

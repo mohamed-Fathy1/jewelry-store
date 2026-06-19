@@ -1,7 +1,7 @@
 "use client";
 
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { Category } from "@/types/category.types";
+import { SearchInput, adminInputClass } from "@/components/admin/ui";
 
 interface ProductFiltersProps {
   categories: Category[];
@@ -14,9 +14,6 @@ interface ProductFiltersProps {
   onIsBestSellerChange: (value: "" | "true" | "false") => void;
   onSortChange: (value: "" | "price" | "createdAt" | "soldItems") => void;
 }
-
-const selectClass =
-  "p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-brown";
 
 export default function ProductFilters({
   categories,
@@ -32,22 +29,20 @@ export default function ProductFilters({
   return (
     <div className="mb-6 flex flex-wrap items-center gap-4">
       {/* Search */}
-      <div className="relative flex-1 min-w-[220px]">
-        <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search products by name or description..."
-          className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-brown"
-        />
-      </div>
+      <SearchInput
+        value={search}
+        onChange={(e) => onSearchChange(e.target.value)}
+        placeholder="Search products by name or description…"
+        ariaLabel="Search products"
+        className="flex-1 min-w-[220px]"
+      />
 
       {/* Category */}
       <select
         value={category}
         onChange={(e) => onCategoryChange(e.target.value)}
-        className={selectClass}
+        className={adminInputClass + " w-auto"}
+        aria-label="Filter by category"
       >
         <option value="">All Categories</option>
         {categories.map((cat) => (
@@ -63,7 +58,8 @@ export default function ProductFilters({
         onChange={(e) =>
           onIsBestSellerChange(e.target.value as "" | "true" | "false")
         }
-        className={selectClass}
+        className={adminInputClass + " w-auto"}
+        aria-label="Filter by best seller"
       >
         <option value="">All Best Sellers</option>
         <option value="true">Best Seller</option>
@@ -78,7 +74,8 @@ export default function ProductFilters({
             e.target.value as "" | "price" | "createdAt" | "soldItems"
           )
         }
-        className={selectClass}
+        className={adminInputClass + " w-auto"}
+        aria-label="Sort products"
       >
         <option value="">Sort: Newest</option>
         <option value="createdAt">Sort: Date</option>

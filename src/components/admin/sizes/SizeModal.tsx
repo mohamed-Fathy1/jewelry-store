@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "@headlessui/react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
-import { colors } from "@/constants/colors";
 import { Size, CreateSizeDto } from "@/types/size.types";
 import { sizesService } from "@/services/sizes.service";
+import { Modal, Field, Button, adminInputClass } from "@/components/admin/ui";
 
 interface SizeModalProps {
   isOpen: boolean;
@@ -14,9 +12,6 @@ interface SizeModalProps {
   size?: Size | null;
   onSuccess?: () => void;
 }
-
-const inputClass =
-  "mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown";
 
 export default function SizeModal({
   isOpen,
@@ -123,101 +118,60 @@ export default function SizeModal({
   };
 
   return (
-    <Dialog
+    <Modal
       open={isOpen}
       onClose={onClose}
-      className="fixed inset-0 z-50 overflow-y-auto"
+      title={size ? "Edit Size" : "Add New Size"}
+      size="sm"
     >
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Number" htmlFor="size-number" required error={numberError}>
+          <input
+            id="size-number"
+            type="text"
+            value={formData.number}
+            onChange={(e) => {
+              setFormData((prev) => ({ ...prev, number: e.target.value }));
+              if (numberError) setNumberError("");
+            }}
+            placeholder="Size label (e.g. 42)…"
+            className={adminInputClass}
+            required
+          />
+        </Field>
 
-        <div className="relative bg-white rounded-lg w-full max-w-md mx-auto p-6">
-          <div className="flex justify-between items-center mb-4">
-            <Dialog.Title
-              className="text-xl font-semibold"
-              style={{ color: colors.textPrimary }}
-            >
-              {size ? "Edit Size" : "Add New Size"}
-            </Dialog.Title>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
-          </div>
+        <Field
+          label="Order"
+          htmlFor="size-order"
+          required
+          hint={isFetchingOrder ? "Loading…" : undefined}
+        >
+          <input
+            id="size-order"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            step={1}
+            value={formData.order}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, order: e.target.value }))
+            }
+            placeholder={isFetchingOrder ? "Loading…" : "Sort order (e.g. 3)…"}
+            className={`${adminInputClass} tabular-nums`}
+            disabled={isFetchingOrder}
+            required
+          />
+        </Field>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Number */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Number
-              </label>
-              <input
-                type="text"
-                value={formData.number}
-                onChange={(e) => {
-                  setFormData((prev) => ({ ...prev, number: e.target.value }));
-                  if (numberError) setNumberError("");
-                }}
-                placeholder="Size label (e.g. 42)"
-                className={inputClass}
-                required
-              />
-              {numberError && (
-                <p className="mt-1 text-sm text-red-600">{numberError}</p>
-              )}
-            </div>
-
-            {/* Order */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Order
-                {isFetchingOrder && (
-                  <span className="ml-2 text-xs font-normal text-gray-400">
-                    Loading…
-                  </span>
-                )}
-              </label>
-              <input
-                type="number"
-                min={1}
-                step={1}
-                value={formData.order}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, order: e.target.value }))
-                }
-                placeholder={isFetchingOrder ? "Loading…" : "Sort order (e.g. 3)"}
-                className={inputClass}
-                disabled={isFetchingOrder}
-                required
-              />
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-4 py-2 rounded-md text-white"
-                style={{ backgroundColor: colors.brown }}
-              >
-                {isSubmitting
-                  ? "Saving..."
-                  : size
-                  ? "Update Size"
-                  : "Create Size"}
-              </button>
-            </div>
-          </form>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="secondary" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" loading={isSubmitting}>
+            Save
+          </Button>
         </div>
-      </div>
-    </Dialog>
+      </form>
+    </Modal>
   );
 }
