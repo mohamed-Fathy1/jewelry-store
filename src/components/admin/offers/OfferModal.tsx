@@ -7,7 +7,7 @@ import { Offer, OfferType, CreateOfferDto } from "@/types/offer.types";
 import { offersService } from "@/services/offers.service";
 import { OFFER_TYPE_LABELS } from "./OfferList";
 import ImageUpload from "../products/ImageUpload";
-import { Modal, Field, Button, adminInputClass } from "@/components/admin/ui";
+import { Modal, Field, Button, Thumbnail, adminInputClass } from "@/components/admin/ui";
 
 interface OfferModalProps {
   isOpen: boolean;
@@ -252,13 +252,11 @@ export default function OfferModal({
           <ImageUpload folder="offers" onUpload={handleImageUpload} />
 
           {formData.imageUrl && (
-            <div className="mt-4 overflow-hidden rounded-md border border-admin-hairline bg-admin-surface-muted">
-              <img
-                src={formData.imageUrl}
-                alt="Offer"
-                className="h-32 w-full object-cover"
-              />
-            </div>
+            <Thumbnail
+              src={formData.imageUrl}
+              alt="Offer"
+              className="mt-4 h-32 w-full"
+            />
           )}
         </Field>
 

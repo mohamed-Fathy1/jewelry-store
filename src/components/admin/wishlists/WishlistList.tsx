@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { AxiosError } from "axios";
 import { format } from "date-fns";
 import { HeartIcon, CubeIcon } from "@heroicons/react/24/outline";
@@ -16,6 +15,7 @@ import {
   Th,
   Td,
   Tr,
+  Thumbnail,
   Pagination,
   SkeletonTable,
   EmptyState,
@@ -104,20 +104,11 @@ function WishlistRow({ entry }: { entry: WishlistEntry }) {
       {/* Product: thumbnail + name + category + price/salePrice + stock */}
       <Td>
         <div className="flex items-center gap-3">
-          <div className="relative h-12 w-12 flex-shrink-0">
-            {product.defaultImage?.mediaUrl ? (
-              <Image
-                src={product.defaultImage.mediaUrl}
-                alt={product.productName}
-                fill
-                className="rounded-md object-cover"
-              />
-            ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-md bg-admin-surface-muted">
-                <CubeIcon className="h-5 w-5 text-admin-ink-subtle" />
-              </div>
-            )}
-          </div>
+          <Thumbnail
+            src={product.defaultImage?.mediaUrl}
+            alt={product.productName}
+            icon={CubeIcon}
+          />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="truncate text-sm font-semibold text-admin-ink">

@@ -17,7 +17,7 @@ import { categoryService } from "@/services/category.service";
 import { colorsService } from "@/services/colors.service";
 import { sizesService } from "@/services/sizes.service";
 import { Select } from "@/components/ui/Select";
-import { Button, IconButton, adminInputClass } from "@/components/admin/ui";
+import { Button, IconButton, Thumbnail, adminInputClass } from "@/components/admin/ui";
 import ImageUpload from "./ImageUpload";
 
 interface ProductModalProps {
@@ -458,11 +458,10 @@ export default function ProductModal({
 
                   {formData.defaultImage && (
                     <div className="mt-3 relative inline-block">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Thumbnail
                         src={formData.defaultImage}
                         alt="Default"
-                        className="w-24 h-24 object-cover rounded-md border border-admin-hairline"
+                        className="h-24 w-24"
                       />
                       <button
                         type="button"
@@ -489,11 +488,10 @@ export default function ProductModal({
                       {albumImages.map((url, index) =>
                         url ? (
                           <div key={index} className="relative">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
+                            <Thumbnail
                               src={url}
                               alt={`Album ${index + 1}`}
-                              className="w-full h-24 object-cover rounded-md border border-admin-hairline"
+                              className="h-24 w-full"
                             />
                             <button
                               type="button"

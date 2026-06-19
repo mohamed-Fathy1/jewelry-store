@@ -27,6 +27,7 @@ import {
   SectionHeading,
   PageHeader,
   Skeleton,
+  Thumbnail,
 } from "@/components/admin/ui";
 import {
   ComposedChart,
@@ -280,22 +281,11 @@ export default function AdminDashboard() {
                 >
                   {index + 1}
                 </span>
-                <div
-                  className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg"
-                  style={{ backgroundColor: adminTheme.accent.goldBg }}
-                >
-                  {product.defaultImage?.mediaUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={product.defaultImage.mediaUrl}
-                      alt={product.productName}
-                      width={48}
-                      height={48}
-                      loading="lazy"
-                      className="h-full w-full object-cover"
-                    />
-                  )}
-                </div>
+                <Thumbnail
+                  src={product.defaultImage?.mediaUrl}
+                  alt={product.productName}
+                  rounded="rounded-lg"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-admin-ink">{product.productName}</p>
                   <p className="tabular mt-0.5 text-sm text-admin-ink-muted">

@@ -2,6 +2,7 @@ export { Button } from "./Button";
 export { IconButton } from "./IconButton";
 export { Card } from "./Card";
 export { StatCard } from "./StatCard";
+export { Thumbnail } from "./Thumbnail";
 export { Badge, StatusBadge } from "./Badge";
 export { Skeleton, SkeletonText, SkeletonTable } from "./Skeleton";
 export { EmptyState } from "./EmptyState";

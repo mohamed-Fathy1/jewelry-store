@@ -18,6 +18,7 @@ import {
   Td,
   Tr,
   IconButton,
+  Thumbnail,
   SegmentedToggle,
   StatusBadge,
   SkeletonTable,
@@ -200,18 +201,12 @@ const CategoryList = forwardRef<CategoryListRef, CategoryListProps>(
                 return (
                   <Tr key={category._id}>
                     <Td>
-                      {category.image?.mediaUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={category.image.mediaUrl}
-                          alt={category.categoryName}
-                          width={40}
-                          height={40}
-                          className="h-10 w-10 rounded object-cover ring-1 ring-admin-hairline"
-                        />
-                      ) : (
-                        <span className="text-sm text-admin-ink-subtle">—</span>
-                      )}
+                      <Thumbnail
+                        src={category.image?.mediaUrl}
+                        alt={category.categoryName}
+                        className="h-10 w-10"
+                        rounded="rounded"
+                      />
                     </Td>
                     <Td className="font-medium text-admin-ink">
                       {category.categoryName}

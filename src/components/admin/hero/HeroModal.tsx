@@ -5,7 +5,7 @@ import { HeroSlider } from "@/types/hero.types";
 import { adminService } from "@/services/admin.service";
 import toast from "react-hot-toast";
 import ImageUpload from "../products/ImageUpload";
-import { Modal, Field, Button } from "@/components/admin/ui";
+import { Modal, Field, Button, Thumbnail } from "@/components/admin/ui";
 
 interface HeroModalProps {
   isOpen: boolean;
@@ -99,13 +99,12 @@ export default function HeroModal({ isOpen, onClose, slider }: HeroModalProps) {
         <Field label="Small Image" htmlFor="hero-small-image">
           <ImageUpload onUpload={handleSmallImageUpload} />
           {formData.smallImage && (
-            <div className="mt-2 overflow-hidden rounded-lg border border-admin-hairline bg-admin-surface-muted">
-              <img
-                src={formData.smallImage}
-                alt="Small preview"
-                className="h-32 w-full object-cover"
-              />
-            </div>
+            <Thumbnail
+              src={formData.smallImage}
+              alt="Small preview"
+              className="mt-2 h-32 w-full"
+              rounded="rounded-lg"
+            />
           )}
         </Field>
 
@@ -113,13 +112,12 @@ export default function HeroModal({ isOpen, onClose, slider }: HeroModalProps) {
         <Field label="Large Image" htmlFor="hero-large-image">
           <ImageUpload onUpload={handleLargeImageUpload} />
           {formData.largeImage && (
-            <div className="mt-2 overflow-hidden rounded-lg border border-admin-hairline bg-admin-surface-muted">
-              <img
-                src={formData.largeImage}
-                alt="Large preview"
-                className="h-32 w-full object-cover"
-              />
-            </div>
+            <Thumbnail
+              src={formData.largeImage}
+              alt="Large preview"
+              className="mt-2 h-32 w-full"
+              rounded="rounded-lg"
+            />
           )}
         </Field>
 

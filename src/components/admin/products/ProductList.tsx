@@ -7,7 +7,6 @@ import {
   ArchiveBoxXMarkIcon,
   CubeIcon,
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
 import { formatPrice } from "@/utils/format";
 import { AdminProduct } from "@/types/admin-product.types";
 import { Category } from "@/types/category.types";
@@ -24,6 +23,7 @@ import {
   Td,
   Tr,
   IconButton,
+  Thumbnail,
   Badge,
   StatusBadge,
   Pagination,
@@ -240,20 +240,11 @@ const ProductList = forwardRef<ProductListRef, ProductListProps>(
                     {/* Product (image + name) */}
                     <Td>
                       <div className="flex items-center gap-4">
-                        <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-admin-surface-muted">
-                          {product.defaultImage?.mediaUrl ? (
-                            <Image
-                              src={product.defaultImage.mediaUrl}
-                              alt={product.productName}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <CubeIcon className="h-6 w-6 text-admin-ink-subtle" />
-                            </div>
-                          )}
-                        </div>
+                        <Thumbnail
+                          src={product.defaultImage?.mediaUrl}
+                          alt={product.productName}
+                          icon={CubeIcon}
+                        />
                         <div className="min-w-0">
                           <div className="truncate font-medium text-admin-ink">
                             {product.productName}

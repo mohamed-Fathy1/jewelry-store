@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ShoppingBagIcon, CubeIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
 import { format, isToday } from "date-fns";
 import { formatEGP } from "@/utils/format";
 import {
@@ -21,6 +20,7 @@ import {
   Th,
   Td,
   Tr,
+  Thumbnail,
   StatusBadge,
   SearchInput,
   Pagination,
@@ -212,20 +212,12 @@ export default function OrderList({ onViewDetails }: OrderListProps) {
                     {/* Order (number + first item thumb) */}
                     <Td className="whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        <div className="relative h-9 w-9 flex-shrink-0">
-                          {firstLine?.productId?.defaultImage?.mediaUrl ? (
-                            <Image
-                              src={firstLine.productId.defaultImage.mediaUrl}
-                              alt={firstLine.productName}
-                              fill
-                              className="rounded-md object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-admin-surface-muted">
-                              <CubeIcon className="h-4 w-4 text-admin-ink-subtle" />
-                            </div>
-                          )}
-                        </div>
+                        <Thumbnail
+                          src={firstLine?.productId?.defaultImage?.mediaUrl}
+                          alt={firstLine?.productName ?? "Order item"}
+                          className="h-9 w-9"
+                          icon={CubeIcon}
+                        />
                         <button
                           type="button"
                           onClick={(e) => {

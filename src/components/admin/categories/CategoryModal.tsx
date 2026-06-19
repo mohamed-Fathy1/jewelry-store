@@ -11,7 +11,7 @@ import {
 import { Icon } from "@/types/icon.types";
 import { categoriesService } from "@/services/categories.service";
 import { iconsService } from "@/services/icons.service";
-import { Modal, Field, Button, adminInputClass } from "@/components/admin/ui";
+import { Modal, Field, Button, Thumbnail, adminInputClass } from "@/components/admin/ui";
 import ImageUpload from "../products/ImageUpload";
 
 interface CategoryModalProps {
@@ -266,14 +266,11 @@ export default function CategoryModal({
           <ImageUpload folder="categories" onUpload={handleImageUpload} />
 
           {formData.imageUrl && (
-            <div className="mt-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={formData.imageUrl}
-                alt="Category"
-                className="w-full h-32 object-cover rounded-md"
-              />
-            </div>
+            <Thumbnail
+              src={formData.imageUrl}
+              alt="Category"
+              className="mt-4 h-32 w-full"
+            />
           )}
         </Field>
 

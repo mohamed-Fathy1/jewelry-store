@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { TrashIcon, PhotoIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
 import { HeroSlider } from "@/types/hero.types";
 import { adminService } from "@/services/admin.service";
 import {
   Card,
   Button,
   IconButton,
+  Thumbnail,
   Skeleton,
   EmptyState,
   ConfirmDialog,
@@ -91,14 +91,12 @@ export default function HeroList({ onEdit }: HeroListProps) {
                 <h3 className="mb-2 text-sm font-medium text-admin-ink">
                   Small Image
                 </h3>
-                <div className="relative h-48 overflow-hidden rounded-lg">
-                  <Image
-                    src={slider.images.image1.mediaUrl}
-                    alt="Small hero image"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+                <Thumbnail
+                  src={slider.images.image1.mediaUrl}
+                  alt="Small hero image"
+                  className="h-48 w-full"
+                  rounded="rounded-lg"
+                />
               </div>
 
               {/* Large Image */}
@@ -106,14 +104,12 @@ export default function HeroList({ onEdit }: HeroListProps) {
                 <h3 className="mb-2 text-sm font-medium text-admin-ink">
                   Large Image
                 </h3>
-                <div className="relative h-48 overflow-hidden rounded-lg">
-                  <Image
-                    src={slider.images.image2.mediaUrl}
-                    alt="Large hero image"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+                <Thumbnail
+                  src={slider.images.image2.mediaUrl}
+                  alt="Large hero image"
+                  className="h-48 w-full"
+                  rounded="rounded-lg"
+                />
               </div>
             </div>
 

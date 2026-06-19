@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { format } from "date-fns";
 import {
   CubeIcon,
@@ -12,7 +11,7 @@ import { Dialog } from "@headlessui/react";
 import { formatEGP } from "@/utils/format";
 import { useAdminOrder, useUpdateOrderStatus } from "@/hooks/useAdminOrders";
 import { getApiErrorMessage } from "@/utils/apiError";
-import { Button, StatusBadge } from "@/components/admin/ui";
+import { Button, StatusBadge, Thumbnail } from "@/components/admin/ui";
 import {
   ORDER_FLOW,
   flowIndex,
@@ -180,20 +179,12 @@ export default function OrderDetails({ orderId }: { orderId: string }) {
                   key={line.productId?._id ?? index}
                   className="flex items-center gap-4 p-3 rounded-xl border border-admin-hairline"
                 >
-                  <div className="h-16 w-16 relative flex-shrink-0">
-                    {line.productId?.defaultImage?.mediaUrl ? (
-                      <Image
-                        src={line.productId.defaultImage.mediaUrl}
-                        alt={line.productName}
-                        fill
-                        className="rounded-md object-cover"
-                      />
-                    ) : (
-                      <div className="h-16 w-16 rounded-md flex items-center justify-center bg-admin-surface-sunken">
-                        <CubeIcon className="h-7 w-7 text-admin-ink-subtle" />
-                      </div>
-                    )}
-                  </div>
+                  <Thumbnail
+                    src={line.productId?.defaultImage?.mediaUrl}
+                    alt={line.productName}
+                    className="h-16 w-16"
+                    icon={CubeIcon}
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-admin-ink">
