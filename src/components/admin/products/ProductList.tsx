@@ -275,10 +275,10 @@ const ProductList = forwardRef<ProductListRef, ProductListProps>(
                               {formatPrice(product.price)}
                             </span>
                             <Badge tone="discount">
-                              {product.discountPercentage ??
-                                Math.round(
+                              {Math.round(
+                                product.discountPercentage ??
                                   (1 - product.salePrice / product.price) * 100
-                                )}
+                              )}
                               % OFF
                             </Badge>
                           </div>

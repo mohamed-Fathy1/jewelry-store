@@ -300,7 +300,7 @@ export default function AdminDashboard() {
                       color: statusToken("discount").text,
                     }}
                   >
-                    -{product.discountPercentage}%
+                    -{Math.round(product.discountPercentage)}%
                   </span>
                 )}
               </div>
