@@ -38,26 +38,6 @@ export const adminService = {
     }
   },
 
-  async getRecentOrders() {
-    try {
-      const response = await api.get("/admin/orders/recent");
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching recent orders:", error);
-      throw error;
-    }
-  },
-
-  async getTopProducts() {
-    try {
-      const response = await api.get("/admin/products/top");
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching top products:", error);
-      throw error;
-    }
-  },
-
   async getPresignedUrls(
     files: File[],
     folder: string = "imageSlider"
