@@ -32,6 +32,7 @@ import {
   EmptyState,
   ConfirmDialog,
 } from "@/components/admin/ui";
+import { statusToken } from "@/constants/adminTheme";
 
 interface ProductListProps {
   onEdit: (product: AdminProduct) => void;
@@ -296,16 +297,27 @@ const ProductList = forwardRef<ProductListRef, ProductListProps>(
 
                     {/* Stock */}
                     <Td>
-                      <StatusBadge
-                        status={
+                      {(() => {
+                        const stockStatus =
                           product.availableItems <= 0
                             ? "soldOut"
                             : product.availableItems <= 5
                             ? "lowStock"
-                            : "inStock"
-                        }
-                        label={`${product.availableItems} units`}
-                      />
+                            : "inStock";
+                        return (
+                          <div className="flex items-center gap-2 whitespace-nowrap">
+                            <span
+                              className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                              style={{ backgroundColor: statusToken(stockStatus).dot }}
+                              aria-hidden="true"
+                            />
+                            <span className="tabular font-medium text-admin-ink">
+                              {product.availableItems}
+                            </span>
+                            <span className="text-xs text-admin-ink-muted">units</span>
+                          </div>
+                        );
+                      })()}
                     </Td>
 
                     {/* Best Seller */}

@@ -27,7 +27,7 @@ export function Th({ children, className = "", ...props }: ThHTMLAttributes<HTML
   return (
     <th
       scope="col"
-      className={`px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-admin-ink-muted ${className}`}
+      className={`whitespace-nowrap px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-admin-ink-muted ${className}`}
       {...props}
     >
       {children}
