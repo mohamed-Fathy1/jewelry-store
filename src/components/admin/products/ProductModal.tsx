@@ -281,7 +281,7 @@ export default function ProductModal({
     <Dialog
       open={isOpen}
       onClose={onClose}
-      className="fixed inset-0 z-50 overflow-y-auto"
+      className="admin-theme fixed inset-0 z-50 overflow-y-auto"
     >
       <div className="flex items-center justify-center min-h-screen p-4">
         <Dialog.Overlay

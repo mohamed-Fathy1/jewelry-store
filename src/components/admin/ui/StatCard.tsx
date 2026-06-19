@@ -20,10 +20,10 @@ export function StatCard({ label, value, icon: Icon, hint }: StatCardProps) {
         <Icon className="h-5 w-5 text-admin-brown" aria-hidden="true" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-xs font-medium uppercase tracking-wide text-admin-ink-muted">
+        <p className="line-clamp-2 text-xs font-medium uppercase leading-tight tracking-wide text-admin-ink-muted">
           {label}
         </p>
-        <p className="tabular mt-1 truncate text-2xl font-semibold text-admin-heading">
+        <p className="tabular mt-1 truncate text-xl font-semibold text-admin-heading">
           {value}
         </p>
         {hint && (

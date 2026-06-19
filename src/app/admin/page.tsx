@@ -45,7 +45,7 @@ function DashboardSkeleton() {
   return (
     <div>
       <Skeleton className="mb-8 h-9 w-44" />
-      <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 9 }).map((_, i) => (
           <Card key={i} className="flex items-center gap-4">
             <Skeleton className="h-11 w-11 rounded-lg" />
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
       <PageHeader title="Dashboard" description="Your store at a glance." />
 
       {/* 1. Stat cards */}
-      <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {statCards.map((stat, i) => (
           <div
             key={stat.name}

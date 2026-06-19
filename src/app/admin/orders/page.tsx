@@ -5,6 +5,7 @@ import { Dialog } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import OrderList from "@/components/admin/orders/OrderList";
 import OrderDetails from "@/components/admin/orders/OrderDetails";
+import { IconButton } from "@/components/admin/ui";
 
 export default function OrdersPage() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -18,33 +19,24 @@ export default function OrdersPage() {
       <Dialog
         open={!!selectedOrderId}
         onClose={() => setSelectedOrderId(null)}
-        className="fixed inset-0 z-40 overflow-y-auto"
+        className="admin-theme fixed inset-0 z-40 overflow-y-auto"
       >
-        <div className="flex items-start justify-center min-h-screen p-4">
-          <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+        <div className="flex min-h-screen items-start justify-center p-4">
+          <Dialog.Overlay
+            className="fixed inset-0"
+            style={{ backgroundColor: "var(--admin-overlay)" }}
+          />
 
-          <div
-            className="relative w-full max-w-5xl mx-auto p-6 my-8 rounded-xl"
-            style={{ background: "var(--color-bg-page)" }}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <Dialog.Title
-                className="italic"
-                style={{
-                  fontSize: 32,
-                  fontWeight: 400,
-                  color: "var(--color-text-primary)",
-                }}
-              >
+          <div className="relative mx-auto my-8 w-full max-w-5xl rounded-xl bg-admin-surface p-6 shadow-admin-popover ring-1 ring-admin-hairline">
+            <div className="mb-6 flex items-center justify-between">
+              <Dialog.Title className="text-3xl font-normal italic text-admin-heading">
                 Order Detail
               </Dialog.Title>
-              <button
+              <IconButton
+                label="Close"
+                icon={<XMarkIcon />}
                 onClick={() => setSelectedOrderId(null)}
-                style={{ color: "var(--color-text-muted)" }}
-                className="hover:opacity-70"
-              >
-                <XMarkIcon className="h-6 w-6" />
-              </button>
+              />
             </div>
 
             {selectedOrderId && <OrderDetails orderId={selectedOrderId} />}

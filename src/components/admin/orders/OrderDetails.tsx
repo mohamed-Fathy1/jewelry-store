@@ -262,7 +262,7 @@ export default function OrderDetails({ orderId }: { orderId: string }) {
       <Dialog
         open={showCancelConfirm}
         onClose={() => !updateStatus.isPending && setShowCancelConfirm(false)}
-        className="fixed inset-0 z-[60] overflow-y-auto"
+        className="admin-theme fixed inset-0 z-[60] overflow-y-auto"
       >
         <div className="flex items-center justify-center min-h-screen p-4">
           <Dialog.Overlay

@@ -26,62 +26,64 @@ export default function ProductFilters({
   onIsBestSellerChange,
   onSortChange,
 }: ProductFiltersProps) {
+  const selectClass = `${adminInputClass} cursor-pointer`;
+
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-4">
+    <div className="mb-6 space-y-3">
       {/* Search */}
       <SearchInput
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
         placeholder="Search products by name or description…"
         ariaLabel="Search products"
-        className="flex-1 min-w-[220px]"
+        className="w-full"
       />
 
-      {/* Category */}
-      <select
-        value={category}
-        onChange={(e) => onCategoryChange(e.target.value)}
-        className={adminInputClass + " w-auto"}
-        aria-label="Filter by category"
-      >
-        <option value="">All Categories</option>
-        {categories.map((cat) => (
-          <option key={cat._id} value={cat._id}>
-            {cat.categoryName}
-          </option>
-        ))}
-      </select>
+      {/* Filters */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <select
+          value={category}
+          onChange={(e) => onCategoryChange(e.target.value)}
+          className={selectClass}
+          aria-label="Filter by category"
+        >
+          <option value="">All Categories</option>
+          {categories.map((cat) => (
+            <option key={cat._id} value={cat._id}>
+              {cat.categoryName}
+            </option>
+          ))}
+        </select>
 
-      {/* Best Seller */}
-      <select
-        value={isBestSeller}
-        onChange={(e) =>
-          onIsBestSellerChange(e.target.value as "" | "true" | "false")
-        }
-        className={adminInputClass + " w-auto"}
-        aria-label="Filter by best seller"
-      >
-        <option value="">All Best Sellers</option>
-        <option value="true">Best Seller</option>
-        <option value="false">Not Best Seller</option>
-      </select>
+        <select
+          value={isBestSeller}
+          onChange={(e) =>
+            onIsBestSellerChange(e.target.value as "" | "true" | "false")
+          }
+          className={selectClass}
+          aria-label="Filter by best seller"
+        >
+          <option value="">All Best Sellers</option>
+          <option value="true">Best Seller</option>
+          <option value="false">Not Best Seller</option>
+        </select>
 
-      {/* Sort */}
-      <select
-        value={sort}
-        onChange={(e) =>
-          onSortChange(
-            e.target.value as "" | "price" | "createdAt" | "soldItems"
-          )
-        }
-        className={adminInputClass + " w-auto"}
-        aria-label="Sort products"
-      >
-        <option value="">Sort: Newest</option>
-        <option value="createdAt">Sort: Date</option>
-        <option value="price">Sort: Price</option>
-        <option value="soldItems">Sort: Best Selling</option>
-      </select>
+        <select
+          value={sort}
+          onChange={(e) =>
+            onSortChange(
+              e.target.value as "" | "price" | "createdAt" | "soldItems"
+            )
+          }
+          className={selectClass}
+          aria-label="Sort products"
+        >
+          <option value="">Sort: Newest</option>
+          <option value="createdAt">Sort: Date</option>
+          <option value="price">Sort: Price</option>
+          <option value="soldItems">Sort: Best Selling</option>
+        </select>
+      </div>
     </div>
   );
 }

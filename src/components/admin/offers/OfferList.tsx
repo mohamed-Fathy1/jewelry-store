@@ -115,14 +115,15 @@ const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => 
   return (
     <div>
       {/* Filters */}
-      <div className="mb-6 flex flex-wrap items-center gap-4">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <select
           value={typeFilter}
           onChange={(e) => {
             setTypeFilter(e.target.value as OfferType | "");
             setCurrentPage(1);
           }}
-          className={`${adminInputClass} w-auto`}
+          className={`${adminInputClass} cursor-pointer sm:w-52`}
+          aria-label="Filter by type"
         >
           <option value="">All Types</option>
           {OFFER_TYPES.map((type) => (
@@ -138,7 +139,8 @@ const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => 
             setActiveFilter(e.target.value as "" | "true" | "false");
             setCurrentPage(1);
           }}
-          className={`${adminInputClass} w-auto`}
+          className={`${adminInputClass} cursor-pointer sm:w-52`}
+          aria-label="Filter by status"
         >
           <option value="">All</option>
           <option value="true">Active</option>
