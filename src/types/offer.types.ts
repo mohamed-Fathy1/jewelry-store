@@ -86,4 +86,5 @@ export interface OffersQuery {
   limit?: number;
   offerType?: OfferType | "";
   isActive?: boolean | "";
+  search?: string;
 }

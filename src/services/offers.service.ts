@@ -16,6 +16,9 @@ export const offersService = {
       if (query.offerType) {
         params.append("offerType", query.offerType);
       }
+      if (query.search && query.search.trim()) {
+        params.append("search", query.search.trim());
+      }
       if (query.isActive !== undefined && query.isActive !== "") {
         params.append("isActive", String(query.isActive));
       }

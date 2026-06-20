@@ -5,6 +5,8 @@ import { PencilIcon, TrashIcon, TagIcon } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { Offer, OfferType } from "@/types/offer.types";
 import { offersService } from "@/services/offers.service";
+import { useDebounce } from "@/hooks/useDebounce";
+import { OFFER_TYPE_LABELS, OFFER_TYPES } from "./offerMeta";
 import {
   TableShell,
   Thead,
@@ -19,7 +21,10 @@ import {
   Badge,
   StatusBadge,
   ConfirmDialog,
-  adminInputClass,
+  Select,
+  Toggle,
+  SearchInput,
+  type SelectOption,
 } from "@/components/admin/ui";
 import toast from "react-hot-toast";
 
@@ -31,17 +36,16 @@ export interface OfferListRef {
   fetchOffers: () => Promise<void>;
 }
 
-export const OFFER_TYPE_LABELS: Record<OfferType, string> = {
-  buy_x_get_cheapest_free: "Buy X, Cheapest Free",
-  spend_x_get_discount: "Spend X, Get Discount",
-  spend_x_get_free_shipping: "Spend X, Free Shipping",
-  buy_x_get_free_shipping: "Buy X, Free Shipping",
-  buy_x_get_half_price: "Buy X, Half Price",
-  spend_x_get_free_item: "Spend X, Free Item",
-  flash_sale: "Flash Sale",
-};
+const TYPE_FILTER_OPTIONS: SelectOption[] = [
+  { value: "", label: "All Types" },
+  ...OFFER_TYPES.map((t) => ({ value: t, label: OFFER_TYPE_LABELS[t] })),
+];
 
-const OFFER_TYPES = Object.keys(OFFER_TYPE_LABELS) as OfferType[];
+const STATUS_FILTER_OPTIONS: SelectOption[] = [
+  { value: "", label: "All Statuses" },
+  { value: "true", label: "Active" },
+  { value: "false", label: "Inactive" },
+];
 
 const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => {
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -50,10 +54,14 @@ const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => 
   const [totalPages, setTotalPages] = useState(1);
   const [typeFilter, setTypeFilter] = useState<OfferType | "">("");
   const [activeFilter, setActiveFilter] = useState<"" | "true" | "false">("");
+  const [search, setSearch] = useState("");
   const [pendingDelete, setPendingDelete] = useState<Offer | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const fetchOffers = async (page: number = currentPage) => {
+  const fetchOffers = async (
+    page: number = currentPage,
+    searchQuery: string = search
+  ) => {
     setIsLoading(true);
     try {
       const response = await offersService.getOffers({
@@ -61,6 +69,7 @@ const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => 
         limit: 10,
         offerType: typeFilter,
         isActive: activeFilter === "" ? "" : activeFilter === "true",
+        search: searchQuery.trim() || undefined,
       });
       setOffers(response.data.data);
       setTotalPages(response.data.totalPages || 1);
@@ -76,9 +85,19 @@ const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => 
   }));
 
   useEffect(() => {
-    fetchOffers(currentPage);
+    fetchOffers(currentPage, search);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, typeFilter, activeFilter]);
+
+  const debouncedSearch = useDebounce((value: string) => {
+    setCurrentPage(1);
+    fetchOffers(1, value);
+  }, 300);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    debouncedSearch(e.target.value);
+  };
 
   const handleToggle = async (offer: Offer) => {
     try {
@@ -115,37 +134,36 @@ const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => 
   return (
     <div>
       {/* Filters */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <select
-          value={typeFilter}
-          onChange={(e) => {
-            setTypeFilter(e.target.value as OfferType | "");
-            setCurrentPage(1);
-          }}
-          className={`${adminInputClass} cursor-pointer sm:w-52`}
-          aria-label="Filter by type"
-        >
-          <option value="">All Types</option>
-          {OFFER_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {OFFER_TYPE_LABELS[type]}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={activeFilter}
-          onChange={(e) => {
-            setActiveFilter(e.target.value as "" | "true" | "false");
-            setCurrentPage(1);
-          }}
-          className={`${adminInputClass} cursor-pointer sm:w-52`}
-          aria-label="Filter by status"
-        >
-          <option value="">All</option>
-          <option value="true">Active</option>
-          <option value="false">Inactive</option>
-        </select>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <SearchInput
+          value={search}
+          onChange={handleSearchChange}
+          placeholder="Search offers by title…"
+          ariaLabel="Search offers"
+          className="sm:flex-1"
+        />
+        <div className="sm:w-52">
+          <Select
+            ariaLabel="Filter by type"
+            value={typeFilter}
+            onChange={(v) => {
+              setTypeFilter(v as OfferType | "");
+              setCurrentPage(1);
+            }}
+            options={TYPE_FILTER_OPTIONS}
+          />
+        </div>
+        <div className="sm:w-44">
+          <Select
+            ariaLabel="Filter by status"
+            value={activeFilter}
+            onChange={(v) => {
+              setActiveFilter(v as "" | "true" | "false");
+              setCurrentPage(1);
+            }}
+            options={STATUS_FILTER_OPTIONS}
+          />
+        </div>
       </div>
 
       {isLoading ? (
@@ -182,24 +200,11 @@ const OfferList = forwardRef<OfferListRef, OfferListProps>(({ onEdit }, ref) => 
                     <StatusBadge status={offer.status} />
                   </Td>
                   <Td>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={offer.isActive}
-                      aria-label={`Toggle ${offer.title}`}
-                      onClick={() => handleToggle(offer)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                        offer.isActive
-                          ? "bg-admin-brown"
-                          : "bg-admin-surface-muted"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-admin-surface transition-transform ${
-                          offer.isActive ? "translate-x-6" : "translate-x-1"
-                        }`}
-                      />
-                    </button>
+                    <Toggle
+                      label={`Toggle ${offer.title}`}
+                      checked={offer.isActive}
+                      onChange={() => handleToggle(offer)}
+                    />
                   </Td>
                   <Td className="tabular text-admin-ink-muted">
                     {offer.createdAt
