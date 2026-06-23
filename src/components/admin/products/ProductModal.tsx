@@ -16,8 +16,13 @@ import { productsService } from "@/services/products.service";
 import { categoryService } from "@/services/category.service";
 import { colorsService } from "@/services/colors.service";
 import { sizesService } from "@/services/sizes.service";
-import { Select } from "@/components/ui/Select";
-import { Button, IconButton, Thumbnail, adminInputClass } from "@/components/admin/ui";
+import {
+  Button,
+  IconButton,
+  Select,
+  Thumbnail,
+  adminInputClass,
+} from "@/components/admin/ui";
 import ImageUpload from "./ImageUpload";
 
 interface ProductModalProps {
@@ -337,19 +342,18 @@ export default function ProductModal({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className={labelClass}>Category</label>
-                    <select
+                    <Select
+                      ariaLabel="Category"
                       value={formData.categoryId}
-                      onChange={(e) => setField("categoryId", e.target.value)}
-                      className={inputClass}
-                      required
-                    >
-                      <option value="">Select a category</option>
-                      {categories.map((category) => (
-                        <option key={category._id} value={category._id}>
-                          {category.categoryName}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(value) => setField("categoryId", value)}
+                      placeholder="Select a category"
+                      searchable
+                      className="mt-1"
+                      options={categories.map((category) => ({
+                        value: category._id,
+                        label: category.categoryName,
+                      }))}
+                    />
                   </div>
                   <div>
                     <label className={labelClass}>Available Items</label>
@@ -546,12 +550,14 @@ export default function ProductModal({
                             Color
                           </label>
                           <Select
+                            ariaLabel="Variant color"
                             value={variant.color}
                             onChange={(value) =>
                               updateVariant(index, "color", value)
                             }
                             placeholder="Select color"
-                            className={inputClass}
+                            searchable
+                            className="mt-1"
                             options={colorOptions.map((color) => ({
                               value: color._id,
                               label: color.name,
@@ -563,20 +569,19 @@ export default function ProductModal({
                           <label className="block text-xs font-medium text-admin-ink-muted">
                             Size
                           </label>
-                          <select
+                          <Select
+                            ariaLabel="Variant size"
                             value={variant.size}
-                            onChange={(e) =>
-                              updateVariant(index, "size", e.target.value)
+                            onChange={(value) =>
+                              updateVariant(index, "size", value)
                             }
-                            className={inputClass}
-                          >
-                            <option value="">Select size</option>
-                            {sizeOptions.map((size) => (
-                              <option key={size._id} value={size._id}>
-                                {size.number}
-                              </option>
-                            ))}
-                          </select>
+                            placeholder="Select size"
+                            className="mt-1"
+                            options={sizeOptions.map((size) => ({
+                              value: size._id,
+                              label: size.number,
+                            }))}
+                          />
                         </div>
                         <div className="sm:col-span-3">
                           <label className="block text-xs font-medium text-admin-ink-muted">

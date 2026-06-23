@@ -136,7 +136,7 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
   const searchProducts = (query: string) => {
     setProductLoading(true);
     productsService
-      .getProducts({ search: query || undefined, limit: 20 })
+      .getProducts({ search: query || undefined, limit: 50 })
       .then((res) =>
         setProductOptions(
           (res.data.products || []).map((p) => ({ value: p._id, label: p.productName }))

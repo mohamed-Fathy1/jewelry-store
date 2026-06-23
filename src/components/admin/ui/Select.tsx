@@ -11,8 +11,32 @@ export interface SelectOption {
   value: string;
   label: string;
   description?: string;
+  /** Hex color rendered as a small circle before the label. */
   swatch?: string;
+  /** Raw inline SVG markup rendered as a glyph before the label. */
+  glyph?: string;
   disabled?: boolean;
+}
+
+/** Renders an option's leading visual: a color swatch or an inline-SVG glyph. */
+function OptionLeading({ option }: { option: SelectOption }) {
+  if (option.glyph) {
+    return (
+      <span
+        className="h-5 w-5 flex-shrink-0 flex items-center justify-center text-admin-ink [&>svg]:h-full [&>svg]:w-full"
+        dangerouslySetInnerHTML={{ __html: option.glyph }}
+      />
+    );
+  }
+  if (option.swatch) {
+    return (
+      <span
+        className="h-4 w-4 flex-shrink-0 rounded-full ring-1 ring-admin-hairline"
+        style={{ backgroundColor: option.swatch }}
+      />
+    );
+  }
+  return null;
 }
 
 interface SelectProps {
@@ -91,12 +115,7 @@ export function Select({
         className={`flex w-full items-center justify-between gap-2 rounded-md border border-admin-hairline bg-admin-surface px-3 py-2 text-left text-sm text-admin-ink transition-colors hover:border-admin-gold/70 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         <span className="flex min-w-0 items-center gap-2">
-          {selected?.swatch && (
-            <span
-              className="h-4 w-4 flex-shrink-0 rounded-full ring-1 ring-admin-hairline"
-              style={{ backgroundColor: selected.swatch }}
-            />
-          )}
+          {selected && <OptionLeading option={selected} />}
           <span className={`truncate ${selected ? "" : "text-admin-ink-subtle"}`}>
             {selected ? selected.label : placeholder}
           </span>
@@ -152,11 +171,10 @@ export function Select({
                         active ? "bg-admin-gold-soft" : ""
                       }`}
                     >
-                      {o.swatch && (
-                        <span
-                          className="mt-0.5 h-4 w-4 flex-shrink-0 rounded-full ring-1 ring-admin-hairline"
-                          style={{ backgroundColor: o.swatch }}
-                        />
+                      {(o.glyph || o.swatch) && (
+                        <span className="mt-0.5">
+                          <OptionLeading option={o} />
+                        </span>
                       )}
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center justify-between gap-2">

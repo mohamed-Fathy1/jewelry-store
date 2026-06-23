@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import {
   AdminCategory,
@@ -11,7 +10,15 @@ import {
 import { Icon } from "@/types/icon.types";
 import { categoriesService } from "@/services/categories.service";
 import { iconsService } from "@/services/icons.service";
-import { Modal, Field, Button, Thumbnail, adminInputClass } from "@/components/admin/ui";
+import {
+  Modal,
+  Field,
+  Button,
+  Select,
+  Thumbnail,
+  adminInputClass,
+  type SelectOption,
+} from "@/components/admin/ui";
 import ImageUpload from "../products/ImageUpload";
 
 interface CategoryModalProps {
@@ -28,98 +35,6 @@ const resolveIconId = (category?: AdminCategory | null): string => {
   if (!icon) return "";
   return typeof icon === "object" ? icon._id : icon;
 };
-
-// Custom dropdown that renders each icon's SVG next to its key. Mirrors the
-// shared Select component's styling since a native <select> cannot render SVG.
-function IconSelect({
-  value,
-  onChange,
-  icons,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  icons: Icon[];
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const selectRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        selectRef.current &&
-        !selectRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const selected = icons.find((icon) => icon._id === value);
-
-  const IconGlyph = ({ svg }: { svg: string }) => (
-    <span
-      className="h-5 w-5 flex-shrink-0 flex items-center justify-center text-admin-ink [&>svg]:h-full [&>svg]:w-full"
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
-  );
-
-  return (
-    <div className="relative" ref={selectRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2 text-left rounded-md border border-admin-hairline bg-admin-surface text-admin-ink flex items-center justify-between transition-colors hover:bg-admin-surface-muted"
-      >
-        <span className="flex items-center gap-2 min-w-0">
-          {selected && <IconGlyph svg={selected.svg} />}
-          <span className="truncate">
-            {selected ? selected.key : "No icon"}
-          </span>
-        </span>
-        <ChevronDownIcon
-          className={`w-5 h-5 flex-shrink-0 text-admin-ink-muted transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-
-      {isOpen && (
-        <div className="absolute z-10 w-full mt-1 rounded-md border border-admin-hairline bg-admin-surface shadow-admin-popover max-h-60 overflow-auto">
-          <button
-            type="button"
-            onClick={() => {
-              onChange("");
-              setIsOpen(false);
-            }}
-            className={`w-full px-4 py-2 text-left text-admin-ink transition-colors first:rounded-t-md flex items-center gap-2 hover:bg-admin-surface-muted ${
-              value === "" ? "bg-admin-surface-muted" : ""
-            }`}
-          >
-            <span className="truncate">No icon</span>
-          </button>
-          {icons.map((icon) => (
-            <button
-              type="button"
-              key={icon._id}
-              onClick={() => {
-                onChange(icon._id);
-                setIsOpen(false);
-              }}
-              className={`w-full px-4 py-2 text-left text-admin-ink transition-colors last:rounded-b-md flex items-center gap-2 hover:bg-admin-surface-muted ${
-                icon._id === value ? "bg-admin-surface-muted" : ""
-              }`}
-            >
-              <IconGlyph svg={icon.svg} />
-              <span className="truncate">{icon.key}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function CategoryModal({
   isOpen,
@@ -235,6 +150,16 @@ export default function CategoryModal({
     }
   };
 
+  // "No icon" sentinel + one option per icon, each showing its inline SVG glyph.
+  const iconOptions: SelectOption[] = [
+    { value: "", label: "No icon" },
+    ...icons.map((icon) => ({
+      value: icon._id,
+      label: icon.key,
+      glyph: icon.svg,
+    })),
+  ];
+
   return (
     <Modal
       open={isOpen}
@@ -276,12 +201,15 @@ export default function CategoryModal({
 
         {/* Icon */}
         <Field label="Icon">
-          <IconSelect
+          <Select
+            ariaLabel="Category icon"
             value={formData.iconId}
             onChange={(value) =>
               setFormData((prev) => ({ ...prev, iconId: value }))
             }
-            icons={icons}
+            placeholder="No icon"
+            searchable
+            options={iconOptions}
           />
         </Field>
 
