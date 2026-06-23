@@ -141,9 +141,7 @@ export const adminService = {
 
   async getProducts(page: number = 1): Promise<ProductResponse> {
     try {
-      const response = await api.get(
-        `/public/product/get-all-product?page=${page}`
-      );
+      const response = await api.get(`/admin/products?page=${page}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching products:", error);

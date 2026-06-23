@@ -37,10 +37,10 @@ export default function ProductClient({ id }: { id: string }) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-8 md:py-8">
       <ProductDetails productId={id} />
-      <div className="mt-12 border-t border-gray-200 pt-12">
+      <div className="mt-12 border-t border-hairline pt-12">
         <RelatedProducts productId={id} category={productData.category} />
       </div>
-      <div className="mt-10 border-t border-gray-200 pt-10">
+      <div className="mt-10 border-t border-hairline pt-10">
         {/* <ProductReviews /> */}
       </div>
     </div>
