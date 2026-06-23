@@ -110,6 +110,7 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
   const [categoryOptions, setCategoryOptions] = useState<SelectOption[]>([]);
   const [productOptions, setProductOptions] = useState<SelectOption[]>([]);
   const [productLoading, setProductLoading] = useState(false);
+  const [productCategory, setProductCategory] = useState("");
   const [catLabels, setCatLabels] = useState<Record<string, string>>({});
   const [prodLabels, setProdLabels] = useState<Record<string, string>>({});
 
@@ -133,10 +134,14 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  const searchProducts = (query: string) => {
+  const searchProducts = (query: string, category: string = productCategory) => {
     setProductLoading(true);
     productsService
-      .getProducts({ search: query || undefined, limit: 50 })
+      .getProducts({
+        search: query || undefined,
+        category: category || undefined,
+        limit: 50,
+      })
       .then((res) =>
         setProductOptions(
           (res.data.products || []).map((p) => ({ value: p._id, label: p.productName }))
@@ -144,6 +149,12 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
       )
       .catch(() => {})
       .finally(() => setProductLoading(false));
+  };
+
+  // Re-scope the product picker to a category (and clear the text query).
+  const handleProductCategoryChange = (category: string) => {
+    setProductCategory(category);
+    searchProducts("", category);
   };
 
   // Prefill on edit (refetch for fully-populated condition/targets).
@@ -154,6 +165,7 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
       setErrors({});
       setCatLabels({});
       setProdLabels({});
+      setProductCategory("");
       return;
     }
     const populate = (data: Offer) => {
@@ -489,20 +501,33 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
               label="Target Products"
               required
               error={errors.targetProducts}
-              hint="The products this flash sale applies to."
+              hint="The products this flash sale applies to. Filter by category to narrow the list."
             >
-              <MultiSelect
-                ariaLabel="Target products"
-                values={formData.targetProducts}
-                onChange={(v) => setField("targetProducts", v)}
-                options={productOptions}
-                labelMap={prodLabels}
-                onSearch={searchProducts}
-                loading={productLoading}
-                placeholder="Select products…"
-                searchPlaceholder="Search products by name…"
-                emptyText="No products found"
-              />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[13rem_1fr]">
+                <Select
+                  ariaLabel="Filter products by category"
+                  value={productCategory}
+                  onChange={handleProductCategoryChange}
+                  options={[
+                    { value: "", label: "All categories" },
+                    ...categoryOptions,
+                  ]}
+                  placeholder="All categories"
+                  searchable
+                />
+                <MultiSelect
+                  ariaLabel="Target products"
+                  values={formData.targetProducts}
+                  onChange={(v) => setField("targetProducts", v)}
+                  options={productOptions}
+                  labelMap={prodLabels}
+                  onSearch={(q) => searchProducts(q, productCategory)}
+                  loading={productLoading}
+                  placeholder="Select products…"
+                  searchPlaceholder="Search products by name…"
+                  emptyText="No products found"
+                />
+              </div>
             </Field>
           </Section>
         )}

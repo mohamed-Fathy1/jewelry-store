@@ -1,6 +1,6 @@
 "use client";
 
-import { Inter } from "next/font/google";
+import { Marcellus, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -12,11 +12,22 @@ import { useEffect } from "react";
 import { CheckoutProvider } from "@/contexts/CheckoutContext";
 import CheckoutPage from "./checkout/page";
 import { WishlistProvider } from "@/contexts/WishlistContext";
-import { colors } from "@/constants/colors";
 import LayoutWrapper from "@/components/layout/LayoutWrapper";
 import Script from "next/script";
 
-const inter = Inter({ subsets: ["latin"] });
+const hanken = Hanken_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
+
+// Inscriptional Roman serif — single weight (400); size carries hierarchy, not bold.
+const marcellus = Marcellus({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
 
 export default function RootLayout({
   children,
@@ -36,7 +47,7 @@ export default function RootLayout({
   }, []);
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${hanken.variable} ${marcellus.variable}`}>
       <head>
         {/* Meta Pixel Code - First Pixel */}
         <Script id="facebook-pixel-1" strategy="afterInteractive">
@@ -90,11 +101,7 @@ export default function RootLayout({
         </noscript>
         {/* End Second Meta Pixel Code */}
       </head>
-      <body
-        className={inter.className}
-        style={{ backgroundColor: colors.background }}
-        suppressHydrationWarning
-      >
+      <body className="bg-bg text-ink font-body" suppressHydrationWarning>
         <AuthProvider>
           <UserProvider>
             <CategoryProvider>

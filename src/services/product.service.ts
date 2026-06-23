@@ -1,5 +1,6 @@
 import axios from "axios";
 import {
+  Product,
   ProductsResponse,
   SingleProductResponse,
   ProductFilters,
@@ -25,6 +26,18 @@ export const sort = {
 } as const;
 
 export const productService = {
+  // New backend public listing: GET /products → { data: { products: Product[], pagination } }
+  async getProductsList(
+    params: { page?: number; limit?: number; sort?: string } = {}
+  ): Promise<{ data: { products: Product[]; pagination?: any } }> {
+    const qs = new URLSearchParams();
+    if (params.page) qs.set("page", String(params.page));
+    if (params.limit) qs.set("limit", String(params.limit));
+    if (params.sort) qs.set("sort", params.sort);
+    const response = await axiosInstance.get(`/products?${qs.toString()}`);
+    return response.data;
+  },
+
   // Get all products
   async getAllProducts(page: number = 1): Promise<ProductsResponse> {
     const response = await axiosInstance.get<ProductsResponse>(
@@ -104,10 +117,10 @@ export const productService = {
     return response.data;
   },
 
-  // Search products
+  // Search products (new public route → { data: { products: Product[] } })
   async searchProducts(query: string): Promise<ProductsResponse> {
     const response = await axiosInstance.get<ProductsResponse>(
-      `/public/product/search-product?searchQuery=${query}`
+      `/products/search?searchQuery=${encodeURIComponent(query)}`
     );
     return response.data;
   },

@@ -1,27 +1,34 @@
-interface Media {
+export interface Media {
   mediaUrl: string;
   mediaId: string;
   _id?: string;
   id?: string;
 }
 
-interface Category {
-  image: Media;
+export interface ProductCategory {
+  _id: string;
   categoryName: string;
-  slug: string;
+  slug?: string;
 }
 
 export interface Product {
   _id: string;
   productName: string;
-  productDescription: string;
+  productDescription?: string;
+  slug?: string;
   price: number;
-  availableItems: number;
   salePrice?: number;
+  finalPrice?: number;
+  discount?: number;
+  discountPercentage?: number;
+  isSale?: boolean;
+  isBestSeller?: boolean;
+  /** Stock count. Absent on aggregated /home payloads, so treat `undefined` as in-stock. */
+  availableItems?: number;
   expiredSale?: number | string;
-  categoryId: string;
-  defaultImage: string;
-  albumImages: string[];
+  category?: ProductCategory;
+  defaultImage: Media;
+  albumImages?: Media[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -45,6 +52,18 @@ export interface ProductResponse {
     products?: Product[];
     total?: number;
     perPage?: number;
+  };
+}
+
+export interface ProductsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    products: {
+      data: Product[];
+      totalPages: number;
+      currentPage: number;
+    };
   };
 }
 

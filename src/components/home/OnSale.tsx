@@ -3,20 +3,21 @@
 import ProductRailSection from "@/components/home/ProductRailSection";
 import { Product } from "@/types/product.types";
 
-interface BestSellersProps {
+interface OnSaleProps {
   products: Product[];
   isLoading?: boolean;
 }
 
-export default function BestSellers({ products, isLoading }: BestSellersProps) {
+export default function OnSale({ products, isLoading }: OnSaleProps) {
   return (
     <ProductRailSection
-      title="Best Sellers"
-      description="The pieces our community returns to, again and again."
-      link={{ href: "/shop", label: "Shop all" }}
+      title="On Sale"
+      description="A considered selection, gently reduced."
+      link={{ href: "/shop?sale=true", label: "View all" }}
       products={products}
       isLoading={isLoading}
-      badge="bestseller"
+      badge="sale"
+      surface="muted"
     />
   );
 }

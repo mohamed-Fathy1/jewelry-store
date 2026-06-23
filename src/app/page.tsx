@@ -1,20 +1,29 @@
 "use client";
+
+import { useHome } from "@/hooks/useHome";
 import Hero from "@/components/home/Hero";
+import CategoryStrip from "@/components/home/CategoryStrip";
+import FlashSale from "@/components/home/FlashSale";
 import BestSellers from "@/components/home/BestSellers";
-import NewArrivals from "@/components/home/NewArrivals";
+import OnSale from "@/components/home/OnSale";
 import FeaturedCategories from "@/components/home/FeaturedCategories";
-import HomePromoSection from "@/components/home/HomePromoSection";
 import TarnishingPromo from "@/components/home/TarnishingPromo";
+import NewArrivals from "@/components/home/NewArrivals";
 import WhatsAppIcon from "@/components/home/WhatsAppIcon";
 
 export default function HomePage() {
+  // Single /home fetch; slices flow to sections as props.
+  const { bestSellers, onSale, flashSale, isLoading } = useHome();
+
   return (
     <div>
       <Hero />
-      <BestSellers />
-      <TarnishingPromo />
+      <CategoryStrip />
+      <FlashSale flashSale={flashSale} />
+      <BestSellers products={bestSellers} isLoading={isLoading} />
+      <OnSale products={onSale} isLoading={isLoading} />
       <FeaturedCategories />
-      <HomePromoSection />
+      <TarnishingPromo />
       <NewArrivals />
       <WhatsAppIcon />
     </div>
