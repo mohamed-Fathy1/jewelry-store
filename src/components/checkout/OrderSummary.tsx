@@ -2,48 +2,36 @@
 
 import Image from "next/image";
 import { colors } from "@/constants/colors";
-import { useCheckout } from "@/contexts/CheckoutContext";
 import { useCart } from "@/contexts/CartContext";
-import { useEffect, useState } from "react";
 
-export default function OrderSummary({ orderSummaryPreview }) {
-  const { shippingData, paymentData, selectedShipping } = useCheckout();
+export default function OrderSummary({ orderSummaryPreview, preview, previewLoading }) {
   const { cart } = useCart();
-  const [isShippingFree, setIsShippingFree] = useState(false);
 
-  const cartData = cart.items.length ? cart.items : orderSummaryPreview.items;
+  const cartData = cart.items.length
+    ? cart.items
+    : orderSummaryPreview?.items ?? [];
 
-  const subtotal = cartData.reduce(
+  // Plain line-item sum — DISPLAY ONLY, shown until the backend preview arrives.
+  // No offer/discount/free-shipping math happens here anymore: every total comes
+  // from the backend `POST /order/preview` endpoint (the single source of truth).
+  const lineItemsSubtotal = cartData.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
-  const shipping = selectedShipping ? selectedShipping.cost : 0; // Default shipping cost
-  const total = shipping && !isShippingFree ? subtotal + shipping : subtotal;
+  const hasPreview = !!preview;
+  const subtotal = hasPreview ? preview.subTotal : lineItemsSubtotal;
+  const discount = hasPreview ? preview.discount : 0;
+  const freeShipping = hasPreview ? preview.freeShipping : false;
+  const shippingCost = hasPreview ? preview.shippingCost : null;
+  const finalTotal = hasPreview ? preview.totalAmount : lineItemsSubtotal;
+  const appliedOffer = preview?.appliedOffer ?? null;
+  const flashOffers = preview?.flashSale?.offers ?? [];
 
-  // New Discount Logic
-  let discount = 0;
-
-  useEffect(() => {
-    if (
-      cartData.reduce((sum, item) => sum + item.quantity, 0) >= 3 ||
-      total >= 1500
-    ) {
-      // Free shipping if 3 or more items
-      setIsShippingFree(true);
-    } else {
-      setIsShippingFree(false);
-    }
-  }, [selectedShipping]);
-
-  if (total >= 1500) {
-    discount += total * 0.1; // 10% discount for total price of 1500 EGP or more
-  }
-  // if (isShippingFree) {
-  //   discount += shipping; // Remove shipping cost
-  // }
-
-  const finalTotal = total - discount;
+  // Original total (before any saving) for the strike-through comparison.
+  const originalTotal = subtotal + (shippingCost ?? 0);
+  const hasSaving =
+    hasPreview && (discount > 0 || freeShipping) && finalTotal < originalTotal;
 
   return (
     <div
@@ -104,64 +92,80 @@ export default function OrderSummary({ orderSummaryPreview }) {
             EGP {subtotal.toFixed(2)}
           </span>
         </div>
+
         <div className="flex justify-between">
           <span style={{ color: colors.textSecondary }}>Shipping</span>
-
           <div>
-            <span
-              style={{
-                color: colors.textPrimary,
-                textDecoration:
-                  isShippingFree && selectedShipping ? "line-through" : "",
-              }}
-            >
-              {selectedShipping
-                ? "EGP" + selectedShipping.cost
-                : isShippingFree
-                ? ""
-                : "Select Shipping Method"}
-            </span>
-            {isShippingFree ? (
-              <span
-                className="text-shadow-light"
-                style={{ color: colors.gold }}
-              >
-                {" "}
-                Free
+            {!hasPreview ? (
+              <span style={{ color: colors.textSecondary }}>
+                {previewLoading ? "Calculating…" : "Calculated at checkout"}
               </span>
-            ) : null}
+            ) : freeShipping ? (
+              <>
+                {shippingCost ? (
+                  <span
+                    style={{
+                      color: colors.textPrimary,
+                      textDecoration: "line-through",
+                    }}
+                  >
+                    EGP {shippingCost.toFixed(2)}
+                  </span>
+                ) : null}
+                <span
+                  className="text-shadow-light"
+                  style={{ color: colors.gold }}
+                >
+                  {" "}
+                  Free
+                </span>
+              </>
+            ) : (
+              <span style={{ color: colors.textPrimary }}>
+                EGP {(shippingCost ?? 0).toFixed(2)}
+              </span>
+            )}
           </div>
         </div>
-        {/* <div className="flex justify-between">
-          <span style={{ color: colors.textSecondary }}>Tax</span>
-          <span style={{ color: colors.textPrimary }}>EGP{tax.toFixed(2)}</span>
-        </div> */}
+
         {discount > 0 && (
           <div className="flex justify-between">
             <span className="text-shadow-light" style={{ color: colors.gold }}>
-              Discount {total >= 1500 && "(10%)"}
+              Discount{appliedOffer?.title ? ` (${appliedOffer.title})` : ""}
             </span>
             <span className="text-shadow-light" style={{ color: colors.gold }}>
               -EGP {discount.toFixed(2)}
             </span>
           </div>
         )}
+
+        {flashOffers.length > 0 && (
+          <div className="flex justify-between">
+            <span className="text-shadow-light" style={{ color: colors.gold }}>
+              Flash sale
+            </span>
+            <span className="text-shadow-light" style={{ color: colors.gold }}>
+              -EGP {(preview?.flashSale?.savedAmount ?? 0).toFixed(2)}
+            </span>
+          </div>
+        )}
+
         <div
           className="flex justify-between pt-3 font-medium"
           style={{ borderTop: `1px solid ${colors.border}` }}
         >
           <span style={{ color: colors.textPrimary }}>Total</span>
           <span style={{ color: colors.textPrimary }}>
-            {discount > 0 ? (
+            {hasSaving ? (
               <span style={{ textDecoration: "line-through" }}>
-                EGP {(total + shipping).toFixed(2)}
+                EGP {originalTotal.toFixed(2)}
               </span>
             ) : null}
             <span
-              className={discount > 0 && "text-shadow-light"}
+              className={hasSaving ? "text-shadow-light" : ""}
               style={{
                 marginLeft: "10px",
-                color: discount > 0 ? colors.gold : colors.textPrimary,
+                color: hasSaving ? colors.gold : colors.textPrimary,
               }}
             >
               EGP {finalTotal.toFixed(2)}

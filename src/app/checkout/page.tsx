@@ -38,29 +38,6 @@ interface PaymentFormData {
 type CheckoutStep = "shipping" | "payment" | "confirmation";
 
 export default function CheckoutPage() {
-  const calculateCartTotal = (cartItems, includeShipping = true) => {
-    // Calculate items subtotal
-    const subtotal = cartItems.reduce((total, item) => {
-      return total + (item.price || 0) * item.quantity;
-    }, 0);
-
-    // Calculate discount (10% for orders over 1500 EGP)
-    let discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
-
-    // Check if eligible for free shipping
-    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-    const isEligibleForFreeShipping = totalItems >= 3 || subtotal >= 1500;
-
-    // Calculate shipping cost
-    let shippingCost = 0;
-    if (includeShipping && selectedShipping && !isEligibleForFreeShipping) {
-      shippingCost = selectedShipping.cost || 0;
-    }
-
-    const total = subtotal - discount + shippingCost;
-    return total;
-  };
-
   const {
     shippingData,
     setShippingData,
@@ -77,6 +54,10 @@ export default function CheckoutPage() {
   const [orderMessage, setOrderMessage] = useState("");
   const [isClient, setIsClient] = useState(false);
   const [orderSummaryPreview, setOrderSummaryPreview] = useState(null);
+  // Backend-computed pricing (offers, discount, free shipping, totals). The
+  // frontend no longer calculates any of this — see the /order/preview effect.
+  const [preview, setPreview] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -100,19 +81,72 @@ export default function CheckoutPage() {
     router.replace(`/auth/login?returnUrl=${encodedReturnUrl}`);
   }, [isAuthenticated, isLoading, pathname, searchParamsString, router]);
 
+  // Ask the backend to price the cart (offers + discount + free shipping + total)
+  // whenever the cart or the selected address changes. This replaces every piece
+  // of offer math that used to live in the frontend.
   useEffect(() => {
-    setIsClient(true);
-    // Initiate checkout (no PII)
-    const subtotal = cart.items.reduce(
+    const source = cart.items.length
+      ? cart.items
+      : orderSummaryPreview?.items ?? [];
+
+    // Send the same identity the cart holds: variantId when a variant was picked,
+    // otherwise productId (the backend resolves the variant). Needs an address to
+    // know the shipping cost, so skip until one is selected.
+    if (!selectedAddress?._id || !source.length) {
+      setPreview(null);
+      return;
+    }
+
+    const items = source.map((it) => ({
+      productId: it.productId,
+      variantId: it.variantId,
+      quantity: it.quantity,
+    }));
+
+    let cancelled = false;
+    setPreviewLoading(true);
+    orderService
+      .previewOrder({ items, userInformationId: selectedAddress._id })
+      .then((res) => {
+        if (!cancelled) setPreview(res);
+      })
+      .catch((err) => {
+        if (!cancelled) setPreview(null);
+        console.error("Failed to load order preview:", err);
+      })
+      .finally(() => {
+        if (!cancelled) setPreviewLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cart.items, selectedAddress, orderSummaryPreview]);
+
+  // Analytics value helpers — read the backend preview instead of recomputing
+  // offers on the client. Falls back to the plain line-item subtotal until the
+  // preview has loaded.
+  const getAnalyticsTotals = () => {
+    const source = cart.items.length
+      ? cart.items
+      : orderSummaryPreview?.items ?? [];
+    const subtotal = source.reduce(
       (total, item) => total + (item.price || 0) * item.quantity,
       0
     );
-    const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
-    const discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
+    const totalItems = source.reduce((sum, item) => sum + item.quantity, 0);
+    const value = preview ? preview.totalAmount : subtotal;
+    return { subtotal, totalItems, value };
+  };
+
+  useEffect(() => {
+    setIsClient(true);
+    // Initiate checkout (no PII)
+    const { totalItems, value } = getAnalyticsTotals();
     analytics.trackInitiateCheckout({
       currency: "EGP",
       numItems: totalItems,
-      value: subtotal - discount,
+      value,
       contents: cart.items.map((item) => ({
         id: item.productId,
         quantity: item.quantity,
@@ -127,26 +161,12 @@ export default function CheckoutPage() {
       router.push("/");
     } else if (cart.items.length && isClient) {
       // Track cart view (no PII)
-      const subtotal = cart.items.reduce(
-        (total, item) => total + (item.price || 0) * item.quantity,
-        0
-      );
-      const totalItems = cart.items.reduce(
-        (sum, item) => sum + item.quantity,
-        0
-      );
-      const isEligibleForFreeShipping = totalItems >= 3 || subtotal >= 1500;
-      const discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
-      const shippingCost =
-        selectedShipping && !isEligibleForFreeShipping
-          ? selectedShipping.cost
-          : 0;
-      const finalTotal = subtotal - discount + shippingCost;
+      const { totalItems, value } = getAnalyticsTotals();
 
       analytics.trackViewCart({
         currency: "EGP",
         numItems: totalItems,
-        value: finalTotal,
+        value,
         contents: cart.items.map((item) => ({
           id: item.productId,
           quantity: item.quantity,
@@ -172,18 +192,7 @@ export default function CheckoutPage() {
     const hasItems = cart.items.length || orderSummaryPreview?.items?.length;
     if (!hasItems) return;
 
-    const subtotal = cart.items.reduce(
-      (total, item) => total + (item.price || 0) * item.quantity,
-      0
-    );
-    const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
-    const isEligibleForFreeShipping = totalItems >= 3 || subtotal >= 1500;
-    const discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
-    const shippingCost =
-      selectedShipping && !isEligibleForFreeShipping
-        ? selectedShipping.cost
-        : 0;
-    const finalTotal = subtotal - discount + shippingCost;
+    const { totalItems, value } = getAnalyticsTotals();
 
     const stepMap: Record<CheckoutStep, 1 | 2 | 3> = {
       shipping: 1,
@@ -195,7 +204,7 @@ export default function CheckoutPage() {
       stepName: currentStep,
       currency: "EGP",
       numItems: totalItems,
-      value: finalTotal,
+      value,
       contents: cart.items.map((item) => ({
         id: item.productId,
         quantity: item.quantity,
@@ -235,22 +244,17 @@ export default function CheckoutPage() {
       return;
     }
     // Track shipping step completion (no PII)
-    const subtotal = cart.items.reduce(
-      (total, item) => total + (item.price || 0) * item.quantity,
-      0
-    );
-    const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
-    const isEligibleForFreeShipping = totalItems >= 3 || subtotal >= 1500;
-    const discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
-    const shippingCost =
-      selectedShipping && !isEligibleForFreeShipping
-        ? selectedShipping.cost
-        : 0;
+    const { totalItems, value } = getAnalyticsTotals();
+    const shippingCost = preview
+      ? preview.freeShipping
+        ? 0
+        : preview.shippingCost
+      : selectedShipping?.cost ?? 0;
 
     analytics.trackAddShippingInfo({
       currency: "EGP",
       numItems: totalItems,
-      value: subtotal - discount + shippingCost,
+      value,
       shippingMethod: selectedShipping?.category || "standard",
       shippingCost,
       contents: cart.items.map((item) => ({
@@ -264,7 +268,7 @@ export default function CheckoutPage() {
       stepName: "payment",
       currency: "EGP",
       numItems: totalItems,
-      value: subtotal - discount + shippingCost,
+      value,
       contents: cart.items.map((item) => ({
         id: item.productId,
         quantity: item.quantity,
@@ -281,23 +285,12 @@ export default function CheckoutPage() {
     console.log(cart);
 
     // Track payment step initiation
-    const subtotal = cart.items.reduce(
-      (total, item) => total + (item.price || 0) * item.quantity,
-      0
-    );
-    const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
-    const isEligibleForFreeShipping = totalItems >= 3 || subtotal >= 1500;
-    const discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
-    const shippingCost =
-      selectedShipping && !isEligibleForFreeShipping
-        ? selectedShipping.cost
-        : 0;
-    const finalTotal = subtotal - discount + shippingCost;
+    const { totalItems, value } = getAnalyticsTotals();
 
     analytics.trackAddPaymentInfo({
       currency: "EGP",
       numItems: totalItems,
-      value: finalTotal,
+      value,
       paymentMethod: data.paymentMethod,
       contents: cart.items.map((item) => ({
         id: item.productId,
@@ -310,7 +303,7 @@ export default function CheckoutPage() {
       stepName: "confirmation",
       currency: "EGP",
       numItems: totalItems,
-      value: finalTotal,
+      value,
       contents: cart.items.map((item) => ({
         id: item.productId,
         quantity: item.quantity,
@@ -323,6 +316,7 @@ export default function CheckoutPage() {
       userId: selectedAddress._id,
       products: cart.items.map((item) => ({
         productId: item.productId,
+        variantId: item.variantId,
         quantity: item.quantity,
       })),
     };
@@ -336,26 +330,12 @@ export default function CheckoutPage() {
 
         // Track successful purchase
         {
-          const subtotal = cart.items.reduce(
-            (total, item) => total + (item.price || 0) * item.quantity,
-            0
-          );
-          const totalItems = cart.items.reduce(
-            (sum, item) => sum + item.quantity,
-            0
-          );
-          const isEligibleForFreeShipping = totalItems >= 3 || subtotal >= 1500;
-          const discount = subtotal >= 1500 ? subtotal * 0.1 : 0;
-          const shippingCost =
-            selectedShipping && !isEligibleForFreeShipping
-              ? selectedShipping.cost
-              : 0;
-          const finalTotal = subtotal - discount + shippingCost;
+          const { totalItems, value } = getAnalyticsTotals();
 
           analytics.trackPurchase({
             currency: "EGP",
             numItems: totalItems,
-            value: finalTotal,
+            value,
             contents: cart.items.map((item) => ({
               id: item.productId,
               quantity: item.quantity,
@@ -507,7 +487,11 @@ export default function CheckoutPage() {
 
         {/* Order Summary */}
         <div className="sticky top-0 lg:col-span-4 z-10">
-          <OrderSummary orderSummaryPreview={orderSummaryPreview} />
+          <OrderSummary
+            orderSummaryPreview={orderSummaryPreview}
+            preview={preview}
+            previewLoading={previewLoading}
+          />
         </div>
       </div>
 

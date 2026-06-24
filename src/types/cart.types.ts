@@ -5,6 +5,11 @@ export interface CartItem {
   productName: string;
   productImage: string;
   availableItems: number;
+  /** Selected variant details (present only for products that have variants). */
+  variantId?: string;
+  colorName?: string;
+  colorHex?: string;
+  sizeNumber?: string;
 }
 
 export interface Cart {
