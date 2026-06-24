@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { decodeToken, isAdmin } from "@/utils/auth.utils";
+import { decodeToken } from "@/utils/auth.utils";
 
 export function adminAuthMiddleware(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
@@ -10,7 +10,7 @@ export function adminAuthMiddleware(request: NextRequest) {
   }
 
   const decoded = decodeToken(token);
-  if (!decoded || !isAdmin(decoded.user)) {
+  if (!decoded || decoded.role !== "admin") {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 

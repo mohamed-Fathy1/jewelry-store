@@ -85,7 +85,7 @@ export const adminService = {
         );
         myHeaders.append("Content-Disposition", "inline");
 
-        const requestOptions = {
+        const requestOptions: RequestInit = {
           method: "PUT",
           headers: myHeaders,
           body: file,
