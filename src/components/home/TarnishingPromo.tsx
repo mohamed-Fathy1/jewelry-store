@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 
 const traits = ["Won't tarnish", "Water-safe", "Skin-friendly"];
@@ -45,26 +44,21 @@ const TarnishingPromo: React.FC = () => {
         {/* Art-directed imagery */}
         <div className="relative order-1 mx-auto w-full max-w-md lg:order-2 lg:mx-0 lg:ml-auto">
           <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-card-hover ring-1 ring-white/10">
-            <Image
-              src="/images/IMG_3645.jpg"
-              alt="Gold necklaces with pendant displayed on a dark surface"
-              fill
-              sizes="(min-width:1024px) 40vw, 90vw"
-              quality={88}
-              loading="lazy"
-              className="object-cover"
-            />
-          </div>
-          <div className="absolute -bottom-8 -left-8 hidden aspect-square w-2/5 overflow-hidden rounded-2xl shadow-card-hover ring-1 ring-white/10 sm:block">
-            <Image
-              src="/images/IMG_5678.jpg"
-              alt="Gold ring with opal stone, worn on the hand"
-              fill
-              sizes="20vw"
-              quality={88}
-              loading="lazy"
-              className="object-cover"
-            />
+            <video
+              className="absolute inset-0 h-full w-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              poster="/images/IMG_3645.jpg"
+              aria-label="Stainless steel jewelry collection"
+            >
+              <source
+                src="https://d1xdt7gkixoxw1.cloudfront.net/IMG_1602.mp4"
+                type="video/mp4"
+              />
+            </video>
           </div>
         </div>
       </div>

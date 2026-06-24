@@ -1,13 +1,38 @@
+import axios from "axios";
 import api from "@/lib/axios";
 import {
   CreateOfferDto,
   UpdateOfferDto,
+  Offer,
   OfferResponse,
   OffersResponse,
   OffersQuery,
 } from "@/types/offer.types";
 
+// Public, unauthed instance (mirrors home.service.ts). Used by the storefront
+// promo banner so a non-2xx response can never trip the shared interceptor that
+// clears a logged-in customer's token.
+const publicApi = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL });
+
+interface PublicOffersResponse {
+  data: { offers: Offer[] };
+}
+
 export const offersService = {
+  // Storefront-facing: fetch the live offers for the homepage promo banner from
+  // the public endpoint. Returns [] on any failure so callers can fall back to
+  // the default hero.
+  async getActiveOffers(): Promise<Offer[]> {
+    try {
+      const response = await publicApi.get<PublicOffersResponse>(
+        "/public/offers"
+      );
+      return response.data?.data?.offers ?? [];
+    } catch {
+      return [];
+    }
+  },
+
   async getOffers(query: OffersQuery = {}): Promise<OffersResponse> {
     try {
       const params = new URLSearchParams();

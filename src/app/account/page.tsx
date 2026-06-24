@@ -8,8 +8,15 @@ import AccountWishlist from "@/components/account/AccountWishlist";
 
 type TabType = "orders" | "profile" | "wishlist";
 
+const isTabType = (value: string | null): value is TabType =>
+  value === "orders" || value === "profile" || value === "wishlist";
+
 export default function AccountPage() {
-  const [activeTab, setActiveTab] = useState<TabType>("orders");
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    if (typeof window === "undefined") return "orders";
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    return isTabType(tab) ? tab : "orders";
+  });
 
   const tabs = [
     { id: "orders", label: "My Orders" },
