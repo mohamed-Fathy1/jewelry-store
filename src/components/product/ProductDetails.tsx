@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { useProduct } from "@/contexts/ProductContext";
 import { useCart } from "@/contexts/CartContext";
-import { colors } from "@/constants/colors";
 import { ShoppingBagIcon } from "@heroicons/react/24/outline";
 import { CartItem } from "@/types/cart.types";
 import { useRouter } from "next/navigation";
@@ -17,6 +15,8 @@ import {
 } from "lucide-react";
 import { wishlistService } from "@/services/wishlist.service";
 import toast from "react-hot-toast";
+import { cn } from "@/lib/cn";
+import SmartImage from "@/components/ui/SmartImage";
 import { useWishlist } from "@/contexts/WishlistContext";
 import LoadingSpinner from "../../components/LoadingSpinner"; // Import the new loading component
 
@@ -89,6 +89,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
       price: currentProduct.salePrice || currentProduct.price,
       productName: currentProduct.productName,
       productImage: currentProduct.defaultImage.mediaUrl,
+      availableItems: currentProduct.availableItems ?? 0,
     };
 
     addToCart(cartItem);
@@ -122,15 +123,14 @@ export default function ProductDetails({ productId }: { productId: string }) {
       {/* Image gallery */}
       <div className="space-y-2">
         {/* Main image */}
-        <div className="relative aspect-[2.25/3] md:aspect-[4/3] rounded-lg overflow-hidden">
-          <Image
+        <div className="relative aspect-[2.25/3] md:aspect-[4/3] rounded-2xl overflow-hidden bg-surface-muted">
+          <SmartImage
             src={currentProduct.albumImages[activeImage].mediaUrl}
             alt={`${currentProduct.productName} - Main View`}
-            width={1000}
-            height={1000}
+            fill
             sizes="(max-width: 768px) 100vw, 50vw"
             quality={85}
-            className="w-full h-full object-cover transition-opacity duration-500"
+            className="object-cover transition-opacity duration-500"
             priority
           />
 
@@ -143,7 +143,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
                 prev === 0 ? currentProduct.albumImages.length - 1 : prev - 1
               );
             }}
-            className="absolute flex justify-center items-center h-10 w-10 left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"
+            aria-label="Previous image"
+            className="absolute flex justify-center items-center h-10 w-10 left-2 top-1/2 -translate-y-1/2 rounded-full bg-noir/50 p-2 text-on-primary transition-colors hover:bg-noir/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <ChevronLeft />
           </button>
@@ -155,7 +156,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
                 next === currentProduct.albumImages.length - 1 ? 0 : next + 1
               );
             }}
-            className="absolute flex justify-center items-center h-10 w-10 right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"
+            aria-label="Next image"
+            className="absolute flex justify-center items-center h-10 w-10 right-2 top-1/2 -translate-y-1/2 rounded-full bg-noir/50 p-2 text-on-primary transition-colors hover:bg-noir/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <ChevronRight />
           </button>
@@ -163,7 +165,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
           {/* Auto-play toggle */}
           <button
             onClick={() => setAutoPlay((prev) => !prev)}
-            className="absolute flex justify-center items-center w-10 h-10 bottom-2 right-2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"
+            aria-label={autoPlay ? "Pause slideshow" : "Play slideshow"}
+            className="absolute flex justify-center items-center w-10 h-10 bottom-2 right-2 rounded-full bg-noir/50 p-2 text-on-primary transition-colors hover:bg-noir/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             {autoPlay ? <Pause size={16} /> : <Play size={16} />}
           </button>
@@ -175,46 +178,40 @@ export default function ProductDetails({ productId }: { productId: string }) {
             <button
               key={index}
               onClick={() => setActiveImage(index)}
-              className={`flex-none relative aspect-square w-20 rounded-md overflow-hidden 
-                ${
-                  activeImage === index ? "ring-2 ring-blue-500" : "opacity-70"
-                }`}
+              aria-label={`View ${currentProduct.productName} image ${
+                index + 1
+              }`}
+              className={cn(
+                "flex-none relative aspect-square w-20 overflow-hidden rounded-lg bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                activeImage === index ? "ring-2 ring-accent" : "opacity-70"
+              )}
             >
-              <Image
+              <SmartImage
                 src={image.mediaUrl}
                 alt={`${currentProduct.productName} - Thumbnail ${index + 1}`}
-                width={80}
-                height={80}
+                fill
                 sizes="80px"
                 quality={75}
-                className="w-full h-full object-cover"
+                className="object-cover"
               />
             </button>
           ))}
         </div>
       </div>
       <div className="space-y-6">
-        <h1
-          className="text-3xl font-light"
-          style={{ color: colors.textPrimary }}
-        >
+        <h1 className="font-display text-3xl text-heading">
           {currentProduct.productName}
         </h1>
-        <p style={{ color: colors.textSecondary }}>
-          {currentProduct.productDescription}
-        </p>
+        <p className="text-ink-muted">{currentProduct.productDescription}</p>
         <div className="space-y-2">
-          <p className="text-2xl font-semibold" style={{ color: colors.brown }}>
+          <p className="text-2xl font-semibold tabular-nums text-heading">
             EGP{" "}
             {(
               currentProduct.salePrice || currentProduct.price
             ).toLocaleString()}
           </p>
           {currentProduct.salePrice > 0 && (
-            <p
-              className="text-lg line-through"
-              style={{ color: colors.textSecondary }}
-            >
+            <p className="text-lg tabular-nums line-through text-ink-muted">
               EGP {currentProduct.price.toLocaleString()}
             </p>
           )}
@@ -222,34 +219,29 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
         {/* Quantity Selector */}
         <div className="flex items-center space-x-4">
-          <span style={{ color: colors.textSecondary }}>Quantity:</span>
-          <div
-            className="flex items-center border rounded-md"
-            style={{ borderColor: colors.border }}
-          >
+          <span className="text-ink-muted">Quantity:</span>
+          <div className="flex items-center rounded-lg border border-hairline">
             <button
               onClick={decrementQuantity}
-              className="px-3 py-1 transition-colors hover:bg-gray-100"
-              style={{ color: colors.textPrimary }}
+              aria-label="Decrease quantity"
+              className="px-3 py-1 text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               -
             </button>
             <span
-              className="px-4 py-1 border-x"
-              style={{
-                borderColor: colors.border,
-                color:
-                  quantity >= currentProduct.availableItems
-                    ? colors.textSecondary
-                    : colors.accentDark,
-              }}
+              className={cn(
+                "px-4 py-1 border-x border-hairline tabular-nums",
+                quantity >= currentProduct.availableItems
+                  ? "text-ink-muted"
+                  : "text-ink"
+              )}
             >
               {quantity}
             </span>
             <button
               onClick={incrementQuantity}
-              className="px-3 py-1 transition-colors hover:bg-gray-100"
-              style={{ color: colors.textPrimary }}
+              aria-label="Increase quantity"
+              className="px-3 py-1 text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               disabled={quantity >= currentProduct.availableItems}
             >
               +
@@ -258,7 +250,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
         </div>
 
         <div className="flex items-center justify-between">
-          <p style={{ color: colors.textSecondary }}>
+          <p className="text-ink-muted">
             Availability:{" "}
             {currentProduct.availableItems > 0
               ? `${currentProduct.availableItems} in stock`
@@ -267,30 +259,24 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
           <button
             onClick={addToWishlist}
-            className="p-3 border rounded-md transition-colors duration-200"
-            style={{
-              borderColor: colors.border,
-              color: colors.textPrimary,
-              backgroundColor: colors.background,
-            }}
+            aria-label={
+              isInWishlist ? "Remove from wishlist" : "Add to wishlist"
+            }
+            aria-pressed={isInWishlist}
+            className="rounded-lg border border-hairline bg-surface p-3 text-ink transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <HeartIcon
-              className={`w-6 h-6 ${
-                isInWishlist ? "text-red-500 fill-red-500" : ""
-              }`}
+              className={cn(
+                "w-6 h-6",
+                isInWishlist && "fill-primary text-primary"
+              )}
             />
           </button>
         </div>
 
         {currentProduct.availableItems === 0 && (
-          <div
-            className="text-center p-4 rounded-md"
-            style={{
-              backgroundColor: colors.background,
-              border: `1px solid ${colors.border}`,
-            }}
-          >
-            <p style={{ color: colors.textSecondary }}>
+          <div className="rounded-lg border border-hairline bg-surface-muted p-4 text-center">
+            <p className="text-ink-muted">
               This product is currently sold out. Add it to your wishlist to be
               notified when it's back in stock!
             </p>
@@ -301,8 +287,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
           <button
             onClick={handleAddToCart}
             disabled={currentProduct.availableItems === 0}
-            className="w-full py-3 px-4 rounded-md flex items-center justify-center space-x-2 transition-colors duration-200 disabled:opacity-50 mb-3"
-            style={{ backgroundColor: colors.brown, color: colors.textLight }}
+            className="mb-3 flex w-full items-center justify-center space-x-2 rounded-full bg-primary py-3 px-4 text-on-primary shadow-card transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ShoppingBagIcon className="w-5 h-5" />
             <span>
@@ -313,12 +298,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
           <button
             onClick={handleBuyNow}
             disabled={currentProduct.availableItems === 0}
-            className="w-full py-3 px-4 rounded-md flex items-center justify-center space-x-2 transition-colors duration-200 disabled:opacity-50"
-            style={{
-              backgroundColor: colors.background,
-              color: colors.textPrimary,
-              border: `1px solid ${colors.border}`,
-            }}
+            className="flex w-full items-center justify-center space-x-2 rounded-full border border-hairline bg-surface py-3 px-4 text-ink transition-colors duration-200 hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
           >
             <span>
               {currentProduct.availableItems === 0 ? "Sold Out" : "Buy Now"}

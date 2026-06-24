@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { colors } from "@/constants/colors";
 import { Address } from "@/types/address.types";
 import { addressService } from "@/services/address.service";
 import { Button } from "@/components/ui/Button";
@@ -24,11 +23,16 @@ interface IAddress {
   isDefault?: boolean;
 }
 
-export default function AddressManager({ addresses }: IAddress) {
-  // const [addresses, setAddresses] = useState<Address[]>([]);
+export default function AddressManager({
+  addresses,
+}: {
+  addresses?: Address[];
+}) {
   const [isLoading, setIsLoading] = useState(true);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [isAddingAddress, setIsAddingAddress] = useState(false);
+  const [formData, setFormData] = useState<any>({});
   const { getProfile, defaultAddressId, setDefaultAddressId } = useUser();
 
   // useEffect(() => {
@@ -145,10 +149,7 @@ export default function AddressManager({ addresses }: IAddress) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2
-          className="text-xl font-medium"
-          style={{ color: colors.textPrimary }}
-        >
+        <h2 className="font-display text-xl text-heading">
           Shipping Addresses
         </h2>
         <Button
@@ -165,23 +166,16 @@ export default function AddressManager({ addresses }: IAddress) {
         {addresses?.map((address) => (
           <div
             key={address._id}
-            className="border rounded-lg p-4 relative"
-            style={{ borderColor: colors.border }}
+            className="border border-hairline rounded-2xl bg-surface p-4 relative"
           >
             {address._id === getDefaultAddressId() && (
-              <span
-                className="absolute top-2 right-2 text-sm px-2 py-1 rounded-full"
-                style={{
-                  backgroundColor: colors.brown,
-                  color: colors.textLight,
-                }}
-              >
+              <span className="absolute top-2 right-2 text-sm px-2 py-1 rounded-full bg-primary text-on-primary">
                 Default
               </span>
             )}
             <div className="space-y-2">
-              <p style={{ color: colors.textPrimary }}>{address.street}</p>
-              <p style={{ color: colors.textSecondary }}>
+              <p className="text-ink">{address.street}</p>
+              <p className="text-ink-muted">
                 <p className="truncate">
                   {address.firstName} {address.lastName} {address.governorate}
                 </p>
@@ -189,9 +183,7 @@ export default function AddressManager({ addresses }: IAddress) {
                 <p className="truncate">
                   {address.address}, {address.apartmentSuite}{" "}
                   {address.postalCode}{" "}
-                  <span style={{ color: colors.textSecondary }}>
-                    ,{address.country}
-                  </span>
+                  <span className="text-ink-muted">,{address.country}</span>
                 </p>
               </p>
             </div>

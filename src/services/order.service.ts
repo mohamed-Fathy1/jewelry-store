@@ -1,6 +1,6 @@
 import api from "@/lib/axios";
 import toast from "react-hot-toast";
-import { OrderResponse } from "@/types/order.types"; // You might need to create this type
+import { OrderResponse, OrdersResponse } from "@/types/order.types";
 
 export const orderService = {
   async createOrder(orderData: any): Promise<OrderResponse> {
@@ -8,7 +8,7 @@ export const orderService = {
     return response.data;
   },
 
-  async getUserOrders(): Promise<OrderResponse> {
+  async getUserOrders(): Promise<OrdersResponse> {
     try {
       const response = await api.get(`/order/get-user-orders`);
       return response.data;

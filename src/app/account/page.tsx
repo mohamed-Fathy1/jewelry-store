@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { colors } from "@/constants/colors";
 import AccountOrders from "@/components/account/AccountOrders";
 import AccountProfile from "@/components/account/AccountProfile";
 import AccountWishlist from "@/components/account/AccountWishlist";
@@ -21,36 +20,24 @@ export default function AccountPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1
-        className="text-3xl font-light mb-8"
-        style={{ color: colors.textPrimary }}
-      >
-        My Account
-      </h1>
+      <h1 className="font-display text-3xl text-heading mb-8">My Account</h1>
 
       {/* Tabs */}
-      <div className="border-b mb-8" style={{ borderColor: colors.border }}>
+      <div className="border-b border-hairline mb-8">
         <div className="flex space-x-8">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as TabType)}
-              className={`py-4 relative transition-colors duration-200 ${
-                activeTab === tab.id ? "font-medium" : ""
+              className={`py-4 relative transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                activeTab === tab.id
+                  ? "font-medium text-heading"
+                  : "text-ink-muted"
               }`}
-              style={{
-                color:
-                  activeTab === tab.id
-                    ? colors.textPrimary
-                    : colors.textSecondary,
-              }}
             >
               {tab.label}
               {activeTab === tab.id && (
-                <div
-                  className="absolute bottom-0 left-0 right-0 h-0.5"
-                  style={{ backgroundColor: colors.brown }}
-                />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
               )}
             </button>
           ))}

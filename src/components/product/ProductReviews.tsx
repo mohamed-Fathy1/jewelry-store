@@ -1,7 +1,7 @@
 "use client";
 
 import { StarIcon } from "@heroicons/react/24/solid";
-import { colors } from "@/constants/colors";
+import { cn } from "@/lib/cn";
 
 const reviews = [
   {
@@ -23,44 +23,28 @@ const reviews = [
 export default function ProductReviews() {
   return (
     <div>
-      <h2
-        className="text-2xl font-light mb-6"
-        style={{ color: colors.textPrimary }}
-      >
+      <h2 className="mb-6 font-display text-2xl text-heading">
         Customer Reviews
       </h2>
       <div className="space-y-8">
         {reviews.map((review) => (
-          <div
-            key={review.id}
-            className="pb-8"
-            style={{ borderBottomColor: colors.border }}
-          >
-            <div className="flex items-center mb-4">
+          <div key={review.id} className="border-b border-hairline pb-8">
+            <div className="mb-4 flex items-center">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
                   <StarIcon
                     key={i}
-                    className="h-5 w-5"
-                    style={{
-                      color: i < review.rating ? colors.gold : colors.border,
-                    }}
+                    className={cn(
+                      "h-5 w-5",
+                      i < review.rating ? "text-accent" : "text-hairline"
+                    )}
                   />
                 ))}
               </div>
-              <p
-                className="ml-4 text-sm"
-                style={{ color: colors.textSecondary }}
-              >
-                {review.date}
-              </p>
+              <p className="ml-4 text-sm text-ink-muted">{review.date}</p>
             </div>
-            <p className="mb-2" style={{ color: colors.textPrimary }}>
-              {review.content}
-            </p>
-            <p className="text-sm" style={{ color: colors.textSecondary }}>
-              By {review.author}
-            </p>
+            <p className="mb-2 text-ink">{review.content}</p>
+            <p className="text-sm text-ink-muted">By {review.author}</p>
           </div>
         ))}
       </div>

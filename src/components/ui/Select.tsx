@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
-import { colors } from "@/constants/colors";
 
 interface SelectOption {
   value: string;
@@ -24,7 +23,7 @@ interface SelectProps {
 function Swatch({ hex }: { hex: string }) {
   return (
     <span
-      className="inline-block h-4 w-4 rounded-full border border-gray-200 flex-shrink-0"
+      className="inline-block h-4 w-4 rounded-full border border-hairline flex-shrink-0"
       style={{ backgroundColor: hex }}
     />
   );
@@ -64,17 +63,8 @@ export function Select({
         onClick={() => setIsOpen(!isOpen)}
         className={
           useCustomTrigger
-            ? `${className} text-left flex items-center justify-between`
-            : "w-full px-4 py-2 text-left border rounded-md flex items-center justify-between transition-colors"
-        }
-        style={
-          useCustomTrigger
-            ? { color: colors.textPrimary }
-            : {
-                backgroundColor: colors.background,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              }
+            ? `${className} text-left flex items-center justify-between text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent`
+            : "w-full px-4 py-2 text-left rounded-lg border border-hairline bg-surface text-ink flex items-center justify-between transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         }
       >
         <span className="flex items-center gap-2 min-w-0">
@@ -84,21 +74,15 @@ export function Select({
           </span>
         </span>
         <ChevronDownIcon
-          className={`w-5 h-5 flex-shrink-0 transition-transform ${
+          aria-hidden="true"
+          className={`w-5 h-5 flex-shrink-0 text-ink-muted transition-transform ${
             isOpen ? "rotate-180" : ""
           }`}
-          style={{ color: colors.textSecondary }}
         />
       </button>
 
       {isOpen && (
-        <div
-          className="absolute z-10 w-full mt-1 border rounded-md shadow-lg max-h-60 overflow-auto"
-          style={{
-            backgroundColor: colors.background,
-            borderColor: colors.border,
-          }}
-        >
+        <div className="absolute z-10 w-full mt-1 rounded-lg border border-hairline bg-surface shadow-card max-h-60 overflow-auto">
           {options.map((option) => (
             <button
               type="button"
@@ -107,14 +91,9 @@ export function Select({
                 onChange(option.value);
                 setIsOpen(false);
               }}
-              className="w-full px-4 py-2 text-left transition-colors hover:bg-opacity-50 first:rounded-t-md last:rounded-b-md flex items-center gap-2"
-              style={{
-                color: colors.textPrimary,
-                backgroundColor:
-                  option.value === value
-                    ? `${colors.brown}15`
-                    : colors.background,
-              }}
+              className={`w-full px-4 py-2 text-left text-ink transition-colors hover:bg-surface-muted first:rounded-t-lg last:rounded-b-lg flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                option.value === value ? "bg-accent-soft" : "bg-surface"
+              }`}
             >
               {option.swatch && <Swatch hex={option.swatch} />}
               <span className="truncate">{option.label}</span>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCart } from "@/contexts/CartContext";
-import { colors } from "@/constants/colors";
 import Image from "next/image";
 import Link from "next/link";
 import { MinusIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -90,16 +89,12 @@ export default function CartPage() {
   if (cart.items.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <h1
-          className="text-3xl font-light mb-8"
-          style={{ color: colors.textPrimary }}
-        >
+        <h1 className="font-display text-3xl mb-8 text-heading">
           Your Cart is Empty
         </h1>
         <Link
           href="/shop"
-          className="inline-block px-8 py-3 rounded-md transition-colors duration-200"
-          style={{ backgroundColor: colors.brown, color: colors.textLight }}
+          className="inline-block px-8 py-3 rounded-full bg-primary text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           Continue Shopping
         </Link>
@@ -109,20 +104,14 @@ export default function CartPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <h1
-        className="text-3xl font-light mb-8"
-        style={{ color: colors.textPrimary }}
-      >
-        Shopping Cart
-      </h1>
+      <h1 className="font-display text-3xl mb-8 text-heading">Shopping Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
           {cart.items.map((item) => (
             <div
               key={item.productId}
-              className="flex items-center justify-between space-x-2 md:space-x-4 p-3 md:p-4 rounded-lg border"
-              style={{ borderColor: colors.border }}
+              className="flex items-center justify-between space-x-2 md:space-x-4 p-3 md:p-4 rounded-lg border border-hairline bg-surface"
             >
               <Link
                 href={`/product/${item.productId}`}
@@ -138,47 +127,35 @@ export default function CartPage() {
                 </div>
 
                 <div className="flex-grow">
-                  <h3
-                    className="text-sm md:text-lg font-medium group-hover:underline"
-                    style={{ color: colors.textPrimary }}
-                  >
+                  <h3 className="text-sm md:text-lg font-medium group-hover:underline text-ink">
                     {item.productName}
                   </h3>
-                  <p
-                    className="text-sm md:text-lg font-semibold"
-                    style={{ color: colors.brown }}
-                  >
+                  <p className="text-sm md:text-lg font-semibold text-heading tabular-nums">
                     {formatPrice(item.price)}
                   </p>
                 </div>
               </Link>
 
               <div className="flex items-center space-x-2">
-                <div
-                  className="flex items-center border rounded-md"
-                  style={{ borderColor: colors.border }}
-                >
+                <div className="flex items-center border border-hairline rounded-md">
                   <button
                     onClick={() =>
                       updateQuantity(item.productId, item.quantity - 1)
                     }
-                    className="p-2 transition-colors hover:bg-gray-100"
-                    style={{ color: colors.textPrimary }}
+                    aria-label={`Decrease quantity of ${item.productName}`}
+                    className="p-2 transition-colors text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
                     <MinusIcon className="w-4 h-4" />
                   </button>
-                  <span
-                    className="px-3 md:px-4 py-1 border-x"
-                    style={{ borderColor: colors.border }}
-                  >
+                  <span className="px-3 md:px-4 py-1 border-x border-hairline text-ink tabular-nums">
                     {item.quantity}
                   </span>
                   <button
                     onClick={() =>
                       updateQuantity(item.productId, item.quantity + 1)
                     }
-                    className="p-2 transition-colors hover:bg-gray-100"
-                    style={{ color: colors.textPrimary }}
+                    aria-label={`Increase quantity of ${item.productName}`}
+                    className="p-2 transition-colors text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={item.quantity >= item.availableItems}
                   >
                     <PlusIcon className="w-4 h-4" />
@@ -187,8 +164,8 @@ export default function CartPage() {
 
                 <button
                   onClick={() => removeFromCart(item.productId)}
-                  className="md:p-2 rounded-md transition-colors hover:bg-gray-100"
-                  style={{ color: colors.textSecondary }}
+                  aria-label={`Remove ${item.productName} from cart`}
+                  className="md:p-2 rounded-md transition-colors text-ink-muted hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   <XMarkIcon className="w-6 h-6" />
                 </button>
@@ -198,54 +175,32 @@ export default function CartPage() {
 
           <button
             onClick={clearCart}
-            className="text-sm transition-colors hover:underline"
-            style={{ color: colors.textSecondary }}
+            className="text-sm transition-colors hover:underline text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             Clear Cart
           </button>
         </div>
 
-        <div
-          className="lg:col-span-1 p-6 rounded-lg space-y-4"
-          style={{ backgroundColor: colors.background }}
-        >
-          <h2
-            className="text-xl font-medium"
-            style={{ color: colors.textPrimary }}
-          >
-            Order Summary
-          </h2>
+        <div className="lg:col-span-1 p-6 rounded-lg space-y-4 bg-surface-muted">
+          <h2 className="font-display text-xl text-heading">Order Summary</h2>
 
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span style={{ color: colors.textSecondary }}>Subtotal</span>
-              <span style={{ color: colors.textPrimary }}>
+              <span className="text-ink-muted">Subtotal</span>
+              <span className="text-ink tabular-nums">
                 {formatPrice(cart.totalAmount)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span style={{ color: colors.textSecondary }}>Shipping</span>
-              <span style={{ color: colors.textPrimary }}>
-                Calculated at checkout
-              </span>
+              <span className="text-ink-muted">Shipping</span>
+              <span className="text-ink">Calculated at checkout</span>
             </div>
           </div>
 
-          <div
-            className="border-t pt-4 mt-4"
-            style={{ borderColor: colors.border }}
-          >
+          <div className="border-t border-hairline pt-4 mt-4">
             <div className="flex justify-between mb-4">
-              <span
-                className="text-lg font-medium"
-                style={{ color: colors.textPrimary }}
-              >
-                Total
-              </span>
-              <span
-                className="text-lg font-medium"
-                style={{ color: colors.brown }}
-              >
+              <span className="text-lg font-medium text-ink">Total</span>
+              <span className="text-lg font-medium text-heading tabular-nums">
                 {formatPrice(cart.totalAmount)}
               </span>
             </div>
@@ -258,8 +213,7 @@ export default function CartPage() {
                       "/checkout?step=shipping"
                     )}`
               }
-              className="w-full block text-center py-3 px-4 rounded-md transition-colors duration-200"
-              style={{ backgroundColor: colors.brown, color: colors.textLight }}
+              className="w-full block text-center py-3 px-4 rounded-full bg-primary text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Proceed to Checkout
             </Link>

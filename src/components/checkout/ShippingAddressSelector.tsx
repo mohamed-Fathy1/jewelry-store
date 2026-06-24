@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useUser } from "@/contexts/UserContext";
-import { colors } from "@/constants/colors";
 import { Address } from "@/types/address.types";
 import { RadioGroup } from "@headlessui/react";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
@@ -55,10 +54,7 @@ export default function ShippingAddressSelector({
   return (
     <div className="w-full">
       <RadioGroup value={selected} onChange={handleAddressChange}>
-        <RadioGroup.Label
-          className="text-lg font-medium mb-4"
-          style={{ color: colors.textPrimary }}
-        >
+        <RadioGroup.Label className="text-lg font-medium mb-4 text-heading">
           Select Shipping Address
         </RadioGroup.Label>
 
@@ -68,10 +64,10 @@ export default function ShippingAddressSelector({
               key={address._id}
               value={address}
               className={({ active, checked }) =>
-                `${active ? "ring-2 ring-offset-2" : ""} ${
-                  checked ? "bg-opacity-5 bg-brown" : "bg-white"
-                } relative rounded-lg border p-4 cursor-pointer transition-all duration-200 hover:border-brown
-                ${checked ? "border-brown" : "border-gray-200"}`
+                `${active ? "ring-2 ring-accent ring-offset-2" : ""} ${
+                  checked ? "bg-accent-soft" : "bg-surface"
+                } relative rounded-lg border p-4 cursor-pointer transition-all duration-200 hover:border-hairline-strong
+                ${checked ? "border-primary" : "border-hairline"}`
               }
             >
               {({ checked }) => (
@@ -80,15 +76,13 @@ export default function ShippingAddressSelector({
                     <div className="text-sm">
                       <RadioGroup.Label
                         as="p"
-                        className="font-medium"
-                        style={{ color: colors.textPrimary }}
+                        className="font-medium text-ink"
                       >
                         {address.street}
                       </RadioGroup.Label>
                       <RadioGroup.Description
                         as="span"
-                        className="inline"
-                        style={{ color: colors.textSecondary }}
+                        className="inline text-ink-muted"
                       >
                         <span>
                           {address.city}, {address.state} {address.postalCode}
@@ -99,10 +93,7 @@ export default function ShippingAddressSelector({
                   </div>
                   {checked && (
                     <div className="shrink-0">
-                      <CheckCircleIcon
-                        className="h-6 w-6"
-                        style={{ color: colors.brown }}
-                      />
+                      <CheckCircleIcon className="h-6 w-6 text-primary" />
                     </div>
                   )}
                 </div>
@@ -113,10 +104,7 @@ export default function ShippingAddressSelector({
       </RadioGroup>
 
       {addresses.length === 0 && (
-        <div
-          className="text-center p-4 border rounded-lg mt-4"
-          style={{ borderColor: colors.border, color: colors.textSecondary }}
-        >
+        <div className="text-center p-4 border border-hairline rounded-lg mt-4 text-ink-muted">
           No shipping addresses found. Please add an address in your profile.
         </div>
       )}

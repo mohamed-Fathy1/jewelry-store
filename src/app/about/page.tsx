@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import styles from "./about.module.css";
-import { colors } from "@/constants/colors";
 
 export default function AboutPage() {
   return (
@@ -74,10 +73,7 @@ export default function AboutPage() {
               width={64}
               height={64}
             />
-            <div
-              className="absolute inset-0 transition-opacity duration-300 opacity-50 group-hover:opacity-40"
-              style={{ backgroundColor: colors.accentDark }}
-            />
+            <div className="absolute inset-0 bg-primary transition-opacity duration-300 opacity-50 group-hover:opacity-40" />
             <h3>Durability</h3>
             <p>Built to last a lifetime</p>
           </motion.div>
@@ -94,10 +90,7 @@ export default function AboutPage() {
               width={64}
               height={64}
             />
-            <div
-              className="absolute inset-0 transition-opacity duration-300 opacity-50 group-hover:opacity-40"
-              style={{ backgroundColor: colors.accentDark }}
-            />
+            <div className="absolute inset-0 bg-primary transition-opacity duration-300 opacity-50 group-hover:opacity-40" />
             <h3>Rust Resistant</h3>
             <p>Always maintains its shine</p>
           </motion.div>
@@ -114,10 +107,7 @@ export default function AboutPage() {
               width={64}
               height={64}
             />
-            <div
-              className="absolute inset-0 transition-opacity duration-300 opacity-50 group-hover:opacity-40"
-              style={{ backgroundColor: colors.accentDark }}
-            />
+            <div className="absolute inset-0 bg-primary transition-opacity duration-300 opacity-50 group-hover:opacity-40" />
             <h3>Timeless Style</h3>
             <p>Classic designs that never fade</p>
           </motion.div>

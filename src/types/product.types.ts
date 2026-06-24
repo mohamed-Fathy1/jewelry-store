@@ -23,6 +23,7 @@ export interface Product {
   discountPercentage?: number;
   isSale?: boolean;
   isBestSeller?: boolean;
+  isSoldOut?: boolean;
   /** Stock count. Absent on aggregated /home payloads, so treat `undefined` as in-stock. */
   availableItems?: number;
   expiredSale?: number | string;

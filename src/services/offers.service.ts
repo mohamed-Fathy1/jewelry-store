@@ -1,3 +1,4 @@
+import axios from "axios";
 import api from "@/lib/axios";
 import {
   CreateOfferDto,
@@ -5,9 +6,21 @@ import {
   OfferResponse,
   OffersResponse,
   OffersQuery,
+  PublicOffersResponse,
 } from "@/types/offer.types";
 
+// Public, unauthed instance for the storefront (matches the other public services).
+const publicAxios = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL });
+
 export const offersService = {
+  // Active storefront offers (cart incentives + flash sale). Public, no auth.
+  async getActiveOffers(limit = 6): Promise<PublicOffersResponse> {
+    const response = await publicAxios.get<PublicOffersResponse>(
+      `/public/offers?limit=${limit}`
+    );
+    return response.data;
+  },
+
   async getOffers(query: OffersQuery = {}): Promise<OffersResponse> {
     try {
       const params = new URLSearchParams();

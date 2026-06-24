@@ -2,7 +2,6 @@
 
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
-import { colors } from "@/constants/colors";
 
 interface ISelectedAddress {
   _id?: string;
@@ -33,51 +32,33 @@ export default function OrderConfirmation({
 
   return (
     <div className="text-center space-y-6">
-      <CheckCircleIcon
-        className="w-16 h-16 mx-auto"
-        style={{ color: colors.brown }}
-      />
+      <CheckCircleIcon className="w-16 h-16 mx-auto text-primary" />
       <div>
-        <h2
-          className="text-2xl font-light mb-2"
-          style={{ color: colors.textPrimary }}
-        >
+        <h2 className="font-display text-2xl mb-2 text-heading">
           Order Confirmed!
         </h2>
-        <p style={{ color: colors.textSecondary }}>
+        <p className="text-ink-muted">
           Thank you for your order. We&apos;ll send you a confirmation email
           shortly.
         </p>
       </div>
 
-      <div
-        className="p-6 rounded-lg"
-        style={{ backgroundColor: colors.background }}
-      >
+      <div className="p-6 rounded-lg bg-surface-muted">
         <div className="space-y-4">
           <div>
-            <h3
-              className="text-sm font-medium uppercase"
-              style={{ color: colors.textSecondary }}
-            >
+            <h3 className="text-sm font-medium uppercase text-ink-muted">
               Order Number
             </h3>
-            <p
-              className="text-lg font-medium"
-              style={{ color: colors.textPrimary }}
-            >
+            <p className="text-lg font-medium text-ink tabular-nums">
               #{shippingData._id.slice(-8)}
             </p>
           </div>
 
           <div>
-            <h3
-              className="text-sm font-medium uppercase"
-              style={{ color: colors.textSecondary }}
-            >
+            <h3 className="text-sm font-medium uppercase text-ink-muted">
               Shipping Address
             </h3>
-            <p className="text-lg" style={{ color: colors.textPrimary }}>
+            <p className="text-lg text-ink">
               {selectedAddress.firstName} {selectedAddress.lastName}
               <br />
               {selectedAddress.address && selectedAddress.address}
@@ -92,15 +73,10 @@ export default function OrderConfirmation({
           </div>
 
           <div>
-            <h3
-              className="text-sm font-medium uppercase"
-              style={{ color: colors.textSecondary }}
-            >
+            <h3 className="text-sm font-medium uppercase text-ink-muted">
               Payment Method
             </h3>
-            <p className="text-lg" style={{ color: colors.textPrimary }}>
-              Cash on Delivery
-            </p>
+            <p className="text-lg text-ink">Cash on Delivery</p>
           </div>
         </div>
       </div>
@@ -108,21 +84,13 @@ export default function OrderConfirmation({
       <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
         <Link
           href="/shop"
-          className="px-6 py-3 rounded-md transition-colors duration-200"
-          style={{
-            backgroundColor: colors.background,
-            color: colors.textPrimary,
-          }}
+          className="px-6 py-3 rounded-full border border-hairline bg-surface text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           Continue Shopping
         </Link>
         <Link
           href={`/account/orders/${shippingData._id}`}
-          className="px-6 py-3 rounded-md transition-colors duration-200"
-          style={{
-            backgroundColor: colors.brown,
-            color: colors.textLight,
-          }}
+          className="px-6 py-3 rounded-full bg-primary text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           Track Order
         </Link>

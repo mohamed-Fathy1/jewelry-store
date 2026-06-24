@@ -88,3 +88,11 @@ export interface OffersQuery {
   isActive?: boolean | "";
   search?: string;
 }
+
+// Public storefront endpoint GET /public/offers → { data: { offers: Offer[] } }
+export interface PublicOffersResponse {
+  statusCode: number;
+  data: { offers: Offer[] };
+  message: string;
+  success: boolean;
+}

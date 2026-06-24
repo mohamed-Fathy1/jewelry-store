@@ -22,7 +22,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const result = await wishlistService.getUserWishlist();
       if (result.success) {
-        const productIds = result.data.wishlist.map(
+        const productIds = (result.data.wishlist.products || []).map(
           (item) => item.productId._id
         );
         setWishlist(productIds);

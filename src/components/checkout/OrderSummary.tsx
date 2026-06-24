@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { colors } from "@/constants/colors";
 import { useCheckout } from "@/contexts/CheckoutContext";
 import { useCart } from "@/contexts/CartContext";
 import { useEffect, useState } from "react";
@@ -46,16 +45,8 @@ export default function OrderSummary({ orderSummaryPreview }) {
   const finalTotal = total - discount;
 
   return (
-    <div
-      className="rounded-lg p-6"
-      style={{ backgroundColor: colors.background }}
-    >
-      <h2
-        className="text-lg font-medium mb-6"
-        style={{ color: colors.textPrimary }}
-      >
-        Order Summary
-      </h2>
+    <div className="rounded-lg p-6 bg-surface-muted">
+      <h2 className="font-display text-lg mb-6 text-heading">Order Summary</h2>
 
       {/* Cart Items */}
       <div className="space-y-4 mb-6">
@@ -71,20 +62,14 @@ export default function OrderSummary({ orderSummaryPreview }) {
               />
             </div>
             <div className="flex-1">
-              <h3
-                className="text-sm font-medium"
-                style={{ color: colors.textPrimary }}
-              >
+              <h3 className="text-sm font-medium text-ink">
                 {item.productName}
               </h3>
               <div className="flex justify-between mt-1">
-                <p className="text-sm" style={{ color: colors.textSecondary }}>
+                <p className="text-sm text-ink-muted tabular-nums">
                   Qty: {item.quantity}
                 </p>
-                <p
-                  className="text-sm font-medium"
-                  style={{ color: colors.textPrimary }}
-                >
+                <p className="text-sm font-medium text-ink tabular-nums">
                   EGP {(item.price * item.quantity).toFixed(2)}
                 </p>
               </div>
@@ -94,26 +79,21 @@ export default function OrderSummary({ orderSummaryPreview }) {
       </div>
 
       {/* Price Breakdown */}
-      <div
-        className="space-y-3 pt-6"
-        style={{ borderTop: `1px solid ${colors.border}` }}
-      >
+      <div className="space-y-3 pt-6 border-t border-hairline">
         <div className="flex justify-between">
-          <span style={{ color: colors.textSecondary }}>Subtotal</span>
-          <span style={{ color: colors.textPrimary }}>
+          <span className="text-ink-muted">Subtotal</span>
+          <span className="text-ink tabular-nums">
             EGP {subtotal.toFixed(2)}
           </span>
         </div>
         <div className="flex justify-between">
-          <span style={{ color: colors.textSecondary }}>Shipping</span>
+          <span className="text-ink-muted">Shipping</span>
 
           <div>
             <span
-              style={{
-                color: colors.textPrimary,
-                textDecoration:
-                  isShippingFree && selectedShipping ? "line-through" : "",
-              }}
+              className={`text-ink tabular-nums ${
+                isShippingFree && selectedShipping ? "line-through" : ""
+              }`}
             >
               {selectedShipping
                 ? "EGP" + selectedShipping.cost
@@ -122,47 +102,36 @@ export default function OrderSummary({ orderSummaryPreview }) {
                 : "Select Shipping Method"}
             </span>
             {isShippingFree ? (
-              <span
-                className="text-shadow-light"
-                style={{ color: colors.gold }}
-              >
-                {" "}
-                Free
-              </span>
+              <span className="text-accent"> Free</span>
             ) : null}
           </div>
         </div>
         {/* <div className="flex justify-between">
-          <span style={{ color: colors.textSecondary }}>Tax</span>
-          <span style={{ color: colors.textPrimary }}>EGP{tax.toFixed(2)}</span>
+          <span className="text-ink-muted">Tax</span>
+          <span className="text-ink tabular-nums">EGP{tax.toFixed(2)}</span>
         </div> */}
         {discount > 0 && (
           <div className="flex justify-between">
-            <span className="text-shadow-light" style={{ color: colors.gold }}>
+            <span className="text-accent">
               Discount {total >= 1500 && "(10%)"}
             </span>
-            <span className="text-shadow-light" style={{ color: colors.gold }}>
+            <span className="text-accent tabular-nums">
               -EGP {discount.toFixed(2)}
             </span>
           </div>
         )}
-        <div
-          className="flex justify-between pt-3 font-medium"
-          style={{ borderTop: `1px solid ${colors.border}` }}
-        >
-          <span style={{ color: colors.textPrimary }}>Total</span>
-          <span style={{ color: colors.textPrimary }}>
+        <div className="flex justify-between pt-3 font-medium border-t border-hairline">
+          <span className="text-ink">Total</span>
+          <span className="text-ink">
             {discount > 0 ? (
-              <span style={{ textDecoration: "line-through" }}>
+              <span className="line-through tabular-nums">
                 EGP {(total + shipping).toFixed(2)}
               </span>
             ) : null}
             <span
-              className={discount > 0 && "text-shadow-light"}
-              style={{
-                marginLeft: "10px",
-                color: discount > 0 ? colors.gold : colors.textPrimary,
-              }}
+              className={`ml-2.5 tabular-nums ${
+                discount > 0 ? "text-accent" : "text-ink"
+              }`}
             >
               EGP {finalTotal.toFixed(2)}
             </span>
@@ -171,11 +140,8 @@ export default function OrderSummary({ orderSummaryPreview }) {
       </div>
 
       {/* Secure Checkout Notice */}
-      <div
-        className="mt-6 p-4 rounded-md text-sm"
-        style={{ backgroundColor: colors.accentLight }}
-      >
-        <p style={{ color: colors.textSecondary }}>
+      <div className="mt-6 p-4 rounded-md text-sm bg-accent-soft">
+        <p className="text-ink-muted">
           Your order information is secure and encrypted. Pay only when your
           order arrives.
         </p>

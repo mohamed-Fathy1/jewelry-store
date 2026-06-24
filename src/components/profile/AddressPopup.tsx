@@ -64,8 +64,8 @@ interface AddressPopupProps {
   isOpen: boolean;
   onClose: () => void;
   address?: Address | null;
-  onAddressUpdated: () => void;
-  setAddresses: any;
+  onAddressUpdated: (address: Address) => void;
+  setAddresses?: any;
   makeDefault: (id: string) => void;
 }
 
@@ -192,7 +192,7 @@ export default function AddressPopup({
         toast.success("Address added successfully");
       }
       // setAddresses((prev) => [...prev, formData]);
-      onAddressUpdated();
+      onAddressUpdated(formData as Address);
       onClose();
     } catch (error) {
       toast.error("Failed to save address");

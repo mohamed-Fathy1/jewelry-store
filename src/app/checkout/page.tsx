@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { colors } from "@/constants/colors";
 import ShippingForm from "@/components/checkout/ShippingForm";
 import PaymentForm from "@/components/checkout/PaymentForm";
 import OrderSummary from "@/components/checkout/OrderSummary";
@@ -365,7 +364,7 @@ export default function CheckoutPage() {
         }
 
         clearCart();
-        setShippingData(result.data.order);
+        setShippingData(result.data.order as any);
         setCurrentStep("confirmation");
       } else {
         setOrderMessage("Failed to create order. Please try again.");
@@ -392,90 +391,68 @@ export default function CheckoutPage() {
       {/* Checkout Progress */}
       <div className="mb-12">
         <div className="flex items-center justify-center">
-          {["shipping", "payment", "confirmation"].map((step, index) => (
-            <div key={step} className="flex items-center">
-              <div
-                className="relative flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors duration-200"
-                style={{
-                  backgroundColor:
-                    currentStep === step
-                      ? colors.brown
-                      : index <
-                        ["shipping", "payment", "confirmation"].indexOf(
-                          currentStep
-                        )
-                      ? colors.gold
-                      : colors.background,
-                  color:
-                    currentStep === step ||
-                    index <
-                      ["shipping", "payment", "confirmation"].indexOf(
-                        currentStep
-                      )
-                      ? colors.textLight
-                      : colors.textSecondary,
-                  borderColor: colors.border,
-                }}
-              >
-                {index + 1}
-                <span
-                  className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-base capitalize"
-                  style={{
-                    color:
-                      currentStep === step
-                        ? colors.textPrimary
-                        : colors.textSecondary,
-                    fontWeight: currentStep === step ? "500" : "normal",
-                  }}
-                >
-                  {step}
-                </span>
-              </div>
-              {index < 2 && (
+          {["shipping", "payment", "confirmation"].map((step, index) => {
+            const currentIndex = [
+              "shipping",
+              "payment",
+              "confirmation",
+            ].indexOf(currentStep);
+            const isCurrent = currentStep === step;
+            const isCompleted = index < currentIndex;
+            return (
+              <div key={step} className="flex items-center">
                 <div
-                  className="w-16 md:w-24 h-0.5 mx-3"
-                  style={{
-                    backgroundColor:
-                      index <
-                      ["shipping", "payment", "confirmation"].indexOf(
-                        currentStep
-                      )
-                        ? colors.gold
-                        : colors.border,
-                  }}
-                />
-              )}
-            </div>
-          ))}
+                  className={`relative flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors duration-200 ${
+                    isCurrent
+                      ? "bg-primary text-on-primary"
+                      : isCompleted
+                      ? "bg-accent text-on-primary"
+                      : "bg-surface-muted text-ink-muted border border-hairline"
+                  }`}
+                >
+                  {index + 1}
+                  <span
+                    className={`absolute -bottom-8 left-1/2 -translate-x-1/2 text-base capitalize ${
+                      isCurrent
+                        ? "text-heading font-medium"
+                        : "text-ink-muted"
+                    }`}
+                  >
+                    {step}
+                  </span>
+                </div>
+                {index < 2 && (
+                  <div
+                    className={`w-16 md:w-24 h-0.5 mx-3 ${
+                      isCompleted ? "bg-accent" : "bg-hairline"
+                    }`}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
         <div className="invisible flex justify-center mt-2">
           <span
-            style={{
-              color:
-                currentStep === "shipping"
-                  ? colors.textPrimary
-                  : colors.textSecondary,
-            }}
+            className={
+              currentStep === "shipping" ? "text-heading" : "text-ink-muted"
+            }
           >
             Shipping
           </span>
           <span
-            style={{
-              color:
-                currentStep === "payment"
-                  ? colors.textPrimary
-                  : colors.textSecondary,
-            }}
+            className={
+              currentStep === "payment" ? "text-heading" : "text-ink-muted"
+            }
           >
             Payment
           </span>
           <span
-            style={{
-              color:
-                currentStep === "confirmation"
-                  ? colors.textPrimary
-                  : colors.textSecondary,
-            }}
+            className={
+              currentStep === "confirmation"
+                ? "text-heading"
+                : "text-ink-muted"
+            }
           >
             Confirmation
           </span>
@@ -512,15 +489,13 @@ export default function CheckoutPage() {
       </div>
 
       {loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
-          <div className="text-white text-shadow-light">
-            Processing your order...
-          </div>
+        <div className="fixed inset-0 flex items-center justify-center bg-noir/50 z-50">
+          <div className="text-on-primary">Processing your order...</div>
         </div>
       )}
 
       {orderMessage && (
-        <div className="mt-4 text-center text-lg text-green-600">
+        <div className="mt-4 text-center text-lg text-accent">
           {orderMessage}
         </div>
       )}

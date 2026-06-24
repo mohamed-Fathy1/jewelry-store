@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/auth.service";
-import { colors } from "@/constants/colors";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
@@ -74,16 +73,14 @@ export function LoginClient() {
   };
 
   return (
-    <div className="min-h-screen flex justify-center mt-[20vh] px-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="flex min-h-screen items-start justify-center bg-bg px-4 pt-[18vh] pb-16">
+      <div className="w-full max-w-md rounded-2xl border border-hairline bg-surface p-8 shadow-card sm:p-10">
         <div className="text-center">
-          <h2
-            className="text-3xl font-light"
-            style={{ color: colors.textPrimary }}
-          >
+          <p className="font-display text-lg text-heading">A to Z Accessories</p>
+          <h2 className="mt-5 font-display text-3xl text-heading">
             Welcome Back
           </h2>
-          <p className="mt-2 text-sm" style={{ color: colors.textSecondary }}>
+          <p className="mt-2 text-sm text-ink-muted">
             {step === "email"
               ? "Enter your email to receive a login code"
               : "Enter the code we sent to your email"}
@@ -96,8 +93,7 @@ export function LoginClient() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium"
-                  style={{ color: colors.textPrimary }}
+                  className="block text-sm font-medium text-ink"
                 >
                   Email Address
                 </label>
@@ -108,12 +104,7 @@ export function LoginClient() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 w-full px-4 py-3 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-                  style={{
-                    backgroundColor: colors.background,
-                    borderColor: colors.border,
-                    color: colors.textPrimary,
-                  }}
+                  className="mt-1 w-full rounded-lg border border-hairline bg-surface px-4 py-3 text-ink placeholder:text-ink-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   placeholder="Enter your email"
                 />
               </div>
@@ -122,11 +113,7 @@ export function LoginClient() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
-              style={{
-                backgroundColor: colors.brown,
-                color: colors.textLight,
-              }}
+              className="w-full rounded-full bg-primary px-4 py-3 font-medium text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? "Sending..." : "Send Code"}
             </button>
@@ -134,19 +121,15 @@ export function LoginClient() {
         ) : (
           <form onSubmit={handleOtpSubmit} className="mt-8 space-y-6">
             <div className="space-y-4">
-              <p
-                className="text-center text-sm"
-                style={{ color: colors.textSecondary }}
-              >
+              <p className="text-center text-sm text-ink-muted">
                 Code sent to{" "}
-                <span style={{ color: colors.textPrimary }}>{email}</span>
+                <span className="text-ink">{email}</span>
               </p>
 
               <div>
                 <label
                   htmlFor="activeCode"
-                  className="block text-sm font-medium"
-                  style={{ color: colors.textPrimary }}
+                  className="block text-sm font-medium text-ink"
                 >
                   Verification Code
                 </label>
@@ -162,12 +145,7 @@ export function LoginClient() {
                   onChange={(e) =>
                     setActiveCode(e.target.value.replace(/\D/g, "").slice(0, 6))
                   }
-                  className="mt-1 w-full px-4 py-3 rounded-md border tracking-[0.5em] text-center focus:outline-none focus:ring-2 transition-all duration-200"
-                  style={{
-                    backgroundColor: colors.background,
-                    borderColor: colors.border,
-                    color: colors.textPrimary,
-                  }}
+                  className="mt-1 w-full rounded-lg border border-hairline bg-surface px-4 py-3 text-center tracking-[0.5em] text-ink placeholder:text-ink-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   placeholder="000000"
                 />
               </div>
@@ -176,11 +154,7 @@ export function LoginClient() {
             <button
               type="submit"
               disabled={isLoading || activeCode.length !== 6}
-              className="w-full py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
-              style={{
-                backgroundColor: colors.brown,
-                color: colors.textLight,
-              }}
+              className="w-full rounded-full bg-primary px-4 py-3 font-medium text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? "Verifying..." : "Verify"}
             </button>
@@ -190,8 +164,7 @@ export function LoginClient() {
                 type="button"
                 onClick={handleResend}
                 disabled={isLoading}
-                className="font-medium hover:underline disabled:opacity-50"
-                style={{ color: colors.brown }}
+                className="rounded-sm font-medium text-primary transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
               >
                 Resend Code
               </button>
