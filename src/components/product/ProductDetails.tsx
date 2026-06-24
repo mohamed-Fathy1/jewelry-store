@@ -19,6 +19,18 @@ import { cn } from "@/lib/cn";
 import SmartImage from "@/components/ui/SmartImage";
 import { useWishlist } from "@/contexts/WishlistContext";
 import LoadingSpinner from "../../components/LoadingSpinner"; // Import the new loading component
+import {
+  ProductVariant,
+  VariantColor,
+  VariantSize,
+} from "@/types/product.types";
+
+// Variants arrive populated from the public endpoint, but stay defensive in case
+// an id string slips through.
+const getColor = (v: ProductVariant): VariantColor | null =>
+  v.color && typeof v.color === "object" ? (v.color as VariantColor) : null;
+const getSize = (v: ProductVariant): VariantSize | null =>
+  v.size && typeof v.size === "object" ? (v.size as VariantSize) : null;
 
 export default function ProductDetails({ productId }: { productId: string }) {
   const { currentProduct, getOneProduct, isLoading } = useProduct();
@@ -31,6 +43,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const sliderRef = useRef<NodeJS.Timeout | null>(null);
   const { wishlist, toggleWishlist } = useWishlist();
   const [isInWishlist, setIsInWishlist] = useState(false);
+  const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
+  const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
 
   useEffect(() => {
     getOneProduct(productId);
@@ -65,8 +79,81 @@ export default function ProductDetails({ productId }: { productId: string }) {
     return () => clearInterval(sliderRef.current);
   }, [autoPlay, currentProduct?.albumImages.length]);
 
+  // ─── Variants ──────────────────────────────────────────────────────────────
+  // Every product has at least one variant. A "simple" product is a single
+  // variant with neither color nor size, so the dimensions are derived: we only
+  // show the color/size pickers for the dimensions that actually exist.
+  const variants: ProductVariant[] = currentProduct?.variants ?? [];
+  const hasColors = variants.some((v) => getColor(v));
+  const hasSizes = variants.some((v) => getSize(v));
+  const needsSelection = hasColors || hasSizes;
+
+  // Unique colors across all variants (preserve first-seen order).
+  const colorOptions: VariantColor[] = [];
+  const seenColors = new Set<string>();
+  variants.forEach((v) => {
+    const c = getColor(v);
+    if (c && !seenColors.has(c._id)) {
+      seenColors.add(c._id);
+      colorOptions.push(c);
+    }
+  });
+
+  // Sizes to show: scoped to the selected color when colors exist, otherwise
+  // (size-only product) every size. Ordered by `order`.
+  const sizeOptions: { size: VariantSize; availableItems: number }[] = [];
+  if (hasSizes && (!hasColors || selectedColorId)) {
+    const seenSizes = new Set<string>();
+    variants.forEach((v) => {
+      const c = getColor(v);
+      const s = getSize(v);
+      if (!s) return;
+      if (hasColors && c?._id !== selectedColorId) return;
+      if (seenSizes.has(s._id)) return;
+      seenSizes.add(s._id);
+      sizeOptions.push({ size: s, availableItems: v.availableItems });
+    });
+    sizeOptions.sort((a, b) => a.size.order - b.size.order);
+  }
+
+  // The variant matching the current selection, ignoring dimensions that don't
+  // exist. A simple product (no dimensions) resolves to its single variant.
+  const matchedVariant = variants.find((v) => {
+    const colorOk = !hasColors || getColor(v)?._id === selectedColorId;
+    const sizeOk = !hasSizes || getSize(v)?._id === selectedSizeId;
+    return colorOk && sizeOk;
+  });
+
+  // Effective stock the buy controls should respect.
+  const effectiveAvailable = matchedVariant?.availableItems ?? 0;
+  const selectionComplete = Boolean(matchedVariant);
+  const canPurchase = selectionComplete && effectiveAvailable > 0;
+  // Whole product is unbuyable when nothing is in stock at all.
+  const productSoldOut = variants.every((v) => v.availableItems <= 0);
+  // e.g. "color and size", "color", or "size" — used in prompts.
+  const optionsLabel = [hasColors && "color", hasSizes && "size"]
+    .filter(Boolean)
+    .join(" and ");
+
+  const selectColor = (colorId: string) => {
+    setSelectedColorId(colorId);
+    setSelectedSizeId(null);
+    setQuantity(1);
+  };
+  const selectSize = (sizeId: string) => {
+    setSelectedSizeId(sizeId);
+    setQuantity(1);
+  };
+
   const handleAddToCart = () => {
     if (!currentProduct) return;
+    if (needsSelection && !matchedVariant) {
+      toast.error(`Please select a ${optionsLabel}`);
+      return;
+    }
+
+    const matchedColor = matchedVariant ? getColor(matchedVariant) : null;
+    const matchedSize = matchedVariant ? getSize(matchedVariant) : null;
 
     const cartItem: CartItem = {
       productId: currentProduct._id,
@@ -74,7 +161,15 @@ export default function ProductDetails({ productId }: { productId: string }) {
       price: currentProduct.salePrice || currentProduct.price,
       productName: currentProduct.productName,
       productImage: currentProduct.defaultImage.mediaUrl,
-      availableItems: currentProduct.availableItems,
+      availableItems: effectiveAvailable,
+      ...(matchedVariant
+        ? {
+            variantId: matchedVariant._id,
+            colorName: matchedColor?.name,
+            colorHex: matchedColor?.hex,
+            sizeNumber: matchedSize?.number,
+          }
+        : {}),
     };
 
     addToCart(cartItem);
@@ -82,6 +177,13 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
   const handleBuyNow = () => {
     if (!currentProduct) return;
+    if (needsSelection && !matchedVariant) {
+      toast.error(`Please select a ${optionsLabel}`);
+      return;
+    }
+
+    const matchedColor = matchedVariant ? getColor(matchedVariant) : null;
+    const matchedSize = matchedVariant ? getSize(matchedVariant) : null;
 
     const cartItem: CartItem = {
       productId: currentProduct._id,
@@ -89,7 +191,15 @@ export default function ProductDetails({ productId }: { productId: string }) {
       price: currentProduct.salePrice || currentProduct.price,
       productName: currentProduct.productName,
       productImage: currentProduct.defaultImage.mediaUrl,
-      availableItems: currentProduct.availableItems ?? 0,
+      availableItems: effectiveAvailable,
+      ...(matchedVariant
+        ? {
+            variantId: matchedVariant._id,
+            colorName: matchedColor?.name,
+            colorHex: matchedColor?.hex,
+            sizeNumber: matchedSize?.number,
+          }
+        : {}),
     };
 
     addToCart(cartItem);
@@ -97,7 +207,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
   };
 
   const incrementQuantity = () => {
-    if (currentProduct && quantity < currentProduct.availableItems) {
+    if (quantity < effectiveAvailable) {
       setQuantity((prev) => prev + 1);
     }
   };
@@ -217,6 +327,81 @@ export default function ProductDetails({ productId }: { productId: string }) {
           )}
         </div>
 
+        {/* Variant selectors */}
+        {needsSelection && (
+          <div className="space-y-4">
+            {/* Colors */}
+            {hasColors && (
+              <div className="space-y-2">
+                <span className="text-ink-muted">
+                  Color
+                  {selectedColorId && (
+                    <span className="ml-1 font-medium text-ink">
+                      :{" "}
+                      {
+                        colorOptions.find((c) => c._id === selectedColorId)
+                          ?.name
+                      }
+                    </span>
+                  )}
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {colorOptions.map((color) => {
+                    const isSelected = color._id === selectedColorId;
+                    return (
+                      <button
+                        key={color._id}
+                        type="button"
+                        onClick={() => selectColor(color._id)}
+                        title={color.name}
+                        aria-label={color.name}
+                        aria-pressed={isSelected}
+                        className={cn(
+                          "relative h-9 w-9 rounded-full border transition-transform duration-150 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                          isSelected
+                            ? "border-primary ring-2 ring-primary ring-offset-1 ring-offset-surface"
+                            : "border-hairline"
+                        )}
+                        style={{ backgroundColor: color.hex }}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Sizes */}
+            {hasSizes && (!hasColors || selectedColorId) && (
+              <div className="space-y-2">
+                <span className="text-ink-muted">Size</span>
+                <div className="flex flex-wrap gap-2">
+                  {sizeOptions.map(({ size, availableItems }) => {
+                    const isSelected = size._id === selectedSizeId;
+                    const isOut = availableItems <= 0;
+                    return (
+                      <button
+                        key={size._id}
+                        type="button"
+                        disabled={isOut}
+                        onClick={() => selectSize(size._id)}
+                        aria-pressed={isSelected}
+                        className={cn(
+                          "min-w-[2.75rem] px-3 py-2 rounded-md border text-sm transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40 disabled:line-through disabled:cursor-not-allowed",
+                          isSelected
+                            ? "border-primary bg-primary text-on-primary"
+                            : "border-hairline bg-surface text-ink hover:bg-surface-muted"
+                        )}
+                      >
+                        {size.number}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Quantity Selector */}
         <div className="flex items-center space-x-4">
           <span className="text-ink-muted">Quantity:</span>
@@ -231,9 +416,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
             <span
               className={cn(
                 "px-4 py-1 border-x border-hairline tabular-nums",
-                quantity >= currentProduct.availableItems
-                  ? "text-ink-muted"
-                  : "text-ink"
+                quantity >= effectiveAvailable ? "text-ink-muted" : "text-ink"
               )}
             >
               {quantity}
@@ -242,7 +425,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
               onClick={incrementQuantity}
               aria-label="Increase quantity"
               className="px-3 py-1 text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              disabled={quantity >= currentProduct.availableItems}
+              disabled={quantity >= effectiveAvailable}
             >
               +
             </button>
@@ -252,8 +435,10 @@ export default function ProductDetails({ productId }: { productId: string }) {
         <div className="flex items-center justify-between">
           <p className="text-ink-muted">
             Availability:{" "}
-            {currentProduct.availableItems > 0
-              ? `${currentProduct.availableItems} in stock`
+            {needsSelection && !matchedVariant
+              ? "Select a color and size"
+              : effectiveAvailable > 0
+              ? `${effectiveAvailable} in stock`
               : "Out of Stock"}
           </p>
 
@@ -274,7 +459,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
           </button>
         </div>
 
-        {currentProduct.availableItems === 0 && (
+        {productSoldOut && (
           <div className="rounded-lg border border-hairline bg-surface-muted p-4 text-center">
             <p className="text-ink-muted">
               This product is currently sold out. Add it to your wishlist to be
@@ -286,22 +471,30 @@ export default function ProductDetails({ productId }: { productId: string }) {
         <div className="flex flex-col">
           <button
             onClick={handleAddToCart}
-            disabled={currentProduct.availableItems === 0}
+            disabled={!canPurchase}
             className="mb-3 flex w-full items-center justify-center space-x-2 rounded-full bg-primary py-3 px-4 text-on-primary shadow-card transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ShoppingBagIcon className="w-5 h-5" />
             <span>
-              {currentProduct.availableItems === 0 ? "Sold Out" : "Add to Cart"}
+              {productSoldOut
+                ? "Sold Out"
+                : needsSelection && !matchedVariant
+                ? "Select Options"
+                : "Add to Cart"}
             </span>
           </button>
 
           <button
             onClick={handleBuyNow}
-            disabled={currentProduct.availableItems === 0}
+            disabled={!canPurchase}
             className="flex w-full items-center justify-center space-x-2 rounded-full border border-hairline bg-surface py-3 px-4 text-ink transition-colors duration-200 hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
           >
             <span>
-              {currentProduct.availableItems === 0 ? "Sold Out" : "Buy Now"}
+              {productSoldOut
+                ? "Sold Out"
+                : needsSelection && !matchedVariant
+                ? "Select Options"
+                : "Buy Now"}
             </span>
           </button>
         </div>

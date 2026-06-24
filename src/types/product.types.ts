@@ -11,6 +11,27 @@ export interface ProductCategory {
   slug?: string;
 }
 
+export interface VariantColor {
+  _id: string;
+  name: string;
+  hex: string;
+}
+
+export interface VariantSize {
+  _id: string;
+  number: string;
+  order: number;
+}
+
+export interface ProductVariant {
+  _id: string;
+  product?: string;
+  /** Populated object on the public single-product endpoint; id string elsewhere. */
+  color: VariantColor | string;
+  size: VariantSize | string;
+  availableItems: number;
+}
+
 export interface Product {
   _id: string;
   productName: string;
@@ -30,6 +51,7 @@ export interface Product {
   category?: ProductCategory;
   defaultImage: Media;
   albumImages?: Media[];
+  variants?: ProductVariant[];
   createdAt?: string;
   updatedAt?: string;
 }

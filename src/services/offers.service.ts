@@ -3,22 +3,29 @@ import api from "@/lib/axios";
 import {
   CreateOfferDto,
   UpdateOfferDto,
+  Offer,
   OfferResponse,
   OffersResponse,
   OffersQuery,
   PublicOffersResponse,
 } from "@/types/offer.types";
 
-// Public, unauthed instance for the storefront (matches the other public services).
-const publicAxios = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL });
+// Public, unauthed instance (mirrors home.service.ts). Keeps a non-2xx response
+// from tripping the shared interceptor that clears a logged-in customer's token.
+const publicApi = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL });
 
 export const offersService = {
-  // Active storefront offers (cart incentives + flash sale). Public, no auth.
-  async getActiveOffers(limit = 6): Promise<PublicOffersResponse> {
-    const response = await publicAxios.get<PublicOffersResponse>(
-      `/public/offers?limit=${limit}`
-    );
-    return response.data;
+  // Storefront-facing: live offers for the homepage (promo banner + ways-to-save).
+  // Returns [] on any failure so callers can fall back gracefully.
+  async getActiveOffers(limit = 6): Promise<Offer[]> {
+    try {
+      const response = await publicApi.get<PublicOffersResponse>(
+        `/public/offers?limit=${limit}`
+      );
+      return response.data?.data?.offers ?? [];
+    } catch {
+      return [];
+    }
   },
 
   async getOffers(query: OffersQuery = {}): Promise<OffersResponse> {

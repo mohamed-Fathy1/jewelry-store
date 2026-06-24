@@ -77,7 +77,6 @@ const emptyForm = {
   price: "",
   salePrice: "",
   wholesalePrice: "",
-  availableItems: "",
   categoryId: "",
   defaultImage: "",
   isBestSeller: false,
@@ -136,8 +135,6 @@ export default function ProductModal({
           salePrice: data.salePrice != null ? String(data.salePrice) : "",
           wholesalePrice:
             data.wholesalePrice != null ? String(data.wholesalePrice) : "",
-          availableItems:
-            data.availableItems != null ? String(data.availableItems) : "",
           categoryId: idOf(data.category),
           defaultImage: data.defaultImage?.mediaUrl || "",
           isBestSeller: data.isBestSeller ?? false,
@@ -237,15 +234,22 @@ export default function ProductModal({
       return;
     }
 
-    // Only keep fully-specified variant rows.
+    // A variant row counts once it has a stock value. Color and size are optional
+    // (a simple product is a single row with neither). Empty color/size are sent
+    // as null so the backend stores them as null rather than failing an id cast.
     const variantPayload: VariantInput[] = variants
-      .filter((v) => v.color && v.size)
+      .filter((v) => v.availableItems !== "")
       .map((v) => ({
         ...(v._id ? { _id: v._id } : {}),
-        color: v.color,
-        size: v.size,
+        color: v.color || null,
+        size: v.size || null,
         availableItems: parseInt(v.availableItems || "0", 10),
       }));
+
+    if (variantPayload.length === 0) {
+      toast.error("Add at least one variant with a stock quantity");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -253,14 +257,13 @@ export default function ProductModal({
         productName: formData.productName,
         productDescription: formData.productDescription,
         price,
-        availableItems: parseInt(formData.availableItems || "0", 10),
         categoryId: formData.categoryId,
         defaultImage: formData.defaultImage,
         salePrice,
         wholesalePrice,
         albumImages: albumImages.map((url) => url.trim()).filter(Boolean),
         isBestSeller: formData.isBestSeller,
-        ...(variantPayload.length ? { variants: variantPayload } : {}),
+        variants: variantPayload,
       };
 
       if (product) {
@@ -339,36 +342,23 @@ export default function ProductModal({
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelClass}>Category</label>
-                    <Select
-                      ariaLabel="Category"
-                      value={formData.categoryId}
-                      onChange={(value) => setField("categoryId", value)}
-                      placeholder="Select a category"
-                      searchable
-                      className="mt-1"
-                      options={categories.map((category) => ({
-                        value: category._id,
-                        label: category.categoryName,
-                      }))}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Available Items</label>
-                    <input
-                      type="number"
-                      value={formData.availableItems}
-                      onChange={(e) =>
-                        setField("availableItems", e.target.value)
-                      }
-                      placeholder="0"
-                      className={inputClass}
-                      required
-                    />
-                  </div>
+                <div>
+                  <label className={labelClass}>Category</label>
+                  <Select
+                    ariaLabel="Category"
+                    value={formData.categoryId}
+                    onChange={(value) => setField("categoryId", value)}
+                    placeholder="Select a category"
+                    searchable
+                    className="mt-1"
+                    options={categories.map((category) => ({
+                      value: category._id,
+                      label: category.categoryName,
+                    }))}
+                  />
                 </div>
+                {/* Stock lives on the variants below — there is no product-level
+                    quantity field. The product total is the sum of its variants. */}
 
                 <div className="flex items-center justify-between rounded-md border border-admin-hairline px-3 py-2.5">
                   <div>

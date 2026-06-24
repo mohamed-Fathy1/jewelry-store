@@ -53,8 +53,9 @@ export interface AdminProduct {
 
 export interface VariantInput {
   _id?: string;
-  color: string;
-  size: string;
+  /** Optional: a simple product is one variant with neither color nor size. */
+  color?: string | null;
+  size?: string | null;
   availableItems: number;
 }
 
@@ -62,14 +63,14 @@ export interface CreateProductDto {
   productName: string;
   productDescription: string;
   price: number;
-  availableItems: number;
   categoryId: string;
   defaultImage: string;
   salePrice?: number;
   albumImages?: string[];
   wholesalePrice?: number;
   isBestSeller?: boolean;
-  variants?: VariantInput[];
+  /** Stock is owned by the variants; every product has at least one. */
+  variants: VariantInput[];
 }
 
 export type UpdateProductDto = Partial<CreateProductDto>;

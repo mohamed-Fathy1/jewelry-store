@@ -3,7 +3,12 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { XMarkIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import {
+  XMarkIcon,
+  ChevronRightIcon,
+  ClipboardDocumentListIcon,
+  UserIcon,
+} from "@heroicons/react/24/outline";
 import { FaWhatsapp, FaInstagram } from "react-icons/fa";
 import { useCategory } from "@/contexts/CategoryContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -121,6 +126,34 @@ export default function NavDrawer({ isOpen, onClose }: NavDrawerProps) {
                     On orders delivered across Egypt
                   </p>
                 </div>
+              </div>
+
+              {/* Account shortcuts */}
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <Link
+                  href={isAuthenticated ? "/account?tab=orders" : "/auth/login"}
+                  onClick={onClose}
+                  className="group flex items-center gap-3 rounded-2xl border border-hairline bg-surface px-4 py-3.5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface-muted text-heading ring-1 ring-hairline transition-colors group-hover:bg-accent-soft group-hover:ring-accent">
+                    <ClipboardDocumentListIcon className="h-5 w-5" />
+                  </span>
+                  <span className="block text-sm font-medium text-ink">
+                    My Orders
+                  </span>
+                </Link>
+                <Link
+                  href={isAuthenticated ? "/account?tab=profile" : "/auth/login"}
+                  onClick={onClose}
+                  className="group flex items-center gap-3 rounded-2xl border border-hairline bg-surface px-4 py-3.5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface-muted text-heading ring-1 ring-hairline transition-colors group-hover:bg-accent-soft group-hover:ring-accent">
+                    <UserIcon className="h-5 w-5" />
+                  </span>
+                  <span className="block text-sm font-medium text-ink">
+                    Profile
+                  </span>
+                </Link>
               </div>
 
               {/* Highlights */}

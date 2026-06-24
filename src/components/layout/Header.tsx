@@ -10,7 +10,6 @@ import {
   ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { usePathname, useRouter } from "next/navigation";
-import Image from "next/image";
 import { cn } from "@/lib/cn";
 import Search from "./Search";
 import NavDrawer from "./NavDrawer";
@@ -96,9 +95,6 @@ export default function Header() {
                   aria-expanded={isMenuOpen}
                 >
                   <Bars3Icon className="h-6 w-6" />
-                  <span className="hidden text-[13px] tracking-wide text-ink-muted lg:inline">
-                    Menu
-                  </span>
                 </button>
 
                 <Link
@@ -106,14 +102,9 @@ export default function Header() {
                   aria-label="A to Z Accessories — home"
                   className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
-                  <Image
-                    src="/logo.jpg"
-                    alt="A to Z Accessories"
-                    width={60}
-                    height={60}
-                    className="h-9 w-auto"
-                    priority
-                  />
+                  <span className="font-display text-xl tracking-wide text-heading">
+                    A to Z
+                  </span>
                 </Link>
               </div>
 

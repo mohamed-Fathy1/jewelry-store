@@ -24,12 +24,10 @@ export default function WaysToSave() {
     let active = true;
     (async () => {
       try {
-        const res = await offersService.getActiveOffers(6);
-        if (active && res?.success) {
+        const list = await offersService.getActiveOffers(6);
+        if (active) {
           // Flash sale has its own band; show the cart incentives here.
-          setOffers(
-            (res.data.offers || []).filter((o) => o.offerType !== "flash_sale")
-          );
+          setOffers(list.filter((o) => o.offerType !== "flash_sale"));
         }
       } catch {
         /* silent — section just hides */

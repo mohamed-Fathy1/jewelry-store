@@ -1,7 +1,7 @@
 "use client";
 
 import { useHome } from "@/hooks/useHome";
-import Hero from "@/components/home/Hero";
+import PromoBanner from "@/components/home/PromoBanner";
 import CategoryStrip from "@/components/home/CategoryStrip";
 import FlashSale from "@/components/home/FlashSale";
 import BestSellers from "@/components/home/BestSellers";
@@ -18,7 +18,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <Hero />
+      <PromoBanner />
       <CategoryStrip />
       <FlashSale flashSale={flashSale} />
       <BestSellers products={bestSellers} isLoading={isLoading} />
