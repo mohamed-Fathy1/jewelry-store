@@ -9,62 +9,8 @@ import SmartImage from "@/components/ui/SmartImage";
 import { formatPrice } from "@/utils/format";
 import { format } from "date-fns";
 import { CheckIcon } from "lucide-react";
-
-const getStatusIndex = (status: string) => {
-  const statusFlow = [
-    "under_review",
-    "confirmed",
-    "ordered",
-    "shipped",
-    "delivered",
-  ];
-  return statusFlow.indexOf(status);
-};
-
-const getStatusDisplay = (status: string) => {
-  const statusInfo = {
-    under_review: {
-      label: "Under Review",
-      description: "Order is being reviewed",
-      color: "#FFCDB2",
-    },
-    confirmed: {
-      label: "Confirmed",
-      description: "Order has been confirmed",
-      color: "#D4AF37",
-    },
-    ordered: {
-      label: "Processing",
-      description: "Order is being processed",
-      color: "#8B4513",
-    },
-    shipped: {
-      label: "Shipped",
-      description: "Package is on its way",
-      color: "#6B4423",
-    },
-    delivered: {
-      label: "Delivered",
-      description: "Package has been delivered",
-      color: "#4CAF50",
-    },
-    cancelled: {
-      label: "Cancelled",
-      description: "Order has been cancelled",
-      color: "#DC2626",
-    },
-    deleted: {
-      label: "Deleted",
-      description: "Order has been deleted",
-      color: "#e30505",
-    },
-  };
-  return statusInfo[status] || statusInfo.under_review;
-};
-
-interface Props {
-  params: Promise<{ id: string }>;
-}
+import { Button } from "@/components/ui/Button";
+import { getOrderStatusMeta, getOrderStatusIndex } from "@/utils/orderStatus";
 
 export default function OrderTrackingPage({
   params,
@@ -109,11 +55,21 @@ export default function OrderTrackingPage({
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (!order) return <div>Order not found</div>;
+  if (isLoading)
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-16 text-center text-ink-muted">
+        Loading…
+      </div>
+    );
+  if (!order)
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-16 text-center text-ink-muted">
+        Order not found.
+      </div>
+    );
 
-  const statusInfo = getStatusDisplay(order.status);
-  const currentStep = getStatusIndex(order.status);
+  const statusInfo = getOrderStatusMeta(order.status);
+  const currentStep = getOrderStatusIndex(order.status);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-4 md:py-8">
@@ -129,15 +85,11 @@ export default function OrderTrackingPage({
             </p>
           </div>
           <div className="flex flex-col items-start md:items-end">
-            <div className="text-lg font-semibold mb-1 text-heading tabular-nums">
+            <div className="mb-1 text-lg font-semibold text-heading tabular-nums">
               {formatPrice(order.price)}
             </div>
             <span
-              className="px-3 py-1 rounded-full text-sm font-medium"
-              style={{
-                backgroundColor: statusInfo.color + "20",
-                color: statusInfo.color,
-              }}
+              className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${statusInfo.badgeClass}`}
             >
               {statusInfo.label}
             </span>
@@ -158,11 +110,8 @@ export default function OrderTrackingPage({
               }}
             >
               <div
-                className="h-full transition-all duration-500"
-                style={{
-                  width: `${(currentStep / 4) * 100}%`,
-                  backgroundColor: statusInfo.color,
-                }}
+                className="h-full bg-primary transition-all duration-500"
+                style={{ width: `${(currentStep / 4) * 100}%` }}
               ></div>
             </div>
 
@@ -180,15 +129,11 @@ export default function OrderTrackingPage({
                   className="flex flex-col items-center relative z-10 w-[20%]"
                 >
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 transition-colors ${
+                    className={`mb-2 flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
                       index <= currentStep
-                        ? "text-on-primary"
+                        ? "bg-primary text-on-primary"
                         : "bg-surface-sunken text-ink-subtle"
                     }`}
-                    style={{
-                      backgroundColor:
-                        index <= currentStep ? statusInfo.color : undefined,
-                    }}
                   >
                     {index <= currentStep ? (
                       <CheckIcon className="w-5 h-5" />
@@ -208,12 +153,9 @@ export default function OrderTrackingPage({
         {/* Action Buttons */}
         <div className="flex gap-4">
           {canCancelOrder(order.status) && (
-            <button
-              onClick={handleCancelOrder}
-              className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
+            <Button variant="secondary" onClick={handleCancelOrder}>
               Cancel Order
-            </button>
+            </Button>
           )}
         </div>
       </div>

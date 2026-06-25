@@ -6,6 +6,8 @@ import Link from "next/link";
 import { orderService } from "@/services/order.service"; // Import the order service
 import toast from "react-hot-toast";
 import { adminService } from "@/services/admin.service";
+import { getOrderStatusMeta } from "@/utils/orderStatus";
+import { Button } from "@/components/ui/Button";
 
 export default function AccountOrders() {
   const [orders, setOrders] = useState<any[]>([]); // State to hold orders
@@ -30,21 +32,6 @@ export default function AccountOrders() {
 
     fetchOrders();
   }, []);
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "delivered":
-        return "bg-green-100 text-green-800";
-      case "processing":
-        return "bg-blue-100 text-blue-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      case "confirmed":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-surface-sunken text-ink-muted";
-    }
-  };
 
   const canCancelOrder = (status: string) => {
     // User can only cancel if order is under_review, confirmed, or ordered
@@ -72,7 +59,9 @@ export default function AccountOrders() {
   };
 
   if (loading) {
-    return <div>Loading orders...</div>; // Loading state
+    return (
+      <div className="py-12 text-center text-ink-muted">Loading orders…</div>
+    );
   }
 
   if (orders.length === 0) {
@@ -119,11 +108,11 @@ export default function AccountOrders() {
             </div>
             <div>
               <span
-                className={`px-3 py-1 rounded-full text-sm ${getStatusColor(
-                  order.status
-                )}`}
+                className={`inline-flex rounded-full px-3 py-1 text-sm ${
+                  getOrderStatusMeta(order.status).badgeClass
+                }`}
               >
-                {order.status}
+                {getOrderStatusMeta(order.status).label}
               </span>
             </div>
           </div>
@@ -161,12 +150,12 @@ export default function AccountOrders() {
             </Link>
 
             {canCancelOrder(order.status) && (
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => handleCancelOrder(order._id)}
-                className="rounded-full border border-hairline bg-surface px-6 py-2.5 text-sm font-medium text-ink transition-colors hover:border-hairline-strong hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 Cancel Order
-              </button>
+              </Button>
             )}
           </div>
         </div>

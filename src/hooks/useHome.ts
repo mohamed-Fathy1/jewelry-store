@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { homeService } from "@/services/home.service";
 import { HomeData } from "@/types/home.types";
 
-const EMPTY: HomeData = { bestSellers: [], onSale: [], flashSale: null };
+const EMPTY: HomeData = { bestSellers: [], onSale: [], flashSale: [] };
 
 /**
  * Fetches the aggregated /home payload exactly once. Call this ONCE on the
@@ -22,10 +22,12 @@ export function useHome() {
       try {
         const res = await homeService.getHome();
         if (active && res?.success) {
+          // /home returns an array of flash sales; tolerate a legacy single object.
+          const fs = (res.data as { flashSale?: unknown }).flashSale;
           setData({
             bestSellers: res.data.bestSellers ?? [],
             onSale: res.data.onSale ?? [],
-            flashSale: res.data.flashSale ?? null,
+            flashSale: Array.isArray(fs) ? fs : fs ? [fs as never] : [],
           });
         }
       } catch (err) {

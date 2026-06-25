@@ -196,7 +196,7 @@ export default function NavDrawer({ isOpen, onClose }: NavDrawerProps) {
                         <Link
                           href={`/shop?categoryId=${category._id}`}
                           onClick={onClose}
-                          className="group flex items-center gap-3.5 rounded-xl px-2 py-2.5 transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:bg-surface-muted"
+                          className="group flex items-center gap-3.5 rounded-xl px-2 py-2.5 transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                         >
                           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface-muted text-heading ring-1 ring-hairline transition-colors group-hover:bg-accent-soft group-hover:ring-accent [&_svg]:h-5 [&_svg]:w-5">
                             {icon ? (
@@ -226,7 +226,7 @@ export default function NavDrawer({ isOpen, onClose }: NavDrawerProps) {
                       <Link
                         href={p.href}
                         onClick={onClose}
-                        className="block rounded-lg px-2 py-2 text-[15px] text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:bg-surface-muted"
+                        className="block rounded-lg px-2 py-2 text-[15px] text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                       >
                         {p.name}
                       </Link>

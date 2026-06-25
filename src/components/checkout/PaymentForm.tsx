@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
+
 interface PaymentFormData {
   paymentMethod: string;
 }
@@ -41,20 +43,24 @@ export default function PaymentForm({ onSubmit, onBack }: Props) {
           <li>• Cash and digital payments accepted on delivery</li>
         </ul>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <button
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <Button
+            type="button"
+            variant="secondary"
+            size="lg"
             onClick={onBack}
-            className="px-6 py-3 rounded-full border border-hairline bg-surface text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent order-2 sm:order-1"
+            className="order-2 sm:order-1"
           >
             Back to Shipping
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="flex-1 px-6 py-3 rounded-full bg-primary text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent order-1 sm:order-2"
+          </Button>
+          <Button
             type="button"
+            size="lg"
+            onClick={handleSubmit}
+            className="order-1 flex-1 sm:order-2"
           >
             Confirm Order
-          </button>
+          </Button>
         </div>
       </div>
 

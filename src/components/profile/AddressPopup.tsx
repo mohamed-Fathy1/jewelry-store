@@ -10,56 +10,6 @@ import { LucideChevronDown } from "lucide-react";
 import { adminService } from "@/services/admin.service";
 import Joi from "joi";
 
-// Define the governorate enum
-enum Governorate {
-  Fayoum = "Fayoum",
-  Minya = "Minya",
-  Sohag = "Sohag",
-  BeniSuef = "Beni Suef",
-  Assiut = "Assiut",
-  Qena = "Qena",
-  Aswan = "Aswan",
-  Luxor = "Luxor",
-  Qalyubia = "Qalyubia",
-  Dakahlia = "Dakahlia",
-  Monufia = "Monufia",
-  Sharqia = "Sharqia",
-  KafrElSheikh = "Kafr El Sheikh",
-  Beheira = "Beheira",
-  Gharbia = "Gharbia",
-  PortSaid = "Port Said",
-  Suez = "Suez",
-  Ismailia = "Ismailia",
-  Damietta = "Damietta",
-  AlSaf = "Al Saf",
-  AlBadrashein = "Al Badrashein",
-  AlAyat = "Al Ayat",
-  Atfih = "Atfih",
-  Oseem = "Oseem",
-  AbuNomros = "Abu Nomros",
-  Hawamdeya = "Hawamdeya",
-  ElMonib = "El Monib",
-  Tanashe = "Tanashe",
-  ManshaatAlQanater = "Mansha'at Al Qanater",
-  ElBaragil = "El Baragil",
-  Bashteel = "Bashteel",
-  Kerdasa = "Kerdasa",
-  ShubraMant = "Shubra Mant",
-  SaftAlLaban = "Saft Al Laban",
-  AlOmraniya = "Al Omraniya",
-  AlMariouteya = "Al Mariouteya",
-  Cairo = "Cairo",
-  Giza = "Giza",
-  ElShorouk = "El Shorouk",
-  ElMostakbal = "El Mostakbal",
-  ElRehab = "El Rehab",
-  Madinaty = "Madinaty",
-  October = "October",
-  SheikhZayed = "Sheikh Zayed",
-  NewCairo = "New Cairo (El Tagamoat)",
-  Other = "Other",
-}
-
 interface AddressPopupProps {
   isOpen: boolean;
   onClose: () => void;
@@ -121,6 +71,10 @@ const addressSchema = Joi.object({
     }),
 });
 
+const inputClass =
+  "w-full rounded-lg border border-hairline bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-subtle transition-colors focus-visible:outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent";
+const labelClass = "mb-1.5 block text-sm font-medium text-ink";
+
 export default function AddressPopup({
   isOpen,
   onClose,
@@ -158,11 +112,6 @@ export default function AddressPopup({
     }
   }, [address]);
 
-  useEffect(() => {
-    console.log("address", address);
-    console.log("formData", formData);
-  }, [address, formData]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -174,19 +123,14 @@ export default function AddressPopup({
       }
 
       if (address?._id) {
-        console.log("address.Id", address?._id);
-
         if (isDefaultAddress) makeDefault(address._id);
 
         if (!isDefaultAddress && defaultAddressId === address._id) {
-          console.log("yess");
-
           makeDefault(null);
         }
         await userService.updateProfile(formData, address._id);
         toast.success("Address updated successfully");
       } else {
-        console.log("useriD", user._id);
         const res = await userService.addProfile(formData);
         if (isDefaultAddress) makeDefault(res.data.user._id);
         toast.success("Address added successfully");
@@ -203,17 +147,20 @@ export default function AddressPopup({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 my-0! flex items-center justify-center z-50"
-      style={{ margin: "0px" }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-noir/50 p-4 backdrop-blur-sm"
+      onClick={onClose}
     >
-      <div className="bg-white rounded-lg p-6 shadow-lg">
-        <h2 className="text-xl font-medium mb-4">
+      <div
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-6 shadow-card-hover"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="mb-5 font-display text-xl text-heading">
           {address ? "Edit Address" : "Add Address"}
         </h2>
         <form key="address-form" onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block mb-1">First Name</label>
+              <label className={labelClass}>First Name</label>
               <input
                 type="text"
                 placeholder="First Name"
@@ -221,12 +168,12 @@ export default function AddressPopup({
                 onChange={(e) =>
                   setFormData({ ...formData, firstName: e.target.value })
                 }
-                className="border rounded-md p-2 w-full"
+                className={inputClass}
                 required
               />
             </div>
             <div>
-              <label className="block mb-1">Last Name</label>
+              <label className={labelClass}>Last Name</label>
               <input
                 type="text"
                 placeholder="Last Name"
@@ -234,13 +181,13 @@ export default function AddressPopup({
                 onChange={(e) =>
                   setFormData({ ...formData, lastName: e.target.value })
                 }
-                className="border rounded-md p-2 w-full"
+                className={inputClass}
                 required
               />
             </div>
           </div>
           <div>
-            <label className="block mb-1">Street Address</label>
+            <label className={labelClass}>Street Address</label>
             <input
               type="text"
               placeholder="Street Address"
@@ -248,12 +195,12 @@ export default function AddressPopup({
               onChange={(e) =>
                 setFormData({ ...formData, address: e.target.value })
               }
-              className="border rounded-md p-2 w-full"
+              className={inputClass}
               required
             />
           </div>
           <div>
-            <label className="block mb-1">
+            <label className={labelClass}>
               Apartment, Suite, etc. (optional)
             </label>
             <input
@@ -263,29 +210,29 @@ export default function AddressPopup({
               onChange={(e) =>
                 setFormData({ ...formData, apartmentSuite: e.target.value })
               }
-              className="border rounded-md p-2 w-full"
+              className={inputClass}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block mb-1">Governorate</label>
-              <div className="flex justify-between border rounded-md p-2 relative w-full">
+              <label className={labelClass} htmlFor="governorate-select">
+                Governorate
+              </label>
+              <div className="relative flex w-full items-center justify-between gap-2 rounded-lg border border-hairline bg-surface px-3.5 py-2.5 text-sm transition-colors focus-within:border-accent focus-within:ring-2 focus-within:ring-accent">
                 <select
-                  value={
-                    shippingAddress.find((gov) => gov._id === formData.shipping)
-                      ?.category || ""
-                  }
+                  id="governorate-select"
+                  value={formData.shipping || ""}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
                       shipping: e.target.value,
                     })
                   }
-                  className="absolute inset-0 opacity-0 border rounded-md p-2"
+                  className="absolute inset-0 cursor-pointer opacity-0"
                   required
                 >
                   <option value="" disabled>
-                    Select Governorate
+                    Select governorate
                   </option>
                   {shippingAddress.map((gov) => (
                     <option key={gov._id} value={gov._id}>
@@ -293,15 +240,19 @@ export default function AddressPopup({
                     </option>
                   ))}
                 </select>
-                <span>
+                <span
+                  className={
+                    formData.shipping ? "truncate text-ink" : "truncate text-ink-subtle"
+                  }
+                >
                   {shippingAddress.find((gov) => gov._id === formData.shipping)
-                    ?.category || "Governate"}
+                    ?.category || "Select governorate"}
                 </span>
-                <LucideChevronDown />
+                <LucideChevronDown className="h-4 w-4 flex-shrink-0 text-ink-subtle" />
               </div>
             </div>
             <div>
-              <label className="block mb-1">Postal Code (Opt)</label>
+              <label className={labelClass}>Postal Code (Opt)</label>
               <input
                 type="text"
                 placeholder="Postal Code"
@@ -309,13 +260,13 @@ export default function AddressPopup({
                 onChange={(e) =>
                   setFormData({ ...formData, postalCode: e.target.value })
                 }
-                className="border rounded-md p-2 w-full"
+                className={inputClass}
               />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block mb-1">Primary Phone</label>
+              <label className={labelClass}>Primary Phone</label>
               <input
                 type="tel"
                 placeholder="Primary Phone"
@@ -323,12 +274,12 @@ export default function AddressPopup({
                 onChange={(e) =>
                   setFormData({ ...formData, primaryPhone: e.target.value })
                 }
-                className="border rounded-md p-2 w-full"
+                className={inputClass}
                 required
               />
             </div>
             <div>
-              <label className="block mb-1">Secondary Phone (optional)</label>
+              <label className={labelClass}>Secondary Phone (optional)</label>
               <input
                 type="tel"
                 placeholder="Secondary Phone"
@@ -336,24 +287,22 @@ export default function AddressPopup({
                 onChange={(e) =>
                   setFormData({ ...formData, secondaryPhone: e.target.value })
                 }
-                className="border rounded-md p-2 w-full"
+                className={inputClass}
               />
             </div>
           </div>
-          <div className="flex items-center">
-            <div className="flex items-center">
-              <input
-                id="defaultCheckbox"
-                name="default"
-                type="checkbox"
-                checked={isDefaultAddress}
-                onChange={(e) => setIsDefaultAddress((prev) => !prev)}
-                className="mr-2"
-              />
-              <label htmlFor="defaultCheckbox" className="ml-2">
-                Set as default address
-              </label>
-            </div>
+          <div className="flex items-center gap-2">
+            <input
+              id="defaultCheckbox"
+              name="default"
+              type="checkbox"
+              checked={isDefaultAddress}
+              onChange={() => setIsDefaultAddress((prev) => !prev)}
+              className="h-4 w-4 rounded border-hairline accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            />
+            <label htmlFor="defaultCheckbox" className="text-sm text-ink">
+              Set as default address
+            </label>
           </div>
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="secondary" onClick={onClose}>

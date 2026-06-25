@@ -25,11 +25,6 @@ export default function OrderConfirmation({
   selectedAddress,
   shippingData,
 }: Props) {
-  // const orderNumber = `ORD${Math.random()
-  //   .toString(36)
-  //   .substr(2, 9)
-  //   .toUpperCase()}`;
-
   return (
     <div className="text-center space-y-6">
       <CheckCircleIcon className="w-16 h-16 mx-auto text-primary" />
@@ -46,19 +41,19 @@ export default function OrderConfirmation({
       <div className="p-6 rounded-lg bg-surface-muted">
         <div className="space-y-4">
           <div>
-            <h3 className="text-sm font-medium uppercase text-ink-muted">
+            <p className="text-xs font-medium uppercase tracking-[0.12em] text-ink-muted">
               Order Number
-            </h3>
-            <p className="text-lg font-medium text-ink tabular-nums">
+            </p>
+            <p className="mt-1 text-lg font-medium text-ink tabular-nums">
               #{shippingData._id.slice(-8)}
             </p>
           </div>
 
           <div>
-            <h3 className="text-sm font-medium uppercase text-ink-muted">
+            <p className="text-xs font-medium uppercase tracking-[0.12em] text-ink-muted">
               Shipping Address
-            </h3>
-            <p className="text-lg text-ink">
+            </p>
+            <p className="mt-1 text-lg text-ink">
               {selectedAddress.firstName} {selectedAddress.lastName}
               <br />
               {selectedAddress.address && selectedAddress.address}
@@ -73,10 +68,10 @@ export default function OrderConfirmation({
           </div>
 
           <div>
-            <h3 className="text-sm font-medium uppercase text-ink-muted">
+            <p className="text-xs font-medium uppercase tracking-[0.12em] text-ink-muted">
               Payment Method
-            </h3>
-            <p className="text-lg text-ink">Cash on Delivery</p>
+            </p>
+            <p className="mt-1 text-lg text-ink">Cash on Delivery</p>
           </div>
         </div>
       </div>

@@ -36,7 +36,7 @@ export default function ProductReviews() {
                     key={i}
                     className={cn(
                       "h-5 w-5",
-                      i < review.rating ? "text-accent" : "text-hairline"
+                      i < review.rating ? "text-accent" : "text-ink-subtle/40"
                     )}
                   />
                 ))}

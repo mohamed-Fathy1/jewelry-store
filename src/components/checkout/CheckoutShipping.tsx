@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCheckout } from "@/contexts/CheckoutContext";
+import { Button } from "@/components/ui/Button";
 
 interface ShippingRegion {
   _id: string;
@@ -175,20 +176,19 @@ export default function CheckoutShipping({ onSubmit }) {
 
       {/* Email Preferences */}
       <div className="mb-4">
-        <label className="flex items-center space-x-2 text-ink">
-          <input type="checkbox" className="form-checkbox" />
+        <label className="flex items-center gap-2 text-ink">
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded border-hairline accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          />
           <span className="text-sm">Email me with news and offers</span>
         </label>
       </div>
 
-      <div className="w-full sticky md:static bottom-0">
-        <button
-          type="submit"
-          className="w-full py-3 px-4 rounded-full bg-primary text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          onClick={onSubmit}
-        >
+      <div className="sticky bottom-0 w-full md:static">
+        <Button type="submit" size="lg" onClick={onSubmit} className="w-full">
           Continue to Payment
-        </button>
+        </Button>
       </div>
 
       {/* Address Popup */}

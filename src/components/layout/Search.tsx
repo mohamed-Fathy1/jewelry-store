@@ -125,7 +125,7 @@ export default function Search({ isOpen, onClose }: SearchProps) {
                   <Link
                     href={`/product/${product._id}`}
                     onClick={onClose}
-                    className="flex items-center gap-4 rounded-xl p-2.5 transition-colors hover:bg-surface-muted focus-visible:bg-surface-muted focus-visible:outline-none"
+                    className="flex items-center gap-4 rounded-xl p-2.5 transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
                     <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-surface-muted">
                       <SmartImage

@@ -192,6 +192,7 @@ export default function AddressManager({
                 variant="secondary"
                 onClick={() => handleEditAddress(address)}
                 className="p-2"
+                aria-label="Edit address"
               >
                 <PencilIcon className="w-4 h-4" />
               </Button>
@@ -199,6 +200,7 @@ export default function AddressManager({
                 variant="secondary"
                 onClick={() => handleDelete(address._id!)}
                 className="p-2"
+                aria-label="Delete address"
               >
                 <TrashIcon className="w-4 h-4" />
               </Button>

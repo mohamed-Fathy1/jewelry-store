@@ -1,6 +1,7 @@
 import { Product } from "@/types/product.types";
 
 export interface FlashSale {
+  _id?: string;
   title: string;
   description: string;
   discountPercentage: number;
@@ -12,7 +13,8 @@ export interface FlashSale {
 export interface HomeData {
   bestSellers: Product[];
   onSale: Product[];
-  flashSale: FlashSale | null;
+  /** /home now returns every live flash sale (soonest-ending first). */
+  flashSale: FlashSale[];
 }
 
 export interface HomeResponse {

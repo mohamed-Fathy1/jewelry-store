@@ -15,7 +15,9 @@ import {
 } from "lucide-react";
 import { wishlistService } from "@/services/wishlist.service";
 import toast from "react-hot-toast";
+import { useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/cn";
+import { Button } from "@/components/ui/Button";
 import SmartImage from "@/components/ui/SmartImage";
 import { useWishlist } from "@/contexts/WishlistContext";
 import LoadingSpinner from "../../components/LoadingSpinner"; // Import the new loading component
@@ -36,6 +38,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const { currentProduct, getOneProduct, isLoading } = useProduct();
   const { addToCart } = useCart();
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const [selectedImage, setSelectedImage] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
@@ -66,9 +69,10 @@ export default function ProductDetails({ productId }: { productId: string }) {
     checkWishlist();
   }, [currentProduct, wishlist]);
 
-  // Auto-rotate images every 3 seconds if autoPlay is true
+  // Auto-rotate images every 3 seconds if autoPlay is true. Suppressed for
+  // visitors who prefer reduced motion.
   useEffect(() => {
-    if (!autoPlay) return;
+    if (!autoPlay || reduceMotion) return;
 
     sliderRef.current = setInterval(() => {
       setActiveImage((current) =>
@@ -77,7 +81,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
     }, 3000);
 
     return () => clearInterval(sliderRef.current);
-  }, [autoPlay, currentProduct?.albumImages.length]);
+  }, [autoPlay, reduceMotion, currentProduct?.albumImages.length]);
 
   // ─── Variants ──────────────────────────────────────────────────────────────
   // Every product has at least one variant. A "simple" product is a single
@@ -468,11 +472,13 @@ export default function ProductDetails({ productId }: { productId: string }) {
           </div>
         )}
 
-        <div className="flex flex-col">
-          <button
+        <div className="flex flex-col gap-3">
+          <Button
+            variant="primary"
+            size="lg"
             onClick={handleAddToCart}
             disabled={!canPurchase}
-            className="mb-3 flex w-full items-center justify-center space-x-2 rounded-full bg-primary py-3 px-4 text-on-primary shadow-card transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full gap-2"
           >
             <ShoppingBagIcon className="w-5 h-5" />
             <span>
@@ -482,12 +488,14 @@ export default function ProductDetails({ productId }: { productId: string }) {
                 ? "Select Options"
                 : "Add to Cart"}
             </span>
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="secondary"
+            size="lg"
             onClick={handleBuyNow}
             disabled={!canPurchase}
-            className="flex w-full items-center justify-center space-x-2 rounded-full border border-hairline bg-surface py-3 px-4 text-ink transition-colors duration-200 hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full gap-2"
           >
             <span>
               {productSoldOut
@@ -496,7 +504,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
                 ? "Select Options"
                 : "Buy Now"}
             </span>
-          </button>
+          </Button>
         </div>
       </div>
     </div>
