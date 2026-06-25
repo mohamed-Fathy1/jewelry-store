@@ -48,9 +48,11 @@ function ProductCard({
   const { wishlist, toggleWishlist } = useWishlist();
   const reduceMotion = useReducedMotion();
 
+  // Prefer the backend's reliable `isSoldOut` flag (derived from variant stock).
   // /home payloads omit availableItems → treat undefined as in-stock.
   const inStock =
-    product.availableItems === undefined || product.availableItems > 0;
+    !product.isSoldOut &&
+    (product.availableItems === undefined || product.availableItems > 0);
   const liked = wishlist.includes(product._id);
   const hasDiscount = (product.discountPercentage ?? 0) > 0;
   const onSale = !!product.salePrice && product.salePrice > 0;

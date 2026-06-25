@@ -26,9 +26,10 @@ export interface VariantSize {
 export interface ProductVariant {
   _id: string;
   product?: string;
-  /** Populated object on the public single-product endpoint; id string elsewhere. */
-  color: VariantColor | string;
-  size: VariantSize | string;
+  /** Populated object on the public single-product endpoint; id string elsewhere.
+   *  null for a "simple" product — a single variant with no colour/size options. */
+  color?: VariantColor | string | null;
+  size?: VariantSize | string | null;
   availableItems: number;
 }
 

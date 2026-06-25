@@ -104,7 +104,7 @@ export default function AccountWishlist() {
                 fill
                 className="object-cover"
               />
-              {!item.productId.isSale && (
+              {item.productId.isSoldOut && (
                 <div className="absolute inset-0 flex items-center justify-center bg-noir/50">
                   <span className="px-4 py-2 rounded-md text-sm font-medium text-on-primary">
                     Out of Stock
@@ -127,7 +127,7 @@ export default function AccountWishlist() {
               <div className="flex gap-2">
                 <button
                   onClick={() => handleAddToCart(item.productId)}
-                  disabled={!item.productId.isSale}
+                  disabled={item.productId.isSoldOut}
                   className="flex-1 flex items-center justify-center gap-2 rounded-full bg-primary py-2 text-sm font-medium text-on-primary shadow-card transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <ShoppingBagIcon className="w-5 h-5" />
