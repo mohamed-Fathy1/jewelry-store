@@ -1,9 +1,14 @@
 "use client";
 
 import { useCart } from "@/contexts/CartContext";
-import Image from "next/image";
+import SmartImage from "@/components/ui/SmartImage";
 import Link from "next/link";
-import { MinusIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  MinusIcon,
+  PlusIcon,
+  XMarkIcon,
+  ShoppingBagIcon,
+} from "@heroicons/react/24/outline";
 import { formatPrice } from "@/utils/format";
 import { useEffect, useState } from "react";
 import { cartService } from "@/services/cart.service";
@@ -15,14 +20,33 @@ export default function CartPage() {
     useCart();
   const [isCartQuantityChecked, setIsCartQuantityChecked] = useState(false);
   const { authUser } = useAuth();
-  // New function to check available stock
+  // Reconcile cart quantities against live stock. Stock is tracked per VARIANT
+  // (a specific colour+size), so each line is checked against its own variant;
+  // legacy variant-less items fall back to the product-level total.
   const checkAvailableStock = async () => {
-    const productIds = cart.items.map((item) => item.productId); // Assuming each cart item has an 'id'
-    console.log(productIds);
+    const variantIds = cart.items
+      .map((item) => item.variantId)
+      .filter((id): id is string => Boolean(id));
+    const legacyProductIds = cart.items
+      .filter((item) => !item.variantId)
+      .map((item) => item.productId);
 
-    const availableItems = await cartService.checkStockAmount(productIds);
+    const [variantStock, productStock] = await Promise.all([
+      variantIds.length
+        ? cartService.checkVariantStock(variantIds)
+        : Promise.resolve<Record<string, number>>({}),
+      legacyProductIds.length
+        ? cartService.checkStockAmount(legacyProductIds)
+        : Promise.resolve<Record<string, number>>({}),
+    ]);
+
     const updatedCart = cart.items.map((item) => {
-      const availableQuantity = availableItems[item.productId]; // Default to current quantity if not found
+      const availableQuantity = item.variantId
+        ? variantStock[item.variantId]
+        : productStock[item.productId];
+      // Unknown (variant/product not returned) → leave the line untouched
+      // rather than zeroing it on transient/missing data.
+      if (availableQuantity == null) return item;
       if (item.quantity > availableQuantity) {
         // Show message to user
         toast(
@@ -88,13 +112,19 @@ export default function CartPage() {
 
   if (cart.items.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <h1 className="font-display text-3xl mb-8 text-heading">
-          Your Cart is Empty
+      <div className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-4 py-20 text-center">
+        <div className="grid h-20 w-20 place-items-center rounded-full bg-surface-muted text-ink-muted">
+          <ShoppingBagIcon className="h-9 w-9" aria-hidden="true" />
+        </div>
+        <h1 className="mt-8 font-display text-3xl text-heading">
+          Your cart is empty
         </h1>
+        <p className="mt-3 text-base leading-relaxed text-ink-muted">
+          Nothing here yet. Browse the collection and add the pieces you love.
+        </p>
         <Link
           href="/shop"
-          className="inline-block px-8 py-3 rounded-full bg-primary text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="mt-8 inline-block rounded-full bg-primary px-8 py-3 text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           Continue Shopping
         </Link>
@@ -108,21 +138,25 @@ export default function CartPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
-          {cart.items.map((item) => (
+          {cart.items.map((item) => {
+            const lineKey = item.variantId ?? item.productId;
+            return (
             <div
-              key={item.productId}
+              key={lineKey}
               className="flex items-center justify-between space-x-2 md:space-x-4 p-3 md:p-4 rounded-lg border border-hairline bg-surface"
             >
               <Link
                 href={`/product/${item.productId}`}
                 className="flex gap-3 md:gap-5 items-center group"
               >
-                <div className="w-20 h-20 shrink-0 md:w-24 md:h-24 relative rounded-md overflow-hidden">
-                  <Image
+                <div className="w-20 h-20 shrink-0 md:w-24 md:h-24 relative rounded-md overflow-hidden bg-surface-muted">
+                  <SmartImage
                     src={item.productImage}
                     alt={item.productName}
                     fill
+                    sizes="96px"
                     className="object-cover"
+                    fallbackLabel={item.productName?.charAt(0)}
                   />
                 </div>
 
@@ -130,6 +164,13 @@ export default function CartPage() {
                   <h3 className="text-sm md:text-lg font-medium group-hover:underline text-ink">
                     {item.productName}
                   </h3>
+                  {(item.colorName || item.sizeNumber) && (
+                    <p className="text-xs text-ink-muted">
+                      {[item.colorName, item.sizeNumber && `Size ${item.sizeNumber}`]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  )}
                   <p className="text-sm md:text-lg font-semibold text-heading tabular-nums">
                     {formatPrice(item.price)}
                   </p>
@@ -140,7 +181,7 @@ export default function CartPage() {
                 <div className="flex items-center border border-hairline rounded-md">
                   <button
                     onClick={() =>
-                      updateQuantity(item.productId, item.quantity - 1)
+                      updateQuantity(lineKey, item.quantity - 1)
                     }
                     aria-label={`Decrease quantity of ${item.productName}`}
                     className="p-2 transition-colors text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
@@ -152,7 +193,7 @@ export default function CartPage() {
                   </span>
                   <button
                     onClick={() =>
-                      updateQuantity(item.productId, item.quantity + 1)
+                      updateQuantity(lineKey, item.quantity + 1)
                     }
                     aria-label={`Increase quantity of ${item.productName}`}
                     className="p-2 transition-colors text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
@@ -163,7 +204,7 @@ export default function CartPage() {
                 </div>
 
                 <button
-                  onClick={() => removeFromCart(item.productId)}
+                  onClick={() => removeFromCart(lineKey)}
                   aria-label={`Remove ${item.productName} from cart`}
                   className="md:p-2 rounded-md transition-colors text-ink-muted hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
@@ -171,7 +212,8 @@ export default function CartPage() {
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
 
           <button
             onClick={clearCart}

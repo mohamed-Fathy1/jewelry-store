@@ -27,6 +27,14 @@ export const orderService = {
     } catch (error) {
       toast.error("Failed to fetch orders");
       console.error("Error fetching user orders:", error);
+      // Always return a well-formed response so callers can read
+      // `result.success`/`result.data.orders` without a null-check crash.
+      return {
+        statusCode: 500,
+        data: { orders: [] },
+        message: "Failed to fetch orders",
+        success: false,
+      };
     }
   },
 };

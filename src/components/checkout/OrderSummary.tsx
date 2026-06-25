@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import SmartImage from "@/components/ui/SmartImage";
 import { useCart } from "@/contexts/CartContext";
 
 export default function OrderSummary({
@@ -22,19 +22,28 @@ export default function OrderSummary({
     0
   );
 
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+
   const hasPreview = !!preview;
-  const subtotal = hasPreview ? preview.subTotal : lineItemsSubtotal;
-  const discount = hasPreview ? preview.discount : 0;
+  const flashSaved = preview?.flashSale?.savedAmount ?? 0;
+  const discount = hasPreview ? preview.discount ?? 0 : 0;
   const freeShipping = hasPreview ? preview.freeShipping : false;
-  const shippingCost = hasPreview ? preview.shippingCost : null;
+  const shippingCost = hasPreview ? preview.shippingCost ?? 0 : null;
   const finalTotal = hasPreview ? preview.totalAmount : lineItemsSubtotal;
   const appliedOffer = preview?.appliedOffer ?? null;
   const flashOffers = preview?.flashSale?.offers ?? [];
 
-  // Original total (before any saving) for the strike-through comparison.
-  const originalTotal = subtotal + (shippingCost ?? 0);
-  const hasSaving =
-    hasPreview && (discount > 0 || freeShipping) && finalTotal < originalTotal;
+  // The backend `subTotal` is already flash-discounted, and
+  // total = subTotal − discount + shipping. Add the flash savings back so the
+  // "Flash sale" and "Discount" deduction lines reconcile to the Total (and
+  // match the listed item prices, which are pre-flash).
+  const subtotal = hasPreview
+    ? round2(preview.subTotal + flashSaved)
+    : lineItemsSubtotal;
+  // Original total (no offers, full shipping) for the strike-through comparison.
+  const originalTotal = round2(subtotal + (shippingCost ?? 0));
+  const totalSaved = hasPreview ? round2(originalTotal - finalTotal) : 0;
+  const hasSaving = totalSaved > 0;
 
   return (
     <div className="rounded-lg p-6 bg-surface-muted">
@@ -43,20 +52,28 @@ export default function OrderSummary({
       {/* Cart Items */}
       <div className="space-y-4 mb-6">
         {cartData.map((item) => (
-          <div key={item.productId} className="flex gap-4">
-            <div className="w-20 h-20 flex-shrink-0">
-              <Image
+          <div key={item.variantId ?? item.productId} className="flex gap-4">
+            <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-md bg-surface-muted">
+              <SmartImage
                 src={item.productImage}
                 alt={item.productName}
-                width={80}
-                height={80}
-                className="w-full h-full object-cover rounded-md"
+                fill
+                sizes="80px"
+                className="object-cover"
+                fallbackLabel={item.productName?.charAt(0)}
               />
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-medium text-ink">
                 {item.productName}
               </h3>
+              {(item.colorName || item.sizeNumber) && (
+                <p className="mt-0.5 text-xs text-ink-muted">
+                  {[item.colorName, item.sizeNumber && `Size ${item.sizeNumber}`]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              )}
               <div className="flex justify-between mt-1">
                 <p className="text-sm text-ink-muted tabular-nums">
                   Qty: {item.quantity}
@@ -70,7 +87,7 @@ export default function OrderSummary({
         ))}
       </div>
 
-      {/* Price Breakdown */}
+      {/* Price Breakdown — lines reconcile to Total: subtotal − flash − discount + shipping */}
       <div className="space-y-3 pt-6 border-t border-hairline">
         <div className="flex justify-between">
           <span className="text-ink-muted">Subtotal</span>
@@ -79,9 +96,32 @@ export default function OrderSummary({
           </span>
         </div>
 
+        {flashSaved > 0 && (
+          <div className="flex justify-between">
+            <span className="text-accent">
+              Flash sale
+              {flashOffers[0]?.title ? ` · ${flashOffers[0].title}` : ""}
+            </span>
+            <span className="text-accent tabular-nums">
+              −EGP {flashSaved.toFixed(2)}
+            </span>
+          </div>
+        )}
+
+        {discount > 0 && (
+          <div className="flex justify-between">
+            <span className="text-accent">
+              Discount{appliedOffer?.title ? ` · ${appliedOffer.title}` : ""}
+            </span>
+            <span className="text-accent tabular-nums">
+              −EGP {discount.toFixed(2)}
+            </span>
+          </div>
+        )}
+
         <div className="flex justify-between">
           <span className="text-ink-muted">Shipping</span>
-          <div>
+          <div className="text-right">
             {!hasPreview ? (
               <span className="text-ink-muted">
                 {previewLoading ? "Calculating…" : "Calculated at checkout"}
@@ -89,11 +129,11 @@ export default function OrderSummary({
             ) : freeShipping ? (
               <>
                 {shippingCost ? (
-                  <span className="text-ink tabular-nums line-through">
+                  <span className="mr-2 text-ink-muted tabular-nums line-through">
                     EGP {shippingCost.toFixed(2)}
                   </span>
                 ) : null}
-                <span className="text-accent"> Free</span>
+                <span className="text-accent">Free</span>
               </>
             ) : (
               <span className="text-ink tabular-nums">
@@ -103,36 +143,16 @@ export default function OrderSummary({
           </div>
         </div>
 
-        {discount > 0 && (
-          <div className="flex justify-between">
-            <span className="text-accent">
-              Discount{appliedOffer?.title ? ` (${appliedOffer.title})` : ""}
-            </span>
-            <span className="text-accent tabular-nums">
-              -EGP {discount.toFixed(2)}
-            </span>
-          </div>
-        )}
-
-        {flashOffers.length > 0 && (
-          <div className="flex justify-between">
-            <span className="text-accent">Flash sale</span>
-            <span className="text-accent tabular-nums">
-              -EGP {(preview?.flashSale?.savedAmount ?? 0).toFixed(2)}
-            </span>
-          </div>
-        )}
-
-        <div className="flex justify-between pt-3 font-medium border-t border-hairline">
+        <div className="flex items-baseline justify-between pt-3 font-medium border-t border-hairline">
           <span className="text-ink">Total</span>
-          <span className="text-ink">
+          <span className="flex items-baseline gap-2.5">
             {hasSaving ? (
-              <span className="line-through tabular-nums">
+              <span className="text-sm text-ink-muted line-through tabular-nums">
                 EGP {originalTotal.toFixed(2)}
               </span>
             ) : null}
             <span
-              className={`ml-2.5 tabular-nums ${
+              className={`tabular-nums ${
                 hasSaving ? "text-accent" : "text-ink"
               }`}
             >
@@ -140,6 +160,12 @@ export default function OrderSummary({
             </span>
           </span>
         </div>
+
+        {hasSaving && (
+          <p className="text-right text-sm text-accent">
+            You saved EGP {totalSaved.toFixed(2)}
+          </p>
+        )}
       </div>
 
       {/* Secure Checkout Notice */}

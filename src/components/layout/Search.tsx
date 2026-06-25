@@ -63,9 +63,13 @@ export default function Search({ isOpen, onClose }: SearchProps) {
     document.addEventListener("keydown", onKey);
     document.addEventListener("mousedown", onClick);
     const t = setTimeout(() => inputRef.current?.focus(), 50);
+    // Lock background scroll while the modal is open (matches NavDrawer).
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("mousedown", onClick);
+      document.body.style.overflow = prevOverflow;
       clearTimeout(t);
     };
   }, [isOpen, onClose]);

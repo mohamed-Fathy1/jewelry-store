@@ -2,12 +2,14 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   XMarkIcon,
   ChevronRightIcon,
   ClipboardDocumentListIcon,
   UserIcon,
+  ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { FaWhatsapp, FaInstagram } from "react-icons/fa";
 import { useCategory } from "@/contexts/CategoryContext";
@@ -46,8 +48,19 @@ function Svg({ markup, className }: { markup: string; className?: string }) {
 
 export default function NavDrawer({ isOpen, onClose }: NavDrawerProps) {
   const { categories, getAllCategories } = useCategory();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const reduce = useReducedMotion();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      onClose();
+      await logout();
+      router.push("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) getAllCategories();
@@ -232,6 +245,18 @@ export default function NavDrawer({ isOpen, onClose }: NavDrawerProps) {
                       </Link>
                     </li>
                   ))}
+                  {isAuthenticated && (
+                    <li>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[15px] text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      >
+                        <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                        Sign out
+                      </button>
+                    </li>
+                  )}
                 </ul>
               </div>
             </div>

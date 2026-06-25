@@ -18,7 +18,7 @@ export default function AccountOrders() {
       try {
         const result = await orderService.getUserOrders();
         if (result.success) {
-          setOrders(result.data.orders); // Set orders from the response
+          setOrders(result.data.orders ?? []); // Set orders from the response
         } else {
           toast.error(result.message);
           console.error("Failed to fetch orders:", result.message);
@@ -64,7 +64,7 @@ export default function AccountOrders() {
     );
   }
 
-  if (orders.length === 0) {
+  if (!orders?.length) {
     return (
       <div className="text-center py-12">
         <h2 className="font-display text-lg text-heading">No Orders Found</h2>

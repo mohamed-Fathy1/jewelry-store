@@ -481,13 +481,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
             className="w-full gap-2"
           >
             <ShoppingBagIcon className="w-5 h-5" />
-            <span>
-              {productSoldOut
-                ? "Sold Out"
-                : needsSelection && !matchedVariant
-                ? "Select Options"
-                : "Add to Cart"}
-            </span>
+            <span>{productSoldOut ? "Sold Out" : "Add to Cart"}</span>
           </Button>
 
           <Button
@@ -497,13 +491,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
             disabled={!canPurchase}
             className="w-full gap-2"
           >
-            <span>
-              {productSoldOut
-                ? "Sold Out"
-                : needsSelection && !matchedVariant
-                ? "Select Options"
-                : "Buy Now"}
-            </span>
+            <span>{productSoldOut ? "Sold Out" : "Buy Now"}</span>
           </Button>
         </div>
       </div>

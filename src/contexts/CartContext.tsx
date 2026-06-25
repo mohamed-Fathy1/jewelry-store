@@ -34,32 +34,34 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
+  // A cart line is identified by its variant (a specific colour+size); only
+  // variant-less products fall back to the productId. This keeps two variants of
+  // the same product as separate lines instead of colliding, and is the key
+  // remove/updateQuantity operate on.
+  const lineKey = (item: CartItem) => item.variantId ?? item.productId;
+
   const addToCart = (newItem: CartItem) => {
     setCart((prevCart) => {
       const existingItemIndex = prevCart.items.findIndex(
-        (item) => item.productId === newItem.productId
+        (item) => lineKey(item) === lineKey(newItem)
       );
 
       let updatedItems;
       if (existingItemIndex >= 0) {
-        // if item out of stock
-        if (
-          prevCart.items.find((item) => item.productId === newItem.productId)
-            .quantity +
-            newItem.quantity >
-          newItem.availableItems
-        ) {
+        const existing = prevCart.items[existingItemIndex];
+        // Reject if the combined quantity would exceed this variant's stock.
+        if (existing.quantity + newItem.quantity > newItem.availableItems) {
           toast.error("Item Out of Stock");
           return prevCart;
         }
-        // Update quantity if item exists
+        // Update quantity if the line exists
         updatedItems = prevCart.items.map((item, index) =>
           index === existingItemIndex
             ? { ...item, quantity: item.quantity + newItem.quantity }
             : item
         );
       } else {
-        // Add new item
+        // Add new line
         updatedItems = [...prevCart.items, newItem];
       }
 
@@ -73,10 +75,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const removeFromCart = (productId: string) => {
+  // `key` is a line key (variantId ?? productId), matching addToCart's identity.
+  const removeFromCart = (key: string) => {
     setCart((prevCart) => {
       const updatedItems = prevCart.items.filter(
-        (item) => item.productId !== productId
+        (item) => lineKey(item) !== key
       );
       const newTotal = calculateTotal(updatedItems);
       toast.success("Removed from cart");
@@ -88,15 +91,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (key: string, quantity: number) => {
     if (quantity < 1) {
-      removeFromCart(productId);
+      removeFromCart(key);
       return;
     }
 
     setCart((prevCart) => {
       const updatedItems = prevCart.items.map((item) =>
-        item.productId === productId ? { ...item, quantity } : item
+        lineKey(item) === key ? { ...item, quantity } : item
       );
       const newTotal = calculateTotal(updatedItems);
 

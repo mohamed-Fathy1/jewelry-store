@@ -45,10 +45,24 @@ export const cartService = {
     return response.data;
   },
 
-  async checkStockAmount(productIds) {
+  // Product-level totals (sum across variants) — for legacy variant-less items.
+  async checkStockAmount(productIds): Promise<Record<string, number>> {
     const response = await axiosInstance.post("/products/available-items", {
       products: productIds,
     });
+    return response.data;
+  },
+
+  // Per-variant availability → { [variantId]: availableItems }. The cart
+  // validates each line against its exact color+size variant, not the
+  // product-level total.
+  async checkVariantStock(
+    variantIds: string[]
+  ): Promise<Record<string, number>> {
+    const response = await axiosInstance.post(
+      "/products/variants-availability",
+      { variantIds }
+    );
     return response.data;
   },
 };

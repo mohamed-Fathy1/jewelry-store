@@ -7,14 +7,12 @@ import {
   UserIcon,
   MagnifyingGlassIcon as SearchIcon,
   Bars3Icon,
-  ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import Search from "./Search";
 import NavDrawer from "./NavDrawer";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUser } from "@/contexts/UserContext";
 import { useCart } from "@/contexts/CartContext";
 import AnnouncementBar from "./AnnouncementBar";
 
@@ -23,9 +21,7 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { authUser, isAuthenticated, logout } = useAuth();
-  const { user } = useUser();
-  const { isLoading } = useUser();
+  const { authUser, isAuthenticated } = useAuth();
   const { cart } = useCart();
   const [isClient, setIsClient] = useState(false);
 
@@ -58,15 +54,6 @@ export default function Header() {
     { name: "About", href: "/about" },
     { name: "Exchange Policy", href: "/exchange-policy" },
   ];
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      router.push("/");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
 
   const navLinkClass = (item: (typeof navigation)[number]) =>
     cn(
@@ -156,123 +143,33 @@ export default function Header() {
                   )}
                 </Link>
 
-                {/* Account dropdown */}
-                <div className="group relative">
-                  <button
-                    className="flex items-center rounded-full p-1 text-ink-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                    aria-label={isAuthenticated ? "Account menu" : "Sign in"}
-                  >
-                    {isAuthenticated ? (
-                      <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/10 text-sm font-medium text-primary">
-                        {authUser?.email?.charAt(0).toUpperCase()}
-                      </span>
-                    ) : (
-                      <UserIcon className="h-[22px] w-[22px]" />
-                    )}
-                  </button>
-
-                  <div className="invisible absolute right-0 pt-3 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                    <div className="w-60 overflow-hidden rounded-xl border border-hairline bg-surface shadow-card-hover">
-                      <div className="border-b border-hairline bg-surface-muted/60 px-4 py-3">
-                        <p className="truncate text-sm font-medium text-ink">
-                          {isAuthenticated && Array.isArray(user)
-                            ? `Welcome, ${
-                                user[0]?.firstName
-                                  ? `${user[0]?.firstName} ${user[0]?.lastName}`
-                                  : authUser?.email
-                              }`
-                            : "Welcome"}
-                        </p>
-                        {!isAuthenticated ? (
-                          <p className="mt-0.5 text-xs text-ink-muted">
-                            Sign in to track your orders
-                          </p>
-                        ) : null}
-                      </div>
-
-                      <div className="py-1.5">
-                        {isAuthenticated ? (
-                          <>
-                            <DropdownLink
-                              href="/account"
-                              icon={<UserIcon className="h-4 w-4" />}
-                              title="Your Profile"
-                              subtitle="Orders & details"
-                            />
-                            <button
-                              onClick={handleLogout}
-                              disabled={isLoading}
-                              className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-muted disabled:opacity-60"
-                            >
-                              <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-primary">
-                                <ArrowRightOnRectangleIcon className="h-4 w-4" />
-                              </span>
-                              <span>
-                                <span className="block text-sm font-medium text-ink">
-                                  {isLoading ? "Signing out…" : "Sign out"}
-                                </span>
-                                <span className="block text-xs text-ink-muted">
-                                  Log out of your account
-                                </span>
-                              </span>
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <DropdownLink
-                              href="/auth/login"
-                              icon={<UserIcon className="h-4 w-4" />}
-                              title="Sign in"
-                              subtitle="Access your account"
-                            />
-                            <DropdownLink
-                              href="/auth/register"
-                              icon={<ArrowRightOnRectangleIcon className="h-4 w-4" />}
-                              title="Create account"
-                              subtitle="Join A to Z Accessories"
-                            />
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {/* Avatar links straight to the profile (or sign-in when
+                    logged out). Logout now lives in the side menu. */}
+                <Link
+                  href={isAuthenticated ? "/account" : "/auth/login"}
+                  className="flex items-center rounded-full p-1 text-ink-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  aria-label={isAuthenticated ? "Your profile" : "Sign in"}
+                >
+                  {isAuthenticated ? (
+                    <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/10 text-sm font-medium text-primary">
+                      {authUser?.email?.charAt(0).toUpperCase()}
+                    </span>
+                  ) : (
+                    <UserIcon className="h-[22px] w-[22px]" />
+                  )}
+                </Link>
               </div>
             </div>
           </nav>
         )}
-
-        <Search isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       </header>
+
+      {/* Rendered OUTSIDE <header>: the header's `backdrop-blur` makes it a
+          containing block for fixed descendants, which would clip the overlay's
+          `fixed inset-0` scrim to the header band instead of the full viewport. */}
+      <Search isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
       <NavDrawer isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
     </>
-  );
-}
-
-function DropdownLink({
-  href,
-  icon,
-  title,
-  subtitle,
-}: {
-  href: string;
-  icon: React.ReactNode;
-  title: string;
-  subtitle: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-surface-muted focus-visible:bg-surface-muted focus-visible:outline-none"
-    >
-      <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-primary">
-        {icon}
-      </span>
-      <span>
-        <span className="block text-sm font-medium text-ink">{title}</span>
-        <span className="block text-xs text-ink-muted">{subtitle}</span>
-      </span>
-    </Link>
   );
 }

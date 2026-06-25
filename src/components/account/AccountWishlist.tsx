@@ -29,8 +29,11 @@ export default function AccountWishlist() {
       try {
         const result = await wishlistService.getUserWishlist(currentPage);
         if (result.success) {
-          // setTotalPages(result.data.wishlist.totalPages);
-          setWishlist(result.data.wishlist.products);
+          // /wishlist/get-user-wishlist returns `data.wishlist` as a flat array;
+          // tolerate the paginated `{ products }` shape, and fall back to [] so
+          // the empty state renders instead of crashing on `wishlist.length`.
+          const w = result.data?.wishlist;
+          setWishlist(Array.isArray(w) ? w : w?.products ?? []);
         } else {
           console.error("Failed to fetch wishlist:", result.message);
         }
@@ -67,7 +70,7 @@ export default function AccountWishlist() {
     return <div>Loading wishlist...</div>;
   }
 
-  if (wishlist.length === 0) {
+  if (!wishlist?.length) {
     return (
       <div className="text-center py-12">
         <h2 className="font-display text-lg text-heading">
@@ -92,7 +95,7 @@ export default function AccountWishlist() {
         {wishlist.map((item) => (
           <div
             key={item._id}
-            className="rounded-2xl overflow-hidden bg-surface-muted"
+            className="flex flex-col rounded-2xl overflow-hidden bg-surface-muted"
           >
             <div className="aspect-square relative">
               <SmartImage
@@ -109,16 +112,16 @@ export default function AccountWishlist() {
                 </div>
               )}
             </div>
-            <div className="p-4">
-              <Link href={`/product/${item.productId._id}`}>
+            <div className="flex flex-1 flex-col p-4">
+              {/* flex-1 lets the title absorb slack so the price + Add-to-Cart
+                  row drops to a shared bottom across cards of varying title
+                  length. */}
+              <Link href={`/product/${item.productId._id}`} className="flex-1">
                 <h3 className="font-display text-lg text-heading mb-1">
                   {item.productId.productName}
                 </h3>
               </Link>
-              <p className="mb-2 text-ink-muted">
-                {/* {item.productId.category.categoryName} */}
-              </p>
-              <p className="text-lg font-semibold mb-4 text-heading tabular-nums">
+              <p className="mt-2 text-lg font-semibold mb-4 text-heading tabular-nums">
                 {formatPrice(item.productId.price)}
               </p>
               <div className="flex gap-2">
