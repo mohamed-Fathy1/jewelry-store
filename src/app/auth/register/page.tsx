@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { authService } from "@/services/auth.service";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import toast from "react-hot-toast";
 
 export default function RegisterPage() {
+  const { registerEmail } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [isRegisterLoading, setIsRegisterLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -14,11 +17,19 @@ export default function RegisterPage() {
     e.preventDefault();
     try {
       setIsRegisterLoading(true);
-      // POST /authentication/register-email — no OTP step, no token stored
-      const response = await authService.registerEmail(email);
+      // POST /authentication/register-email
+      const response = await registerEmail(email);
       if (response.success) {
-        setIsSubmitted(true);
-        toast.success("Check your email");
+        if (response.data?.accessToken) {
+          // Non-admin: account created and logged in immediately (token stored
+          // by the context) — no OTP needed.
+          toast.success("Account created successfully");
+          router.push("/");
+        } else {
+          // Admin / verification required → tell them to check their email.
+          setIsSubmitted(true);
+          toast.success("Check your email");
+        }
       } else {
         toast.error(response.message);
       }

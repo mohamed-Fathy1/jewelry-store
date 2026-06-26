@@ -4,13 +4,16 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/auth.service";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type Step = "email" | "otp";
 
 export function LoginClient() {
   const { registerEmail, activateAccount } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Return the user to where they came from (e.g. checkout) after login.
+  const returnUrl = searchParams.get("returnUrl") || "/";
 
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
@@ -24,8 +27,15 @@ export function LoginClient() {
     try {
       const response = await registerEmail(email);
       if (response.success) {
-        toast.success("Code sent successfully");
-        setStep("otp");
+        if (response.data?.accessToken) {
+          // Non-admin: token returned directly → already logged in by the context.
+          toast.success("Login successful!");
+          router.push(returnUrl);
+        } else {
+          // Admin / verification required → step up to the OTP form.
+          toast.success("Code sent successfully");
+          setStep("otp");
+        }
       } else {
         toast.error(response.message);
       }
@@ -44,7 +54,7 @@ export function LoginClient() {
       const response = await activateAccount(email, activeCode);
       if (response?.success && response.data?.accessToken) {
         toast.success("Login successful!");
-        router.push("/");
+        router.push(returnUrl);
       } else {
         toast.error(response?.message || "Invalid or expired code");
       }
