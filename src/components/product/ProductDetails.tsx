@@ -72,16 +72,23 @@ export default function ProductDetails({ productId }: { productId: string }) {
   // Auto-rotate images every 3 seconds if autoPlay is true. Suppressed for
   // visitors who prefer reduced motion.
   useEffect(() => {
-    if (!autoPlay || reduceMotion) return;
+    // `currentProduct` is null until the async fetch resolves; without this
+    // guard the interval could fire and dereference a null product (crash).
+    if (!autoPlay || reduceMotion || !currentProduct?.albumImages?.length)
+      return;
 
     sliderRef.current = setInterval(() => {
       setActiveImage((current) =>
-        current === currentProduct.albumImages.length - 1 ? 0 : current + 1
+        current === (currentProduct?.albumImages?.length ?? 1) - 1
+          ? 0
+          : current + 1
       );
     }, 3000);
 
-    return () => clearInterval(sliderRef.current);
-  }, [autoPlay, reduceMotion, currentProduct?.albumImages.length]);
+    return () => {
+      if (sliderRef.current) clearInterval(sliderRef.current);
+    };
+  }, [autoPlay, reduceMotion, currentProduct?.albumImages?.length]);
 
   // ─── Variants ──────────────────────────────────────────────────────────────
   // Every product has at least one variant. A "simple" product is a single

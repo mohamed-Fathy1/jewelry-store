@@ -56,12 +56,17 @@ export default function OrderConfirmation({
             <p className="mt-1 text-lg text-ink">
               {selectedAddress.firstName} {selectedAddress.lastName}
               <br />
-              {selectedAddress.address && selectedAddress.address}
-              {selectedAddress.apartmentSuite &&
-                `, ${selectedAddress.apartmentSuite}`}
+              {[selectedAddress.address, selectedAddress.apartmentSuite]
+                .filter(Boolean)
+                .join(", ")}
               <br />
-              {shippingData.shipping.category}, {selectedAddress.governorate}{" "}
-              {selectedAddress.postalCode && `, ${selectedAddress.postalCode}`}
+              {[
+                shippingData.shipping?.name,
+                selectedAddress.governorate,
+                selectedAddress.postalCode,
+              ]
+                .filter(Boolean)
+                .join(", ")}
               <br />
               {selectedAddress.primaryPhone}
             </p>

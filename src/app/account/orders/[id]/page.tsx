@@ -24,8 +24,13 @@ export default function OrderTrackingPage({
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const response = await adminService.getOrderDetails(params.id);
-        setOrder(response.data.order);
+        // The single-order admin endpoint is not available to customers, so we
+        // read the user's own orders and pick the one being tracked.
+        const response = await orderService.getUserOrders();
+        const found = response.success
+          ? (response.data.orders ?? []).find((o) => o._id === params.id)
+          : null;
+        setOrder(found ?? null);
       } catch (error) {
         toast.error("Failed to fetch order details");
       } finally {
@@ -86,7 +91,7 @@ export default function OrderTrackingPage({
           </div>
           <div className="flex flex-col items-start md:items-end">
             <div className="mb-1 text-lg font-semibold text-heading tabular-nums">
-              {formatPrice(order.price)}
+              {formatPrice(order.totalAmount)}
             </div>
             <span
               className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${statusInfo.badgeClass}`}
@@ -218,7 +223,9 @@ export default function OrderTrackingPage({
                 </p>
                 <p className="text-sm text-ink-muted">
                   <span className="font-medium">Location:</span>{" "}
-                  {order.shipping.category}, {order.userInformation.country}
+                  {[order.shipping?.name, order.userInformation.country]
+                    .filter(Boolean)
+                    .join(", ")}
                 </p>
               </div>
             )}
@@ -233,20 +240,20 @@ export default function OrderTrackingPage({
               <div className="flex justify-between text-sm">
                 <span className="text-ink-muted">Subtotal</span>
                 <span className="text-ink tabular-nums">
-                  {formatPrice(order.price - order.shipping.cost)}
+                  {formatPrice(order.subTotal)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-ink-muted">Shipping</span>
                 <span className="text-ink tabular-nums">
-                  {formatPrice(order.shipping.cost)}
+                  {formatPrice(order.shippingCost ?? order.shipping?.cost)}
                 </span>
               </div>
               <div className="border-t border-hairline pt-2 mt-2">
                 <div className="flex justify-between font-medium">
                   <span className="text-ink">Total</span>
                   <span className="text-ink tabular-nums">
-                    {formatPrice(order.price)}
+                    {formatPrice(order.totalAmount)}
                   </span>
                 </div>
               </div>

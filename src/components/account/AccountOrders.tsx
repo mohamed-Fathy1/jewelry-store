@@ -103,7 +103,7 @@ export default function AccountOrders() {
             <div>
               <p className="text-sm text-ink-muted">Total</p>
               <p className="font-medium text-ink tabular-nums">
-                EGP {order.price.toFixed(2)}
+                EGP {(order.totalAmount ?? 0).toFixed(2)}
               </p>
             </div>
             <div>
@@ -119,8 +119,11 @@ export default function AccountOrders() {
 
           {/* Order Items */}
           <div className="space-y-4">
-            {order.products.map((item) => (
-              <div key={item.productId._id} className="flex gap-4">
+            {order.products.map((item, idx) => (
+              <div
+                key={item._id ?? item.productId?._id ?? idx}
+                className="flex gap-4"
+              >
                 <div className="w-20 h-20 flex-shrink-0 relative overflow-hidden rounded-lg">
                   <SmartImage
                     src={item.productId.defaultImage.mediaUrl} // Ensure the image URL is correct

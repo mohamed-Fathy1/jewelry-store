@@ -126,7 +126,9 @@ export default function CheckoutShipping({ onSubmit }) {
                       </p>
                       <p className="text-sm">{addr.address}</p>
                       <p className="text-sm">
-                        {addr.governorate}, {addr.postalCode}
+                        {[addr.governorate, addr.postalCode]
+                          .filter(Boolean)
+                          .join(", ")}
                       </p>
                     </div>
                   </div>
