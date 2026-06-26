@@ -166,7 +166,7 @@ export default function PromoBanner() {
       <div aria-hidden="true" className="absolute inset-0 bg-noir/30" />
       <div
         aria-hidden="true"
-        className="absolute inset-0 [background:radial-gradient(62%_62%_at_50%_50%,rgba(28,21,15,0.68),transparent_72%)]"
+        className="absolute inset-0 [background:radial-gradient(62%_62%_at_50%_50%,rgba(44,46,34,0.68),transparent_72%)]"
       />
       <div
         aria-hidden="true"
@@ -174,7 +174,7 @@ export default function PromoBanner() {
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 [background:radial-gradient(820px_440px_at_50%_16%,rgba(176,136,76,0.18),transparent_70%)]"
+        className="absolute inset-0 [background:radial-gradient(820px_440px_at_50%_16%,rgba(188,149,92,0.18),transparent_70%)]"
       />
 
       {/* Copy — animates per offer (or a skeleton while offers load). */}
