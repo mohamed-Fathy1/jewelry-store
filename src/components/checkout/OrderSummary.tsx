@@ -1,90 +1,84 @@
 "use client";
 
-import Image from "next/image";
-import { colors } from "@/constants/colors";
-import { useCheckout } from "@/contexts/CheckoutContext";
+import SmartImage from "@/components/ui/SmartImage";
 import { useCart } from "@/contexts/CartContext";
-import { useEffect, useState } from "react";
 
-export default function OrderSummary({ orderSummaryPreview }) {
-  const { shippingData, paymentData, selectedShipping } = useCheckout();
+export default function OrderSummary({
+  orderSummaryPreview,
+  preview,
+  previewLoading,
+}) {
   const { cart } = useCart();
-  const [isShippingFree, setIsShippingFree] = useState(false);
 
-  const cartData = cart.items.length ? cart.items : orderSummaryPreview.items;
+  const cartData = cart.items.length
+    ? cart.items
+    : orderSummaryPreview?.items ?? [];
 
-  const subtotal = cartData.reduce(
+  // Plain line-item sum — DISPLAY ONLY, shown until the backend preview arrives.
+  // No offer/discount/free-shipping math happens here anymore: every total comes
+  // from the backend `POST /order/preview` endpoint (the single source of truth).
+  const lineItemsSubtotal = cartData.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
-  const shipping = selectedShipping ? selectedShipping.cost : 0; // Default shipping cost
-  const total = shipping && !isShippingFree ? subtotal + shipping : subtotal;
+  const round2 = (n: number) => Math.round(n * 100) / 100;
 
-  // New Discount Logic
-  let discount = 0;
+  const hasPreview = !!preview;
+  const flashSaved = preview?.flashSale?.savedAmount ?? 0;
+  const discount = hasPreview ? preview.discount ?? 0 : 0;
+  const freeShipping = hasPreview ? preview.freeShipping : false;
+  const shippingCost = hasPreview ? preview.shippingCost ?? 0 : null;
+  const finalTotal = hasPreview ? preview.totalAmount : lineItemsSubtotal;
+  const appliedOffer = preview?.appliedOffer ?? null;
+  const flashOffers = preview?.flashSale?.offers ?? [];
 
-  useEffect(() => {
-    if (
-      cartData.reduce((sum, item) => sum + item.quantity, 0) >= 3 ||
-      total >= 1500
-    ) {
-      // Free shipping if 3 or more items
-      setIsShippingFree(true);
-    } else {
-      setIsShippingFree(false);
-    }
-  }, [selectedShipping]);
-
-  if (total >= 1500) {
-    discount += total * 0.1; // 10% discount for total price of 1500 EGP or more
-  }
-  // if (isShippingFree) {
-  //   discount += shipping; // Remove shipping cost
-  // }
-
-  const finalTotal = total - discount;
+  // The backend `subTotal` is already flash-discounted, and
+  // total = subTotal − discount + shipping. Add the flash savings back so the
+  // "Flash sale" and "Discount" deduction lines reconcile to the Total (and
+  // match the listed item prices, which are pre-flash).
+  const subtotal = hasPreview
+    ? round2(preview.subTotal + flashSaved)
+    : lineItemsSubtotal;
+  // Original total (no offers, full shipping) for the strike-through comparison.
+  const originalTotal = round2(subtotal + (shippingCost ?? 0));
+  const totalSaved = hasPreview ? round2(originalTotal - finalTotal) : 0;
+  const hasSaving = totalSaved > 0;
 
   return (
-    <div
-      className="rounded-lg p-6"
-      style={{ backgroundColor: colors.background }}
-    >
-      <h2
-        className="text-lg font-medium mb-6"
-        style={{ color: colors.textPrimary }}
-      >
-        Order Summary
-      </h2>
+    <div className="rounded-lg p-6 bg-surface-muted">
+      <h2 className="font-display text-lg mb-6 text-heading">Order Summary</h2>
 
       {/* Cart Items */}
       <div className="space-y-4 mb-6">
         {cartData.map((item) => (
-          <div key={item.productId} className="flex gap-4">
-            <div className="w-20 h-20 flex-shrink-0">
-              <Image
+          <div key={item.variantId ?? item.productId} className="flex gap-4">
+            <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-md bg-surface-muted">
+              <SmartImage
                 src={item.productImage}
                 alt={item.productName}
-                width={80}
-                height={80}
-                className="w-full h-full object-cover rounded-md"
+                fill
+                sizes="80px"
+                className="object-cover"
+                fallbackLabel={item.productName?.charAt(0)}
               />
             </div>
             <div className="flex-1">
-              <h3
-                className="text-sm font-medium"
-                style={{ color: colors.textPrimary }}
-              >
+              <h3 className="text-sm font-medium text-ink">
                 {item.productName}
               </h3>
+              {(item.colorName || item.sizeNumber) && (
+                <p className="mt-0.5 text-xs text-ink-muted">
+                  {[item.colorName, item.sizeNumber && `Size ${item.sizeNumber}`]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              )}
               <div className="flex justify-between mt-1">
-                <p className="text-sm" style={{ color: colors.textSecondary }}>
+                <p className="text-sm text-ink-muted tabular-nums">
                   Qty: {item.quantity}
                 </p>
-                <p
-                  className="text-sm font-medium"
-                  style={{ color: colors.textPrimary }}
-                >
+                <p className="text-sm font-medium text-ink tabular-nums">
                   EGP {(item.price * item.quantity).toFixed(2)}
                 </p>
               </div>
@@ -93,89 +87,99 @@ export default function OrderSummary({ orderSummaryPreview }) {
         ))}
       </div>
 
-      {/* Price Breakdown */}
-      <div
-        className="space-y-3 pt-6"
-        style={{ borderTop: `1px solid ${colors.border}` }}
-      >
+      {/* Price Breakdown — lines reconcile to Total: subtotal − flash − discount + shipping */}
+      <div className="space-y-3 pt-6 border-t border-hairline">
         <div className="flex justify-between">
-          <span style={{ color: colors.textSecondary }}>Subtotal</span>
-          <span style={{ color: colors.textPrimary }}>
+          <span className="text-ink-muted">Subtotal</span>
+          <span className="text-ink tabular-nums">
             EGP {subtotal.toFixed(2)}
           </span>
         </div>
-        <div className="flex justify-between">
-          <span style={{ color: colors.textSecondary }}>Shipping</span>
 
-          <div>
-            <span
-              style={{
-                color: colors.textPrimary,
-                textDecoration:
-                  isShippingFree && selectedShipping ? "line-through" : "",
-              }}
-            >
-              {selectedShipping
-                ? "EGP" + selectedShipping.cost
-                : isShippingFree
-                ? ""
-                : "Select Shipping Method"}
-            </span>
-            {isShippingFree ? (
-              <span
-                className="text-shadow-light"
-                style={{ color: colors.gold }}
-              >
-                {" "}
-                Free
-              </span>
-            ) : null}
-          </div>
-        </div>
-        {/* <div className="flex justify-between">
-          <span style={{ color: colors.textSecondary }}>Tax</span>
-          <span style={{ color: colors.textPrimary }}>EGP{tax.toFixed(2)}</span>
-        </div> */}
-        {discount > 0 && (
+        {flashSaved > 0 && (
           <div className="flex justify-between">
-            <span className="text-shadow-light" style={{ color: colors.gold }}>
-              Discount {total >= 1500 && "(10%)"}
+            <span className="text-accent">
+              Flash sale
+              {flashOffers[0]?.title ? ` · ${flashOffers[0].title}` : ""}
             </span>
-            <span className="text-shadow-light" style={{ color: colors.gold }}>
-              -EGP {discount.toFixed(2)}
+            <span className="text-accent tabular-nums">
+              −EGP {flashSaved.toFixed(2)}
             </span>
           </div>
         )}
-        <div
-          className="flex justify-between pt-3 font-medium"
-          style={{ borderTop: `1px solid ${colors.border}` }}
-        >
-          <span style={{ color: colors.textPrimary }}>Total</span>
-          <span style={{ color: colors.textPrimary }}>
-            {discount > 0 ? (
-              <span style={{ textDecoration: "line-through" }}>
-                EGP {(total + shipping).toFixed(2)}
-              </span>
-            ) : null}
-            <span
-              className={discount > 0 && "text-shadow-light"}
-              style={{
-                marginLeft: "10px",
-                color: discount > 0 ? colors.gold : colors.textPrimary,
-              }}
-            >
-              EGP {finalTotal.toFixed(2)}
+
+        {discount > 0 && (
+          <div className="flex justify-between">
+            <span className="text-accent">
+              Discount{appliedOffer?.title ? ` · ${appliedOffer.title}` : ""}
             </span>
-          </span>
+            <span className="text-accent tabular-nums">
+              −EGP {discount.toFixed(2)}
+            </span>
+          </div>
+        )}
+
+        <div className="flex justify-between">
+          <span className="text-ink-muted">Shipping</span>
+          <div className="text-right">
+            {!hasPreview ? (
+              <span className="text-ink-muted">
+                {previewLoading ? "Calculating…" : "Calculated at checkout"}
+              </span>
+            ) : freeShipping ? (
+              <>
+                {shippingCost ? (
+                  <span className="mr-2 text-ink-muted tabular-nums line-through">
+                    EGP {shippingCost.toFixed(2)}
+                  </span>
+                ) : null}
+                <span className="text-accent">Free</span>
+              </>
+            ) : (
+              <span className="text-ink tabular-nums">
+                EGP {(shippingCost ?? 0).toFixed(2)}
+              </span>
+            )}
+          </div>
         </div>
+
+        <div className="flex items-baseline justify-between pt-3 font-medium border-t border-hairline">
+          <span className="text-ink">Total</span>
+          {!hasPreview ? (
+            // Until the backend preview resolves we don't know shipping/discount,
+            // so show a pending state rather than a bare subtotal that would
+            // understate what the customer is charged.
+            <span className="text-sm font-normal text-ink-muted">
+              {previewLoading ? "Calculating…" : "Calculated at checkout"}
+            </span>
+          ) : (
+            <span className="flex items-baseline gap-2.5">
+              {hasSaving ? (
+                <span className="text-sm text-ink-muted line-through tabular-nums">
+                  EGP {originalTotal.toFixed(2)}
+                </span>
+              ) : null}
+              <span
+                className={`tabular-nums ${
+                  hasSaving ? "text-accent" : "text-ink"
+                }`}
+              >
+                EGP {finalTotal.toFixed(2)}
+              </span>
+            </span>
+          )}
+        </div>
+
+        {hasSaving && (
+          <p className="text-right text-sm text-accent">
+            You saved EGP {totalSaved.toFixed(2)}
+          </p>
+        )}
       </div>
 
       {/* Secure Checkout Notice */}
-      <div
-        className="mt-6 p-4 rounded-md text-sm"
-        style={{ backgroundColor: colors.accentLight }}
-      >
-        <p style={{ color: colors.textSecondary }}>
+      <div className="mt-6 p-4 rounded-md text-sm bg-accent-soft">
+        <p className="text-ink-muted">
           Your order information is secure and encrypted. Pay only when your
           order arrives.
         </p>

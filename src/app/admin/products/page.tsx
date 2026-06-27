@@ -6,11 +6,15 @@ import ProductList, {
   ProductListRef,
 } from "@/components/admin/products/ProductList";
 import ProductModal from "@/components/admin/products/ProductModal";
-import { colors } from "@/constants/colors";
+import ProductAnalytics from "@/components/admin/products/ProductAnalytics";
+import { AdminProduct } from "@/types/admin-product.types";
+import { Button, PageHeader } from "@/components/admin/ui";
 
 export default function ProductsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState<AdminProduct | null>(
+    null
+  );
   const listRef = useRef<ProductListRef>(null);
 
   const handleAddProduct = () => {
@@ -18,7 +22,7 @@ export default function ProductsPage() {
     setIsModalOpen(true);
   };
 
-  const handleEditProduct = (product) => {
+  const handleEditProduct = (product: AdminProduct) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
   };
@@ -29,22 +33,20 @@ export default function ProductsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1
-          className="text-2xl font-semibold"
-          style={{ color: colors.textPrimary }}
-        >
-          Products
-        </h1>
-        <button
-          onClick={handleAddProduct}
-          className="flex items-center px-4 py-2 rounded-md text-white"
-          style={{ backgroundColor: colors.brown }}
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Add Product
-        </button>
-      </div>
+      <PageHeader
+        title="Products"
+        description="Manage your catalog, pricing, stock and best sellers."
+        actions={
+          <Button
+            onClick={handleAddProduct}
+            leftIcon={<PlusIcon className="h-5 w-5" />}
+          >
+            Add Product
+          </Button>
+        }
+      />
+
+      <ProductAnalytics />
 
       <ProductList ref={listRef} onEdit={handleEditProduct} />
 

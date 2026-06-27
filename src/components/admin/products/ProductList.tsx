@@ -4,20 +4,38 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import {
   PencilIcon,
   TrashIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
+  ArchiveBoxXMarkIcon,
+  CubeIcon,
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
-import { colors } from "@/constants/colors";
 import { formatPrice } from "@/utils/format";
-import { Product } from "@/types/product.types";
-import { adminService } from "@/services/admin.service";
+import { AdminProduct } from "@/types/admin-product.types";
+import { Category } from "@/types/category.types";
+import { productsService } from "@/services/products.service";
+import { categoryService } from "@/services/category.service";
+import { useDebounce } from "@/hooks/useDebounce";
 import toast from "react-hot-toast";
 import ProductFilters from "./ProductFilters";
-import api from "@/lib/axios";
+import {
+  TableShell,
+  Thead,
+  Tbody,
+  Th,
+  Td,
+  Tr,
+  IconButton,
+  Thumbnail,
+  Badge,
+  StatusBadge,
+  Pagination,
+  SegmentedToggle,
+  SkeletonTable,
+  EmptyState,
+  ConfirmDialog,
+} from "@/components/admin/ui";
+import { statusToken } from "@/constants/adminTheme";
 
 interface ProductListProps {
-  onEdit: (product: Product) => void;
+  onEdit: (product: AdminProduct) => void;
 }
 
 export interface ProductListRef {
@@ -26,54 +44,52 @@ export interface ProductListRef {
 
 const ProductList = forwardRef<ProductListRef, ProductListProps>(
   ({ onEdit }, ref) => {
-    const [products, setProducts] = useState<Product[]>([]);
+    const [products, setProducts] = useState<AdminProduct[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [currentFilter, setCurrentFilter] = useState<
-      "all" | "sale" | "soldout"
-    >("all");
 
-    const fetchProducts = async (
-      page: number = currentPage,
-      searchQuery?: string
-    ) => {
+    // Filters
+    // `searchTerm` is the controlled input value (instant); `search` is the
+    // debounced value actually sent to the API.
+    const [searchTerm, setSearchTerm] = useState("");
+    const [search, setSearch] = useState("");
+    const [category, setCategory] = useState("");
+    const [isBestSeller, setIsBestSeller] = useState<"" | "true" | "false">("");
+    // Active products only by default (isDeleted=false).
+    const [isDeleted, setIsDeleted] = useState<"false" | "true">("false");
+    const [sort, setSort] = useState<"" | "price" | "createdAt" | "soldItems">(
+      ""
+    );
+
+    // Soft-delete confirmation state
+    const [pendingDelete, setPendingDelete] = useState<AdminProduct | null>(
+      null
+    );
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Hard-delete (type-to-confirm) modal state
+    const [hardDeleteTarget, setHardDeleteTarget] =
+      useState<AdminProduct | null>(null);
+    const [isHardDeleting, setIsHardDeleting] = useState(false);
+
+    const fetchProducts = async (page: number = currentPage) => {
       setIsLoading(true);
       try {
-        let response;
-
-        // If there's a search query, use search endpoint
-        if (searchQuery?.trim()) {
-          response = await api.get(
-            `/public/product/search-product?searchQuery=${searchQuery}`
-          );
-          setProducts(response.data.data.products);
-        }
-        // Otherwise use filter endpoints
-        else {
-          const endpoints = {
-            all: `/public/product/get-all-product?page=${page}`,
-            sale: `/public/product/get-all-sale?page=${page}`,
-            soldout: `/product/sold-out?page=${page}`,
-            wishlisted: `/wishlist/get-all-wishlist?page=${page}`,
-          };
-          response = await api.get(endpoints[currentFilter]);
-          if (currentFilter === "wishlisted") {
-            setProducts(
-              response.data.data.wishlist.products.map(
-                (product: any) => product.productId
-              )
-            );
-            setTotalPages(response.data.wishlist.totalPages);
-          } else {
-            setProducts(response.data.data.products.data);
-            setTotalPages(response.data.data.products.totalPages);
-          }
-        }
+        const response = await productsService.getProducts({
+          page,
+          limit: 20,
+          search: search.trim() || undefined,
+          category: category || undefined,
+          isBestSeller: isBestSeller || undefined,
+          isDeleted,
+          sort: sort || undefined,
+        });
+        setProducts(response.data.products);
+        setTotalPages(response.data.pagination?.totalPages || 1);
       } catch (error) {
-        console.log(error);
-
-        // toast.error("Failed to fetch products");
+        toast.error("Failed to fetch products");
       } finally {
         setIsLoading(false);
       }
@@ -84,216 +100,304 @@ const ProductList = forwardRef<ProductListRef, ProductListProps>(
     }));
 
     useEffect(() => {
-      fetchProducts();
-    }, [currentPage, currentFilter]);
-
-    const handleDelete = async (productId: string) => {
-      if (window.confirm("Are you sure you want to delete this product?")) {
+      const fetchCategories = async () => {
         try {
-          await adminService.deleteProduct(productId);
-          toast.success("Product deleted successfully");
-          fetchProducts(currentPage);
+          const response = await categoryService.getAllCategories();
+          setCategories(response.data.categories || []);
         } catch (error) {
-          toast.error("Failed to delete product");
+          // Filters still render with an empty category list.
         }
+      };
+      fetchCategories();
+    }, []);
+
+    useEffect(() => {
+      fetchProducts(currentPage);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, search, category, isBestSeller, isDeleted, sort]);
+
+    const resetToFirstPage = () => setCurrentPage(1);
+
+    // Debounce the search input (~400ms): commit the value and reset to page 1.
+    const debouncedSetSearch = useDebounce((value: string) => {
+      setSearch(value);
+      setCurrentPage(1);
+    }, 400);
+
+    const handleSearchChange = (value: string) => {
+      setSearchTerm(value);
+      debouncedSetSearch(value);
+    };
+
+    const confirmSoftDelete = async () => {
+      if (!pendingDelete) return;
+      setIsDeleting(true);
+      try {
+        await productsService.softDeleteProduct(pendingDelete._id);
+        toast.success("Product deleted successfully");
+        setPendingDelete(null);
+        fetchProducts(currentPage);
+      } catch (error) {
+        toast.error("Failed to delete product");
+      } finally {
+        setIsDeleting(false);
       }
     };
 
-    const getStockStatus = (quantity: number) => {
-      if (quantity <= 0)
-        return { text: "Out of Stock", class: "bg-red-100 text-red-800" };
-      if (quantity <= 5)
-        return { text: "Low Stock", class: "bg-yellow-100 text-yellow-800" };
-      return { text: "In Stock", class: "bg-green-100 text-green-800" };
+    const closeHardDelete = () => {
+      setHardDeleteTarget(null);
     };
 
-    const getProductStatus = (product: Product) => {
-      if (product.isSoldOut)
-        return { text: "Sold Out", class: "bg-gray-100 text-gray-800" };
-      if (product.salePrice)
-        return { text: "On Sale", class: "bg-blue-100 text-blue-800" };
-      return { text: "Active", class: "bg-green-100 text-green-800" };
+    const confirmHardDelete = async () => {
+      if (!hardDeleteTarget) return;
+      setIsHardDeleting(true);
+      try {
+        await productsService.hardDeleteProduct(hardDeleteTarget._id);
+        toast.success("Product permanently deleted");
+        setProducts((prev) =>
+          prev.filter((p) => p._id !== hardDeleteTarget._id)
+        );
+        closeHardDelete();
+      } catch (error) {
+        toast.error("Failed to permanently delete product");
+      } finally {
+        setIsHardDeleting(false);
+      }
+    };
+
+    const handleIsDeletedChange = (value: string) => {
+      setIsDeleted(value as "false" | "true");
+      resetToFirstPage();
     };
 
     return (
       <div>
+        {/* Active / Deleted toggle */}
+        <div className="mb-6">
+          <SegmentedToggle
+            value={isDeleted}
+            onChange={handleIsDeletedChange}
+            options={[
+              { value: "false", label: "Active" },
+              { value: "true", label: "Deleted" },
+            ]}
+          />
+        </div>
+
         <ProductFilters
-          onSearch={fetchProducts}
-          selectedFilter={currentFilter}
-          onFilterChange={setCurrentFilter}
+          categories={categories}
+          search={searchTerm}
+          category={category}
+          isBestSeller={isBestSeller}
+          sort={sort}
+          onSearchChange={handleSearchChange}
+          onCategoryChange={(v) => {
+            setCategory(v);
+            resetToFirstPage();
+          }}
+          onIsBestSellerChange={(v) => {
+            setIsBestSeller(v);
+            resetToFirstPage();
+          }}
+          onSortChange={(v) => {
+            setSort(v);
+            resetToFirstPage();
+          }}
         />
+
         {isLoading ? (
-          <div>Loading...</div>
+          <SkeletonTable rows={8} cols={7} />
+        ) : !products || products.length === 0 ? (
+          <EmptyState
+            icon={CubeIcon}
+            title="No products found"
+            description={
+              search
+                ? `No products match “${search}”.`
+                : "There are no products matching the current filters."
+            }
+          />
         ) : (
           <>
-            <div className="overflow-x-auto min-h-[40vh]">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Product Details
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Pricing
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Inventory
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Status
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {products?.map((product) => {
-                    const stockStatus = getStockStatus(product.availableItems);
-                    const productStatus = getProductStatus(product);
-
-                    return (
-                      <tr key={product._id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="h-16 w-16 relative flex-shrink-0">
-                              <Image
-                                src={product.defaultImage.mediaUrl}
-                                alt={product.productName}
-                                fill
-                                className="rounded-md object-cover"
-                              />
+            <TableShell>
+              <Thead>
+                <tr>
+                  <Th>Product</Th>
+                  <Th>Category</Th>
+                  <Th>Price</Th>
+                  <Th>Stock</Th>
+                  <Th>Best Seller</Th>
+                  <Th>Status</Th>
+                  <Th className="text-right">Actions</Th>
+                </tr>
+              </Thead>
+              <Tbody>
+                {products.map((product) => (
+                  <Tr
+                    key={product._id}
+                    className={product.isDeleted ? "opacity-60" : ""}
+                  >
+                    {/* Product (image + name) */}
+                    <Td>
+                      <div className="flex items-center gap-4">
+                        <Thumbnail
+                          src={product.defaultImage?.mediaUrl}
+                          alt={product.productName}
+                          icon={CubeIcon}
+                        />
+                        <div className="min-w-0">
+                          <div className="truncate font-medium text-admin-ink">
+                            {product.productName}
+                          </div>
+                          {product.soldItems !== undefined && (
+                            <div className="tabular mt-0.5 text-xs text-admin-ink-muted">
+                              {product.soldItems} sold
                             </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900 mb-1">
-                                {product.productName}
-                              </div>
-                              <div className="text-xs text-gray-500 flex items-center">
-                                {/* <span className="font-medium">SKU:</span>
-                                <span className="ml-1">{product.}</span> */}
-                              </div>
-                              {product.category && (
-                                <div className="text-xs text-gray-500 flex items-center mt-1">
-                                  <span className="font-medium">Category:</span>
-                                  <span className="ml-1">
-                                    {product.category.categoryName}
-                                  </span>
-                                </div>
+                          )}
+                        </div>
+                      </div>
+                    </Td>
+
+                    {/* Category */}
+                    <Td className="text-admin-ink-muted">
+                      {product.category?.categoryName || "—"}
+                    </Td>
+
+                    {/* Price */}
+                    <Td>
+                      <div className="flex flex-col">
+                        <span className="tabular font-medium text-admin-ink">
+                          {formatPrice(product.finalPrice ?? product.price)}
+                        </span>
+                        {product.isSale && product.salePrice ? (
+                          <div className="mt-1 flex items-center gap-2">
+                            <span className="tabular text-xs text-admin-ink-muted line-through">
+                              {formatPrice(product.price)}
+                            </span>
+                            <Badge tone="discount">
+                              {Math.round(
+                                product.discountPercentage ??
+                                  (1 - product.salePrice / product.price) * 100
                               )}
-                            </div>
+                              % OFF
+                            </Badge>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex flex-col">
-                            <div className="text-sm font-medium text-gray-900">
-                              {formatPrice(product.salePrice || product.price)}
-                            </div>
-                            {product.salePrice ? (
-                              <div className="flex items-center mt-1">
-                                <span className="text-xs text-gray-500 line-through">
-                                  {formatPrice(product.price)}
-                                </span>
-                                <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                                  {Math.round(
-                                    (1 - product.salePrice / product.price) *
-                                      100
-                                  )}
-                                  % OFF
-                                </span>
-                              </div>
-                            ) : null}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex flex-col">
-                            <span
-                              className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${stockStatus.class}`}
-                            >
-                              {stockStatus.text}
-                            </span>
-                            <span className="text-sm text-gray-500 mt-1">
-                              {product.availableItems} units
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${productStatus.class}`}
-                          >
-                            {productStatus.text}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            onClick={() => onEdit(product)}
-                            className="text-indigo-600 hover:text-indigo-900 mr-4"
-                          >
-                            <PencilIcon className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(product._id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                        ) : null}
+                      </div>
+                    </Td>
 
-            {/* Pagination */}
-            <div className="flex justify-between items-center my-4">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="flex items-center px-3 py-2 rounded-md text-sm"
-                style={{
-                  backgroundColor: currentPage === 1 ? "#eee" : colors.brown,
-                  color: currentPage === 1 ? "#666" : "white",
-                }}
-              >
-                <ChevronLeftIcon className="h-4 w-4 mr-1" />
-                Previous
-              </button>
-              <span className="text-sm text-gray-700">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-                className="flex items-center px-3 py-2 rounded-md text-sm"
-                style={{
-                  backgroundColor:
-                    currentPage === totalPages ? "#eee" : colors.brown,
-                  color: currentPage === totalPages ? "#666" : "white",
-                }}
-              >
-                Next
-                <ChevronRightIcon className="h-4 w-4 ml-1" />
-              </button>
-            </div>
+                    {/* Stock */}
+                    <Td>
+                      {(() => {
+                        const stockStatus =
+                          product.availableItems <= 0
+                            ? "soldOut"
+                            : product.availableItems <= 5
+                            ? "lowStock"
+                            : "inStock";
+                        return (
+                          <div className="flex items-center gap-2 whitespace-nowrap">
+                            <span
+                              className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                              style={{ backgroundColor: statusToken(stockStatus).dot }}
+                              aria-hidden="true"
+                            />
+                            <span className="tabular font-medium text-admin-ink">
+                              {product.availableItems}
+                            </span>
+                            <span className="text-xs text-admin-ink-muted">units</span>
+                          </div>
+                        );
+                      })()}
+                    </Td>
+
+                    {/* Best Seller */}
+                    <Td>
+                      {product.isBestSeller ? (
+                        <Badge tone="bestSeller">Best Seller</Badge>
+                      ) : (
+                        <span className="text-xs text-admin-ink-subtle">—</span>
+                      )}
+                    </Td>
+
+                    {/* Status (deleted/active) */}
+                    <Td>
+                      <StatusBadge
+                        status={product.isDeleted ? "deleted" : "active"}
+                      />
+                    </Td>
+
+                    {/* Actions */}
+                    <Td className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <IconButton
+                          label={`Edit ${product.productName}`}
+                          icon={<PencilIcon />}
+                          onClick={() => onEdit(product)}
+                        />
+                        {isDeleted === "false" && (
+                          <IconButton
+                            label={`Delete ${product.productName}`}
+                            icon={<TrashIcon />}
+                            variant="danger"
+                            onClick={() => setPendingDelete(product)}
+                          />
+                        )}
+                        {isDeleted === "true" && (
+                          <IconButton
+                            label={`Permanently delete ${product.productName}`}
+                            icon={<ArchiveBoxXMarkIcon />}
+                            variant="danger"
+                            onClick={() => setHardDeleteTarget(product)}
+                          />
+                        )}
+                      </div>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </TableShell>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </>
         )}
+
+        {/* Soft delete confirmation */}
+        <ConfirmDialog
+          open={!!pendingDelete}
+          onClose={() => setPendingDelete(null)}
+          onConfirm={confirmSoftDelete}
+          title="Delete product"
+          description={
+            pendingDelete
+              ? `“${pendingDelete.productName}” will be hidden but can be restored.`
+              : ""
+          }
+          confirmLabel="Delete"
+          danger
+          loading={isDeleting}
+        />
+
+        {/* Hard delete confirmation (type-to-confirm) */}
+        <ConfirmDialog
+          open={!!hardDeleteTarget}
+          onClose={closeHardDelete}
+          onConfirm={confirmHardDelete}
+          title="Permanently delete product"
+          description={
+            hardDeleteTarget
+              ? `“${hardDeleteTarget.productName}” and all its images will be permanently removed. This is irreversible.`
+              : "This will permanently delete the product and all its images. This is irreversible."
+          }
+          confirmLabel="Delete Permanently"
+          requireText="delete"
+          danger
+          loading={isHardDeleting}
+        />
       </div>
     );
   }

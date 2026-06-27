@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Product } from "@/types/product.types";
 import { productService } from "@/services/product.service";
-import { colors } from "@/constants/colors";
 import ProductCard from "@/components/product/ProductCard";
 import FilterSidebar from "@/components/shop/FilterSidebar";
 import SortDropdown from "@/components/shop/SortDropdown";
@@ -164,17 +163,11 @@ export default function ShopPage() {
           ) : (
             <>
               {products.length === 0 ? (
-                <div className="col-span-full text-center py-20">
-                  <h2
-                    className="text-2xl font-bold mb-4"
-                    style={{ color: colors.textPrimary }}
-                  >
-                    No Products Available
+                <div className="col-span-full py-24 text-center">
+                  <h2 className="t-h3 mb-3 font-display text-heading">
+                    No products available
                   </h2>
-                  <p
-                    className="text-lg"
-                    style={{ color: colors.textSecondary }}
-                  >
+                  <p className="text-[15px] text-ink-muted">
                     Please check back later or explore other categories.
                   </p>
                 </div>

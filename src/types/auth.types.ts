@@ -3,6 +3,7 @@ export interface AuthResponse {
   data: {
     email?: string;
     id?: string;
+    userId?: string;
     accessToken?: string;
     user?: {
       _id: string;

@@ -19,8 +19,9 @@ const nextConfig = {
         pathname: "/**",
       },
       {
+        // New backend serves media via CloudFront.
         protocol: "https",
-        hostname: "d1xdt7gkixoxw1.cloudfront.net",
+        hostname: "**.cloudfront.net",
         pathname: "/**",
       },
     ],

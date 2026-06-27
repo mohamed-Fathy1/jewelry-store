@@ -2,7 +2,6 @@
 
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
-import { colors } from "@/constants/colors";
 
 interface ISelectedAddress {
   _id?: string;
@@ -26,105 +25,83 @@ export default function OrderConfirmation({
   selectedAddress,
   shippingData,
 }: Props) {
-  // const orderNumber = `ORD${Math.random()
-  //   .toString(36)
-  //   .substr(2, 9)
-  //   .toUpperCase()}`;
+  const streetLine = [selectedAddress.address, selectedAddress.apartmentSuite]
+    .filter(Boolean)
+    .join(", ");
+  const regionLine = [
+    shippingData.shipping?.name,
+    selectedAddress.governorate,
+    selectedAddress.postalCode,
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   return (
-    <div className="text-center space-y-6">
-      <CheckCircleIcon
-        className="w-16 h-16 mx-auto"
-        style={{ color: colors.brown }}
-      />
-      <div>
-        <h2
-          className="text-2xl font-light mb-2"
-          style={{ color: colors.textPrimary }}
-        >
+    <div className="mx-auto max-w-md py-2">
+      {/* Success header */}
+      <div className="text-center">
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-accent-soft">
+          <CheckCircleIcon className="h-9 w-9 text-primary" />
+        </div>
+        <h2 className="mt-5 font-display text-2xl text-heading">
           Order Confirmed!
         </h2>
-        <p style={{ color: colors.textSecondary }}>
+        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-ink-muted">
           Thank you for your order. We&apos;ll send you a confirmation email
           shortly.
         </p>
       </div>
 
-      <div
-        className="p-6 rounded-lg"
-        style={{ backgroundColor: colors.background }}
-      >
-        <div className="space-y-4">
-          <div>
-            <h3
-              className="text-sm font-medium uppercase"
-              style={{ color: colors.textSecondary }}
-            >
-              Order Number
-            </h3>
-            <p
-              className="text-lg font-medium"
-              style={{ color: colors.textPrimary }}
-            >
-              #{shippingData._id.slice(-8)}
-            </p>
-          </div>
-
-          <div>
-            <h3
-              className="text-sm font-medium uppercase"
-              style={{ color: colors.textSecondary }}
-            >
-              Shipping Address
-            </h3>
-            <p className="text-lg" style={{ color: colors.textPrimary }}>
-              {selectedAddress.firstName} {selectedAddress.lastName}
-              <br />
-              {selectedAddress.address && selectedAddress.address}
-              {selectedAddress.apartmentSuite &&
-                `, ${selectedAddress.apartmentSuite}`}
-              <br />
-              {shippingData.shipping.category}, {selectedAddress.governorate}{" "}
-              {selectedAddress.postalCode && `, ${selectedAddress.postalCode}`}
-              <br />
-              {selectedAddress.primaryPhone}
-            </p>
-          </div>
-
-          <div>
-            <h3
-              className="text-sm font-medium uppercase"
-              style={{ color: colors.textSecondary }}
-            >
-              Payment Method
-            </h3>
-            <p className="text-lg" style={{ color: colors.textPrimary }}>
-              Cash on Delivery
-            </p>
-          </div>
+      {/* Details — left-aligned, structured */}
+      <dl className="mt-8 overflow-hidden rounded-2xl border border-hairline bg-surface">
+        <div className="flex items-center justify-between gap-4 px-5 py-4">
+          <dt className="text-xs font-medium uppercase tracking-[0.12em] text-ink-subtle">
+            Order number
+          </dt>
+          <dd className="font-medium text-ink tabular-nums">
+            #{shippingData._id.slice(-8)}
+          </dd>
         </div>
-      </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-        <Link
-          href="/shop"
-          className="px-6 py-3 rounded-md transition-colors duration-200"
-          style={{
-            backgroundColor: colors.background,
-            color: colors.textPrimary,
-          }}
-        >
-          Continue Shopping
-        </Link>
+        <div className="border-t border-hairline px-5 py-4">
+          <dt className="text-xs font-medium uppercase tracking-[0.12em] text-ink-subtle">
+            Shipping address
+          </dt>
+          <dd className="mt-2 space-y-0.5 text-sm leading-relaxed text-ink">
+            <p className="font-medium">
+              {selectedAddress.firstName} {selectedAddress.lastName}
+            </p>
+            {streetLine && <p>{streetLine}</p>}
+            {regionLine && <p>{regionLine}</p>}
+            {selectedAddress.primaryPhone && (
+              <p className="text-ink-muted tabular-nums">
+                {selectedAddress.primaryPhone}
+              </p>
+            )}
+          </dd>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 border-t border-hairline px-5 py-4">
+          <dt className="text-xs font-medium uppercase tracking-[0.12em] text-ink-subtle">
+            Payment
+          </dt>
+          <dd className="text-ink">Cash on Delivery</dd>
+        </div>
+      </dl>
+
+      {/* Actions */}
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
         <Link
           href={`/account/orders/${shippingData._id}`}
-          className="px-6 py-3 rounded-md transition-colors duration-200"
-          style={{
-            backgroundColor: colors.brown,
-            color: colors.textLight,
-          }}
+          className="flex-1 rounded-full bg-primary px-6 py-3 text-center font-medium text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           Track Order
+        </Link>
+        <Link
+          href="/shop"
+          className="flex-1 rounded-full border border-hairline bg-surface px-6 py-3 text-center text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          Continue Shopping
         </Link>
       </div>
     </div>

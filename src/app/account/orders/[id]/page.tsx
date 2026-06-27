@@ -4,68 +4,12 @@ import { useState, useEffect } from "react";
 import { orderService } from "@/services/order.service";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { colors } from "@/constants/colors";
-import { adminService } from "@/services/admin.service";
-import Image from "next/image";
+import SmartImage from "@/components/ui/SmartImage";
 import { formatPrice } from "@/utils/format";
 import { format } from "date-fns";
 import { CheckIcon } from "lucide-react";
-
-const getStatusIndex = (status: string) => {
-  const statusFlow = [
-    "under_review",
-    "confirmed",
-    "ordered",
-    "shipped",
-    "delivered",
-  ];
-  return statusFlow.indexOf(status);
-};
-
-const getStatusDisplay = (status: string) => {
-  const statusInfo = {
-    under_review: {
-      label: "Under Review",
-      description: "Order is being reviewed",
-      color: colors.peach,
-    },
-    confirmed: {
-      label: "Confirmed",
-      description: "Order has been confirmed",
-      color: colors.gold,
-    },
-    ordered: {
-      label: "Processing",
-      description: "Order is being processed",
-      color: colors.brown,
-    },
-    shipped: {
-      label: "Shipped",
-      description: "Package is on its way",
-      color: colors.accentDark,
-    },
-    delivered: {
-      label: "Delivered",
-      description: "Package has been delivered",
-      color: "#4CAF50",
-    },
-    cancelled: {
-      label: "Cancelled",
-      description: "Order has been cancelled",
-      color: "#DC2626",
-    },
-    deleted: {
-      label: "Deleted",
-      description: "Order has been deleted",
-      color: "#e30505",
-    },
-  };
-  return statusInfo[status] || statusInfo.under_review;
-};
-
-interface Props {
-  params: Promise<{ id: string }>;
-}
+import { Button } from "@/components/ui/Button";
+import { getOrderStatusMeta, getOrderStatusIndex } from "@/utils/orderStatus";
 
 export default function OrderTrackingPage({
   params,
@@ -79,8 +23,13 @@ export default function OrderTrackingPage({
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const response = await adminService.getOrderDetails(params.id);
-        setOrder(response.data.order);
+        // The single-order admin endpoint is not available to customers, so we
+        // read the user's own orders and pick the one being tracked.
+        const response = await orderService.getUserOrders();
+        const found = response.success
+          ? (response.data.orders ?? []).find((o) => o._id === params.id)
+          : null;
+        setOrder(found ?? null);
       } catch (error) {
         toast.error("Failed to fetch order details");
       } finally {
@@ -102,7 +51,7 @@ export default function OrderTrackingPage({
     }
 
     try {
-      await adminService.updateOrderStatus(params.id, "cancelled");
+      await orderService.cancelOrder(params.id);
       toast.success("Order cancelled successfully");
       router.push("/account/orders");
     } catch (error) {
@@ -110,41 +59,41 @@ export default function OrderTrackingPage({
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (!order) return <div>Order not found</div>;
+  if (isLoading)
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-16 text-center text-ink-muted">
+        Loading…
+      </div>
+    );
+  if (!order)
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-16 text-center text-ink-muted">
+        Order not found.
+      </div>
+    );
 
-  const statusInfo = getStatusDisplay(order.status);
-  const currentStep = getStatusIndex(order.status);
+  const statusInfo = getOrderStatusMeta(order.status);
+  const currentStep = getOrderStatusIndex(order.status);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-4 md:py-8">
       {/* Order Header */}
-      <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-4 md:mb-6">
+      <div className="bg-surface rounded-2xl shadow-card p-4 md:p-6 mb-4 md:mb-6">
         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
           <div>
-            <h1
-              className="text-xl md:text-2xl font-semibold mb-2"
-              style={{ color: colors.textPrimary }}
-            >
+            <h1 className="font-display text-xl md:text-2xl text-heading mb-2">
               Order #{order._id.slice(-8)}
             </h1>
-            <p className="text-sm" style={{ color: colors.textSecondary }}>
+            <p className="text-sm text-ink-muted">
               Placed on {format(new Date(order.createdAt), "MMMM d, yyyy")}
             </p>
           </div>
           <div className="flex flex-col items-start md:items-end">
-            <div
-              className="text-lg font-semibold mb-1"
-              style={{ color: colors.textPrimary }}
-            >
-              {formatPrice(order.price)}
+            <div className="mb-1 text-lg font-semibold text-heading tabular-nums">
+              {formatPrice(order.totalAmount)}
             </div>
             <span
-              className="px-3 py-1 rounded-full text-sm font-medium"
-              style={{
-                backgroundColor: statusInfo.color + "20",
-                color: statusInfo.color,
-              }}
+              className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${statusInfo.badgeClass}`}
             >
               {statusInfo.label}
             </span>
@@ -156,7 +105,7 @@ export default function OrderTrackingPage({
           <div className="relative mb-8 mt-8">
             {/* Progress Line - Adjusted positioning and width */}
             <div
-              className="absolute h-[2px] bg-gray-200"
+              className="absolute h-[2px] bg-surface-sunken"
               style={{
                 top: "25%",
                 left: "10%",
@@ -165,11 +114,8 @@ export default function OrderTrackingPage({
               }}
             >
               <div
-                className="h-full transition-all duration-500"
-                style={{
-                  width: `${(currentStep / 4) * 100}%`,
-                  backgroundColor: statusInfo.color,
-                }}
+                className="h-full bg-primary transition-all duration-500"
+                style={{ width: `${(currentStep / 4) * 100}%` }}
               ></div>
             </div>
 
@@ -187,15 +133,11 @@ export default function OrderTrackingPage({
                   className="flex flex-col items-center relative z-10 w-[20%]"
                 >
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 transition-colors ${
+                    className={`mb-2 flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
                       index <= currentStep
-                        ? "text-white"
-                        : "bg-gray-200 text-gray-400"
+                        ? "bg-primary text-on-primary"
+                        : "bg-surface-sunken text-ink-subtle"
                     }`}
-                    style={{
-                      backgroundColor:
-                        index <= currentStep ? statusInfo.color : undefined,
-                    }}
                   >
                     {index <= currentStep ? (
                       <CheckIcon className="w-5 h-5" />
@@ -203,7 +145,7 @@ export default function OrderTrackingPage({
                       <div className="w-2 h-2 rounded-full bg-current" />
                     )}
                   </div>
-                  <span className="text-[10px] md:text-xs lg:text-sm text-center text-gray-600 px-1">
+                  <span className="text-[10px] md:text-xs lg:text-sm text-center text-ink-muted px-1">
                     {status}
                   </span>
                 </div>
@@ -215,13 +157,9 @@ export default function OrderTrackingPage({
         {/* Action Buttons */}
         <div className="flex gap-4">
           {canCancelOrder(order.status) && (
-            <button
-              onClick={handleCancelOrder}
-              className="px-4 py-2 rounded-md text-white transition-colors"
-              style={{ backgroundColor: colors.brown }}
-            >
+            <Button variant="secondary" onClick={handleCancelOrder}>
               Cancel Order
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -230,43 +168,32 @@ export default function OrderTrackingPage({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Products */}
         <div className="md:col-span-2">
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2
-              className="text-lg font-semibold mb-4"
-              style={{ color: colors.textPrimary }}
-            >
+          <div className="bg-surface rounded-2xl shadow-card p-6">
+            <h2 className="font-display text-lg text-heading mb-4">
               Order Items
             </h2>
             <div className="space-y-4">
               {order.products.map((item) => (
-                <div key={item._id} className="flex gap-4 border-b pb-4">
+                <div
+                  key={item._id}
+                  className="flex gap-4 border-b border-hairline pb-4"
+                >
                   {typeof item.productId === "object" && (
-                    <div className="w-20 h-20 relative flex-shrink-0">
-                      <Image
+                    <div className="w-20 h-20 relative flex-shrink-0 overflow-hidden rounded-lg">
+                      <SmartImage
                         src={item.productId.defaultImage.mediaUrl}
                         alt={item.productName}
                         fill
-                        className="rounded-md object-cover"
+                        className="object-cover"
                       />
                     </div>
                   )}
                   <div className="flex-1">
-                    <h3
-                      className="font-medium"
-                      style={{ color: colors.textPrimary }}
-                    >
-                      {item.productName}
-                    </h3>
-                    <p
-                      className="text-sm"
-                      style={{ color: colors.textSecondary }}
-                    >
+                    <h3 className="font-medium text-ink">{item.productName}</h3>
+                    <p className="text-sm text-ink-muted">
                       Quantity: {item.quantity}
                     </p>
-                    <p
-                      className="text-sm font-medium mt-1"
-                      style={{ color: colors.textPrimary }}
-                    >
+                    <p className="text-sm font-medium mt-1 text-ink tabular-nums">
                       {formatPrice(item.itemPrice)}
                     </p>
                   </div>
@@ -279,57 +206,53 @@ export default function OrderTrackingPage({
         {/* Order Info */}
         <div className="space-y-6">
           {/* Shipping Details */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2
-              className="text-lg font-semibold mb-4"
-              style={{ color: colors.textPrimary }}
-            >
+          <div className="bg-surface rounded-2xl shadow-card p-6">
+            <h2 className="font-display text-lg text-heading mb-4">
               Shipping Details
             </h2>
             {order.userInformation && (
               <div className="space-y-2">
-                <p className="text-sm" style={{ color: colors.textSecondary }}>
+                <p className="text-sm text-ink-muted">
                   <span className="font-medium">Phone:</span>{" "}
                   {order.userInformation.primaryPhone}
                 </p>
-                <p className="text-sm" style={{ color: colors.textSecondary }}>
+                <p className="text-sm text-ink-muted">
                   <span className="font-medium">Address:</span>{" "}
                   {order.userInformation.address}
                 </p>
-                <p className="text-sm" style={{ color: colors.textSecondary }}>
+                <p className="text-sm text-ink-muted">
                   <span className="font-medium">Location:</span>{" "}
-                  {order.shipping.category}, {order.userInformation.country}
+                  {[order.shipping?.name, order.userInformation.country]
+                    .filter(Boolean)
+                    .join(", ")}
                 </p>
               </div>
             )}
           </div>
 
           {/* Order Summary */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2
-              className="text-lg font-semibold mb-4"
-              style={{ color: colors.textPrimary }}
-            >
+          <div className="bg-surface rounded-2xl shadow-card p-6">
+            <h2 className="font-display text-lg text-heading mb-4">
               Order Summary
             </h2>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span style={{ color: colors.textSecondary }}>Subtotal</span>
-                <span style={{ color: colors.textPrimary }}>
-                  {formatPrice(order.price - order.shipping.cost)}
+                <span className="text-ink-muted">Subtotal</span>
+                <span className="text-ink tabular-nums">
+                  {formatPrice(order.subTotal)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span style={{ color: colors.textSecondary }}>Shipping</span>
-                <span style={{ color: colors.textPrimary }}>
-                  {formatPrice(order.shipping.cost)}
+                <span className="text-ink-muted">Shipping</span>
+                <span className="text-ink tabular-nums">
+                  {formatPrice(order.shippingCost ?? order.shipping?.cost)}
                 </span>
               </div>
-              <div className="border-t pt-2 mt-2">
+              <div className="border-t border-hairline pt-2 mt-2">
                 <div className="flex justify-between font-medium">
-                  <span style={{ color: colors.textPrimary }}>Total</span>
-                  <span style={{ color: colors.textPrimary }}>
-                    {formatPrice(order.price)}
+                  <span className="text-ink">Total</span>
+                  <span className="text-ink tabular-nums">
+                    {formatPrice(order.totalAmount)}
                   </span>
                 </div>
               </div>

@@ -1,101 +1,110 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { colors } from "@/constants/colors";
-import toast from "react-hot-toast";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import toast from "react-hot-toast";
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState("");
   const { registerEmail } = useAuth();
-  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setIsRegisterLoading(true);
+      // POST /authentication/register-email
       const response = await registerEmail(email);
       if (response.success) {
-        toast.success("Registration successful!");
-        router.push("/");
+        if (response.data?.accessToken) {
+          // Non-admin: account created and logged in immediately (token stored
+          // by the context) — no OTP needed.
+          toast.success("Account created successfully");
+          router.push("/");
+        } else {
+          // Admin / verification required → tell them to check their email.
+          setIsSubmitted(true);
+          toast.success("Check your email");
+        }
       } else {
         toast.error(response.message);
       }
     } catch (error) {
-      toast.error("Failed to register. Please try again.", error);
+      toast.error("Failed to register. Please try again.");
     } finally {
       setIsRegisterLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex mt-[15vh] justify-center px-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="flex min-h-screen items-start justify-center bg-bg px-4 pt-[14vh] pb-16">
+      <div className="w-full max-w-md rounded-2xl border border-hairline bg-surface p-8 shadow-card sm:p-10">
         <div className="text-center">
-          <h2
-            className="text-3xl font-light"
-            style={{ color: colors.textPrimary }}
-          >
+          <p className="font-display text-lg text-heading">A to Z Accessories</p>
+          <h2 className="mt-5 font-display text-3xl text-heading">
             Create an Account
           </h2>
-          <p className="mt-2 text-sm" style={{ color: colors.textSecondary }}>
+          <p className="mt-2 text-sm text-ink-muted">
             Join us to explore our exclusive jewelry collection
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium"
-                style={{ color: colors.textPrimary }}
-              >
-                Email Address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full px-4 py-3 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                }}
-                placeholder="Enter your email"
-              />
-            </div>
+        {isSubmitted ? (
+          <div className="mt-8 rounded-xl border border-hairline bg-surface-muted p-6 text-center">
+            <h3 className="font-display text-xl text-heading">
+              Check your email
+            </h3>
+            <p className="mt-2 text-sm text-ink-muted">
+              We&apos;ve sent a message to {email}. Please check your inbox to
+              continue.
+            </p>
           </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-ink"
+                >
+                  Email Address
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-hairline bg-surface px-4 py-3 text-ink placeholder:text-ink-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  placeholder="Enter your email"
+                />
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            disabled={isRegisterLoading}
-            className="w-full py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
-            style={{
-              backgroundColor: colors.brown,
-              color: colors.textLight,
-            }}
-          >
-            {isRegisterLoading ? "Registering..." : "Register"}
-          </button>
-
-          <p className="text-center" style={{ color: colors.textSecondary }}>
-            Already have an account?{" "}
-            <a
-              href="/auth/login"
-              className="font-medium hover:underline"
-              style={{ color: colors.brown }}
+            <button
+              type="submit"
+              disabled={isRegisterLoading}
+              className="w-full rounded-full bg-primary px-4 py-3 font-medium text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Sign in
-            </a>
-          </p>
-        </form>
+              {isRegisterLoading ? "Registering..." : "Register"}
+            </button>
+
+            <p className="text-center text-ink-muted">
+              Already have an account?{" "}
+              <Link
+                href="/auth/login"
+                className="rounded-sm font-medium text-primary transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                Sign in
+              </Link>
+            </p>
+          </form>
+        )}
       </div>
     </div>
   );

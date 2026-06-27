@@ -1,32 +1,122 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Your custom styles below */
-
+/* ───────────────────────────────────────────────────────────────────────────
+   Storefront design tokens — "Warm Editorial Luxury"
+   Single source of truth for the storefront. Components consume these via the
+   Tailwind theme (bg-bg, text-ink, shadow-card, …) mapped in tailwind.config.js.
+   The legacy `src/constants/colors.ts` object stays as a compatibility shim for
+   pages not yet migrated; do not remove it.
+   ──────────────────────────────────────────────────────────────────────────── */
 :root {
-  --background: #faf9f6;
-  --foreground: #171717;
-}
+  /* Colors are stored as space-separated RGB channels so Tailwind can apply
+     opacity modifiers (bg-surface/90) via rgb(var(--token) / <alpha>). */
 
-* {
-  /* outline: 1px solid lightgreen; */
+  /* Surfaces — warm sand & olive, light, image-friendly */
+  --color-bg: 246 242 235; /* #F6F2EB warm oat canvas */
+  --color-surface: 251 250 248; /* #FBFAF8 white cards */
+  --color-surface-muted: 231 218 200; /* #E7DAC8 warm beige */
+  --color-surface-sunken: 216 194 166; /* #D8C2A6 sand */
+  --color-noir: 89 92 70; /* #595C46 dark olive — dark feature surface */
+
+  /* Ink / text — high contrast for crisp reading */
+  --color-ink: 74 67 60; /* #4A433C heading-dark — body */
+  --color-ink-muted: 110 104 95; /* #6E685F AA secondary (4.7:1 on bg) */
+  --color-ink-subtle: 148 142 131; /* lighter body — hints/placeholders */
+  --color-heading: 74 67 60; /* #4A433C headings */
+
+  /* Brand */
+  --color-primary: 111 115 88; /* #6F7358 olive */
+  --color-primary-hover: 89 92 70; /* #595C46 dark olive */
+  --color-accent: 188 149 92; /* #BC955C gold */
+  --color-accent-soft: 236 223 200; /* soft-gold tint — badges/soft hovers */
+  --color-on-primary: 251 250 248; /* #FBFAF8 light on olive/dark */
+
+  /* Lines */
+  --color-border: 233 225 213; /* #E9E1D5 divider */
+  --color-border-strong: 216 194 166; /* #D8C2A6 sand */
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  /* Elevation (olive-tinted, soft & diffuse for a premium feel) */
+  --shadow-soft: 0 1px 2px rgba(74, 67, 60, 0.03),
+    0 8px 24px -10px rgba(74, 67, 60, 0.10);
+  --shadow-card: 0 1px 2px rgba(74, 67, 60, 0.04),
+    0 6px 16px -4px rgba(74, 67, 60, 0.08);
+  --shadow-card-hover: 0 4px 8px rgba(74, 67, 60, 0.05),
+    0 20px 40px -12px rgba(74, 67, 60, 0.18);
+
+  /* Rhythm — generous, for negative space */
+  --section-y: clamp(4.5rem, 9vw, 9rem);
+
+  /* Legacy aliases (real color values, for any direct var(--background) use) */
+  --background: rgb(var(--color-bg));
+  --foreground: rgb(var(--color-ink));
 }
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 30px;
+  scroll-padding-top: 90px;
+  color-scheme: light;
 }
+
 ::-webkit-scrollbar-track {
   padding-top: 20px;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  /* font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; */
-  font-family: "Noto Serif", serif !important;
+  color: rgb(var(--color-ink));
+  background-color: rgb(var(--color-bg));
+  /* Whisper of warm gold light from the top — adds depth to flat cream. */
+  background-image: radial-gradient(
+    1100px 520px at 50% -8%,
+    rgba(188, 149, 92, 0.08),
+    transparent 62%
+  );
+  background-attachment: fixed;
+  font-family: var(--font-body), "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Display serif (Marcellus) — single weight; size carries hierarchy, not bold. */
+.font-display,
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: 0.005em;
+}
+
+/* Fluid display scale — committed modular rhythm. */
+.t-display {
+  font-size: clamp(2.75rem, 1.4rem + 5.4vw, 5.25rem);
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+}
+.t-h2 {
+  font-size: clamp(2rem, 1.2rem + 3vw, 3.25rem);
+  line-height: 1.08;
+}
+.t-h3 {
+  font-size: clamp(1.4rem, 1.05rem + 1.3vw, 1.875rem);
+  line-height: 1.15;
+}
+
+/* Hide scrollbars on horizontal scroll rails (New Arrivals, product strips) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 .spinner {
@@ -44,5 +134,17 @@ body {
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+/* Respect users who prefer less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

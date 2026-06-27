@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { colors } from "@/constants/colors";
 import AddressPopup from "../profile/AddressPopup";
 import { Address } from "@/types/address.types";
 import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCheckout } from "@/contexts/CheckoutContext";
+import { Button } from "@/components/ui/Button";
 
 interface ShippingRegion {
   _id: string;
@@ -36,11 +36,11 @@ export default function CheckoutShipping({ onSubmit }) {
 
   const fetchAddresses = async () => {
     try {
-      const response = await getProfile();
+      const response: any = await getProfile();
       setAddresses(response.data.user);
       // Set default address if available
       const defaultAddress = response.data.user.find(
-        (addr) => addr._id === localStorage.getItem("defaultAddressId")
+        (addr: any) => addr._id === localStorage.getItem("defaultAddressId")
       );
 
       setSelectedAddress(defaultAddress || response.data.user[0]);
@@ -55,7 +55,7 @@ export default function CheckoutShipping({ onSubmit }) {
   };
 
   const handleAddressSelect = (address: Address) => {
-    setCheckoutSelectedAddress(address);
+    setSelectedAddress(address);
   };
 
   const selectedShippingRegion = useMemo(() => {
@@ -68,26 +68,19 @@ export default function CheckoutShipping({ onSubmit }) {
   return (
     <div className="max-w-2xl mx-auto px-2 md:p-4">
       {/* Account Section */}
-      <div
-        className="mb-4 border rounded-lg"
-        style={{ borderColor: colors.border }}
-      >
+      <div className="mb-4 border border-hairline rounded-lg">
         <div
-          className="flex justify-between items-center p-4 cursor-pointer"
+          className="flex justify-between items-center p-4 cursor-pointer text-ink"
           onClick={() => setIsAccountOpen(!isAccountOpen)}
-          style={{ color: colors.textPrimary }}
         >
           <h2 className="text-lg font-medium">Account</h2>
           {isAccountOpen ? <ChevronUp /> : <ChevronDown />}
         </div>
         {isAccountOpen && (
-          <div className="p-4 border-t" style={{ borderColor: colors.border }}>
-            <p className="text-sm" style={{ color: colors.textPrimary }}>
-              {authUser?.email}
-            </p>
+          <div className="p-4 border-t border-hairline">
+            <p className="text-sm text-ink">{authUser?.email}</p>
             <button
-              className="text-sm hover:underline mt-2"
-              style={{ color: colors.brown }}
+              className="text-sm hover:underline mt-2 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={() => {
                 /* Handle logout */
               }}
@@ -99,32 +92,25 @@ export default function CheckoutShipping({ onSubmit }) {
       </div>
 
       {/* Ship To Section */}
-      <div
-        className="mb-4 border rounded-lg"
-        style={{ borderColor: colors.border }}
-      >
+      <div className="mb-4 border border-hairline rounded-lg">
         <div
-          className="flex justify-between items-center p-4 cursor-pointer"
+          className="flex justify-between items-center p-4 cursor-pointer text-ink"
           onClick={() => setIsShipToOpen(!isShipToOpen)}
-          style={{ color: colors.textPrimary }}
         >
           <h2 className="text-lg font-medium">Ship to</h2>
           {isShipToOpen ? <ChevronUp /> : <ChevronDown />}
         </div>
         {isShipToOpen && (
-          <div className="p-4 border-t" style={{ borderColor: colors.border }}>
+          <div className="p-4 border-t border-hairline">
             {Array.isArray(addresses) &&
               addresses.map((addr) => (
                 <label
                   key={addr._id}
-                  className="flex justify-between items-start mb-4 p-3 rounded cursor-pointer transition-colors duration-200"
-                  style={{
-                    backgroundColor:
-                      selectedAddress?._id === addr._id
-                        ? colors.shadow
-                        : colors.background,
-                    color: colors.textPrimary,
-                  }}
+                  className={`flex justify-between items-start mb-4 p-3 rounded cursor-pointer transition-colors duration-200 text-ink ${
+                    selectedAddress?._id === addr._id
+                      ? "bg-accent-soft"
+                      : "bg-surface"
+                  }`}
                 >
                   <div className="flex items-start gap-3">
                     <input
@@ -140,7 +126,9 @@ export default function CheckoutShipping({ onSubmit }) {
                       </p>
                       <p className="text-sm">{addr.address}</p>
                       <p className="text-sm">
-                        {addr.governorate}, {addr.postalCode}
+                        {[addr.governorate, addr.postalCode]
+                          .filter(Boolean)
+                          .join(", ")}
                       </p>
                     </div>
                   </div>
@@ -149,15 +137,15 @@ export default function CheckoutShipping({ onSubmit }) {
                       e.preventDefault();
                       handleEditAddress(addr);
                     }}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    aria-label="Edit address"
+                    className="p-2 hover:bg-surface-muted rounded-full transition-colors text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
-                    <Pencil size={16} style={{ color: colors.brown }} />
+                    <Pencil size={16} />
                   </button>
                 </label>
               ))}
             <button
-              className="text-sm hover:underline flex items-center gap-2"
-              style={{ color: colors.brown }}
+              className="text-sm hover:underline flex items-center gap-2 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={() => {
                 setEditingAddress(null);
                 setIsAddressPopupOpen(true);
@@ -170,29 +158,19 @@ export default function CheckoutShipping({ onSubmit }) {
       </div>
 
       {/* Shipping Method Section */}
-      <div
-        className="mb-4 border rounded-lg"
-        style={{ borderColor: colors.border }}
-      >
-        <div
-          className="flex justify-between items-center p-4 cursor-pointer"
-          style={{ color: colors.textPrimary }}
-        >
+      <div className="mb-4 border border-hairline rounded-lg">
+        <div className="flex justify-between items-center p-4 cursor-pointer text-ink">
           <h2 className="text-lg font-medium">Shipping method</h2>
         </div>
         {selectedShippingRegion && (
-          <div className="p-4 border-t" style={{ borderColor: colors.border }}>
-            <label
-              className="flex items-center justify-between p-3 mb-2 cursor-pointer rounded transition-colors duration-200"
-              style={{
-                backgroundColor: colors.shadow,
-                color: colors.textPrimary,
-              }}
-            >
+          <div className="p-4 border-t border-hairline">
+            <label className="flex items-center justify-between p-3 mb-2 cursor-pointer rounded transition-colors duration-200 bg-accent-soft text-ink">
               <div className="flex items-center gap-3">
                 <span>{selectedShippingRegion.category}</span>
               </div>
-              <span>£E{selectedShippingRegion.cost.toFixed(2)}</span>
+              <span className="tabular-nums">
+                EGP {selectedShippingRegion.cost.toFixed(2)}
+              </span>
             </label>
           </div>
         )}
@@ -200,27 +178,19 @@ export default function CheckoutShipping({ onSubmit }) {
 
       {/* Email Preferences */}
       <div className="mb-4">
-        <label
-          className="flex items-center space-x-2"
-          style={{ color: colors.textPrimary }}
-        >
-          <input type="checkbox" className="form-checkbox" />
+        <label className="flex items-center gap-2 text-ink">
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded border-hairline accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          />
           <span className="text-sm">Email me with news and offers</span>
         </label>
       </div>
 
-      <div className="w-full sticky md:static bottom-0">
-        <button
-          type="submit"
-          className="w-full py-3 px-4 rounded-md transition-colors duration-200"
-          style={{
-            backgroundColor: colors.brown,
-            color: colors.textLight,
-          }}
-          onClick={onSubmit}
-        >
+      <div className="sticky bottom-0 w-full md:static">
+        <Button type="submit" size="lg" onClick={onSubmit} className="w-full">
           Continue to Payment
-        </button>
+        </Button>
       </div>
 
       {/* Address Popup */}

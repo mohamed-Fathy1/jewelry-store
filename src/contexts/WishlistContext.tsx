@@ -22,9 +22,10 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const result = await wishlistService.getUserWishlist();
       if (result.success) {
-        const productIds = result.data.wishlist.map(
-          (item) => item.productId._id
-        );
+        // `data.wishlist` is a flat array (paginated `{ products }` on admin).
+        const w = result.data.wishlist;
+        const items = Array.isArray(w) ? w : w?.products ?? [];
+        const productIds = items.map((item) => item.productId._id);
         setWishlist(productIds);
       } else {
         console.error("Failed to fetch wishlist:", result.message);

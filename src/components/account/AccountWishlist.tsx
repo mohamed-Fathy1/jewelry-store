@@ -1,24 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
+import SmartImage from "@/components/ui/SmartImage";
 import Link from "next/link";
 import { TrashIcon, ShoppingBagIcon } from "@heroicons/react/24/outline";
-import { colors } from "@/constants/colors";
 import toast from "react-hot-toast";
 import { wishlistService } from "@/services/wishlist.service";
 import { useWishlist } from "@/contexts/WishlistContext";
 import Pagination from "@/components/common/Pagination";
 import { useCart } from "@/contexts/CartContext";
 import { formatPrice } from "@/utils/format";
+import { Product } from "@/types/product.types";
+import { CartItem } from "@/types/cart.types";
+import { WishlistItem } from "@/types/wishlist.types";
+import { analytics } from "@/lib";
 
 export default function AccountWishlist() {
   const { toggleWishlist } = useWishlist();
-  const [wishlist, setWishlist] = useState([]);
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { addToCart } = useCart();
+  const router = useRouter();
   // const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,8 +32,11 @@ export default function AccountWishlist() {
       try {
         const result = await wishlistService.getUserWishlist(currentPage);
         if (result.success) {
-          // setTotalPages(result.data.wishlist.totalPages);
-          setWishlist(result.data.wishlist);
+          // /wishlist/get-user-wishlist returns `data.wishlist` as a flat array;
+          // tolerate the paginated `{ products }` shape, and fall back to [] so
+          // the empty state renders instead of crashing on `wishlist.length`.
+          const w = result.data?.wishlist;
+          setWishlist(Array.isArray(w) ? w : w?.products ?? []);
         } else {
           console.error("Failed to fetch wishlist:", result.message);
         }
@@ -49,41 +57,56 @@ export default function AccountWishlist() {
   };
 
   const handleAddToCart = (product: Product) => {
-    const cartItem: CartItem = {
+    // Only add directly when we can resolve a concrete variant (a "simple"
+    // product: one variant, no colour/size). Variant products — or payloads
+    // without variant data — would otherwise become an invalid variant-less
+    // line that fails at checkout, so route to the product page to choose.
+    const variants = product.variants ?? [];
+    const simpleVariant =
+      variants.length === 1 && !variants[0].color && !variants[0].size
+        ? variants[0]
+        : null;
+
+    if (!simpleVariant) {
+      router.push(`/product/${product._id}`);
+      return;
+    }
+    if (simpleVariant.availableItems <= 0) return;
+
+    const price = product.salePrice || product.price;
+    addToCart({
       productId: product._id,
+      variantId: simpleVariant._id,
       quantity: 1,
-      price: product.salePrice || product.price,
+      price,
       productName: product.productName,
       productImage: product.defaultImage.mediaUrl,
-      availableItems: product.availableItems,
-    };
-
-    addToCart(cartItem);
+      availableItems: simpleVariant.availableItems,
+    } as CartItem);
+    analytics.trackAddToCart({
+      id: product._id,
+      name: product.productName,
+      price,
+      quantity: 1,
+    });
   };
 
   if (loading) {
     return <div>Loading wishlist...</div>;
   }
 
-  if (wishlist.length === 0) {
+  if (!wishlist?.length) {
     return (
       <div className="text-center py-12">
-        <h2
-          className="text-lg font-medium"
-          style={{ color: colors.textPrimary }}
-        >
+        <h2 className="font-display text-lg text-heading">
           Your Wishlist is Empty
         </h2>
-        <p className="mt-2" style={{ color: colors.textSecondary }}>
+        <p className="mt-2 text-ink-muted">
           You have not added any items to your wishlist yet.
         </p>
         <Link
           href="/shop"
-          className="mt-4 inline-block px-4 py-2 rounded-md"
-          style={{
-            backgroundColor: colors.brown,
-            color: colors.textLight,
-          }}
+          className="mt-4 inline-block rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           Start Shopping
         </Link>
@@ -97,54 +120,40 @@ export default function AccountWishlist() {
         {wishlist.map((item) => (
           <div
             key={item._id}
-            className="rounded-lg overflow-hidden"
-            style={{ backgroundColor: colors.background }}
+            className="flex flex-col rounded-2xl overflow-hidden bg-surface-muted"
           >
             <div className="aspect-square relative">
-              <Image
+              <SmartImage
                 src={item.productId.defaultImage.mediaUrl}
                 alt={item.productId.productName}
                 fill
                 className="object-cover"
               />
-              {!item.productId.isSale && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                  <span
-                    className="px-4 py-2 rounded-md text-sm font-medium"
-                    style={{ color: colors.textLight }}
-                  >
+              {item.productId.isSoldOut && (
+                <div className="absolute inset-0 flex items-center justify-center bg-noir/50">
+                  <span className="px-4 py-2 rounded-md text-sm font-medium text-on-primary">
                     Out of Stock
                   </span>
                 </div>
               )}
             </div>
-            <div className="p-4">
-              <Link href={`/product/${item.productId._id}`}>
-                <h3
-                  className="text-lg font-medium mb-1"
-                  style={{ color: colors.textPrimary }}
-                >
+            <div className="flex flex-1 flex-col p-4">
+              {/* flex-1 lets the title absorb slack so the price + Add-to-Cart
+                  row drops to a shared bottom across cards of varying title
+                  length. */}
+              <Link href={`/product/${item.productId._id}`} className="flex-1">
+                <h3 className="font-display text-lg text-heading mb-1">
                   {item.productId.productName}
                 </h3>
               </Link>
-              <p className="mb-2" style={{ color: colors.textSecondary }}>
-                {/* {item.productId.category.categoryName} */}
-              </p>
-              <p
-                className="text-lg font-semibold mb-4"
-                style={{ color: colors.textPrimary }}
-              >
+              <p className="mt-2 text-lg font-semibold mb-4 text-heading tabular-nums">
                 {formatPrice(item.productId.price)}
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => handleAddToCart(item.productId)}
-                  disabled={!item.productId.isSale}
-                  className="flex-1 flex items-center justify-center gap-2 py-2 rounded-md transition-colors duration-200 disabled:opacity-50"
-                  style={{
-                    backgroundColor: colors.brown,
-                    color: colors.textLight,
-                  }}
+                  disabled={item.productId.isSoldOut}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-full bg-primary py-2 text-sm font-medium text-on-primary shadow-card transition-colors duration-200 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <ShoppingBagIcon className="w-5 h-5" />
                   Add to Cart
@@ -154,11 +163,8 @@ export default function AccountWishlist() {
                     removeFromWishlist(item.productId._id);
                     toggleWishlist(item.productId._id);
                   }}
-                  className="p-2 rounded-md border transition-colors duration-200"
-                  style={{
-                    borderColor: colors.border,
-                    color: colors.textPrimary,
-                  }}
+                  aria-label={`Remove ${item.productId.productName} from wishlist`}
+                  className="p-2 rounded-full border border-hairline text-ink transition-colors duration-200 hover:border-hairline-strong hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   <TrashIcon className="w-5 h-5" />
                 </button>

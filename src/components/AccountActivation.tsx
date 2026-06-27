@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, KeyboardEvent, useEffect } from "react";
-import { colors } from "@/constants/colors";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUser } from "@/contexts/UserContext";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -98,40 +97,36 @@ const AccountActivation = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-center mt-[20vh] px-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="flex min-h-screen items-start justify-center bg-bg px-4 pt-[18vh] pb-16">
+      <div className="w-full max-w-md rounded-2xl border border-hairline bg-surface p-8 shadow-card sm:p-10">
         <div className="text-center">
-          <h2
-            className="text-3xl font-light"
-            style={{ color: colors.textPrimary }}
-          >
+          <p className="font-display text-lg text-heading">A to Z Accessories</p>
+          <h2 className="mt-5 font-display text-3xl text-heading">
             Authentication
           </h2>
-          <p className="mt-2 text-sm" style={{ color: colors.textSecondary }}>
+          <p className="mt-2 text-sm text-ink-muted">
             A message with a verification code has been sent to your devices.
             Enter the code to continue.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8">
-          <div className="flex justify-center gap-2 mb-8">
+          <div className="mb-8 flex justify-center gap-2">
             {verificationCode.map((digit, index) => (
               <input
                 key={index}
-                ref={(el) => (inputRefs.current[index] = el)}
+                ref={(el) => {
+                  inputRefs.current[index] = el;
+                }}
                 type="text"
                 inputMode="numeric"
                 autoFocus={index === 0} // auto focus on the first input
                 maxLength={1}
+                aria-label={`Verification code digit ${index + 1}`}
                 value={digit}
                 onChange={(e) => handleChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
-                className="w-12 h-12 text-center text-lg border rounded-md focus:outline-none focus:ring-2 transition-all duration-200"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                }}
+                className="h-12 w-12 rounded-lg border border-hairline bg-surface text-center text-lg text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 required
               />
             ))}
@@ -140,24 +135,16 @@ const AccountActivation = () => {
           <button
             type="submit"
             disabled={gettingActiveCode}
-            className="w-full py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
-            style={{
-              backgroundColor: colors.brown,
-              color: colors.textLight,
-            }}
+            className="w-full rounded-full bg-primary px-4 py-3 font-medium text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50"
           >
             {gettingActiveCode ? "Verifying..." : "Verify Account"}
           </button>
 
-          <p
-            className="text-center mt-4"
-            style={{ color: colors.textSecondary }}
-          >
+          <p className="mt-4 text-center text-ink-muted">
             Didn&apos;t receive the code?{" "}
             <button
               type="button"
-              className="font-medium hover:underline"
-              style={{ color: colors.brown }}
+              className="rounded-sm font-medium text-primary transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={async () => {
                 // Add resend code logic here
                 await registerEmail(email);

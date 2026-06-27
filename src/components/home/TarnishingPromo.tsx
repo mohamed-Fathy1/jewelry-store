@@ -1,56 +1,68 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
-import { colors } from "@/constants/colors"; // Adjust the import based on your color constants
+import Link from "next/link";
+
+const traits = ["Won't tarnish", "Water-safe", "Skin-friendly"];
 
 const TarnishingPromo: React.FC = () => {
   return (
-    <div className="max-w-5xl md:min-h-screen flex overflow-clip items-center mx-auto px-4 py-12 md:py-20">
-      <div className="grid md:grid-cols-5 gap-8 md:gap-2 items-center">
-        <div className="order-2 text-center md:text-start md:order-2  md:col-span-3 flex flex-col items-start">
-          <h2
-            className="text-4xl w-full font-bold mb-4"
-            style={{ color: colors.textPrimary }}
-          >
-            AFRAID OF TARNISHING?
-          </h2>
-          <p className="text-lg mb-4" style={{ color: colors.textSecondary }}>
-            Our accessories are made from high-quality stainless steel material
-            that does not change color or rust. You don't have to take it off
-            when you take a shower or use water, perfume, and so on.
+    <section className="bg-noir text-on-primary">
+      <div className="mx-auto grid max-w-7xl items-center gap-14 px-4 py-[var(--section-y)] sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-8">
+        {/* Copy */}
+        <div className="order-2 max-w-xl lg:order-1">
+          <p className="mb-6 text-xs uppercase tracking-[0.22em] text-accent">
+            Stainless Steel
           </p>
+          <h2 className="t-h2 text-balance font-display text-on-primary">
+            Made to be worn, not stored.
+          </h2>
+          <p className="mt-6 text-lg leading-relaxed text-on-primary/70">
+            Our pieces are high-grade stainless steel — they don&rsquo;t tarnish,
+            rust, or change color. Keep them on in the shower, the sea, the
+            everyday. They hold their shine.
+          </p>
+          <ul className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-sm text-on-primary/65">
+            {traits.map((t) => (
+              <li key={t} className="flex items-center gap-2.5">
+                <span
+                  aria-hidden="true"
+                  className="h-1 w-1 rounded-full bg-accent"
+                />
+                {t}
+              </li>
+            ))}
+          </ul>
+          <Link
+            href="/shop"
+            className="mt-10 inline-flex items-center gap-2 border-b border-accent/40 pb-1 text-sm text-accent transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-noir"
+          >
+            Explore the collection
+          </Link>
         </div>
-        <div className="order-1 md:order-2 md:col-span-2 inline-grid md:block items-center justify-center md:ml-12">
-          <div className="w-fit md:w-full relative">
-            {/* Bottom image - Necklaces */}
-            {/* Top image - Ring, positioned to overlap */}
-            <div className="min-w-[250px] md:w-full">
-              <div className="absolute -right-1/4 bottom-1/2 aspect-square w-2/3 max-w-[300px]">
-                <Image
-                  src="/images/IMG_5678.jpg"
-                  alt="Gold ring with opal stone on hand"
-                  fill
-                  sizes="(max-width: 768px) 66vw, 33vw"
-                  quality={85}
-                  className="object-cover rounded-sm shadow-lg"
-                />
-              </div>
-              <div className="relative mr-auto w-2/3 aspect-[3/4] max-w-[300px]">
-                <Image
-                  src="/images/IMG_3645.jpg"
-                  alt="Gold necklaces with pendant displayed on white surface"
-                  fill
-                  sizes="(max-width: 768px) 66vw, 33vw"
-                  quality={85}
-                  className="object-cover rounded-sm shadow-lg"
-                />
-              </div>
-            </div>
+
+        {/* Art-directed imagery */}
+        <div className="relative order-1 mx-auto w-full max-w-md lg:order-2 lg:mx-0 lg:ml-auto">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-card-hover ring-1 ring-white/10">
+            <video
+              className="absolute inset-0 h-full w-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              poster="/images/IMG_3645.jpg"
+              aria-label="Stainless steel jewelry collection"
+            >
+              <source
+                src="https://d1xdt7gkixoxw1.cloudfront.net/IMG_1602.mp4"
+                type="video/mp4"
+              />
+            </video>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

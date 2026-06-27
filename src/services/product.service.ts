@@ -1,15 +1,13 @@
 import axios from "axios";
 import {
+  Product,
   ProductsResponse,
   SingleProductResponse,
-  ProductFilters,
 } from "@/types/product.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const axiosInstance = axios.create({
-  baseURL: API_URL,
-});
+const axiosInstance = axios.create({ baseURL: API_URL });
 
 export const priceRange = {
   priceUnder100: "Under $100",
@@ -24,122 +22,160 @@ export const sort = {
   priceHighToLow: "High to Low",
 } as const;
 
+// ── helpers ─────────────────────────────────────────────────────────────────
+// Backend GET /products accepts: category, isBestSeller, isSale, minPrice,
+// maxPrice, color, size, sort, page, limit. sort: "price" (asc) | "soldItems"
+// | (default) createdAt desc. Map the storefront's filter labels onto that.
+function mapSort(label?: string): string | undefined {
+  if (!label) return undefined;
+  if (label === sort.priceLowToHigh || label === "priceLowToHigh" || label === "price")
+    return "price";
+  if (label === sort.priceHighToLow || label === "priceHighToLow") return "price"; // backend has no price-desc
+  if (label === "soldItems") return "soldItems";
+  return undefined; // Newest → default (createdAt desc)
+}
+
+function mapPrice(range?: string): { minPrice?: number; maxPrice?: number } {
+  switch (range) {
+    case priceRange.priceUnder100:
+      return { maxPrice: 100 };
+    case priceRange.priceBetween100and500:
+      return { minPrice: 100, maxPrice: 500 };
+    case priceRange.priceBetween500and1000:
+      return { minPrice: 500, maxPrice: 1000 };
+    case priceRange.priceAbove1000:
+      return { minPrice: 1000 };
+    default:
+      return {};
+  }
+}
+
+function buildQuery(params: Record<string, unknown>): string {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "") qs.append(k, String(v));
+  });
+  return qs.toString();
+}
+
+// New endpoint returns { data: { products: Product[], pagination } }.
+// Adapt to the legacy shape the contexts/pages read: data.products.{data,totalPages,currentPage}.
+function adaptList(raw: any): ProductsResponse {
+  const p = raw?.data?.products;
+  const arr: Product[] = Array.isArray(p) ? p : p?.data ?? [];
+  const pg = raw?.data?.pagination ?? {};
+  return {
+    success: raw?.success ?? true,
+    message: raw?.message ?? "",
+    data: {
+      products: {
+        data: arr,
+        totalPages: pg.totalPages ?? 1,
+        currentPage: pg.page ?? 1,
+      },
+    },
+  };
+}
+
+async function fetchProducts(query: string): Promise<ProductsResponse> {
+  const res = await axiosInstance.get(`/products?${query}`);
+  return adaptList(res.data);
+}
+
+type Filters = {
+  priceRange?: (typeof priceRange)[keyof typeof priceRange] | string;
+  sort?: (typeof sort)[keyof typeof sort] | string;
+};
+
 export const productService = {
-  // Get all products
+  // Raw new-shape listing (used by sections that read data.products directly).
+  async getProductsList(
+    params: { page?: number; limit?: number; sort?: string; category?: string; isSale?: boolean } = {}
+  ): Promise<{ data: { products: Product[]; pagination?: any } }> {
+    const query = buildQuery({
+      page: params.page,
+      limit: params.limit,
+      sort: params.sort,
+      category: params.category,
+      isSale: params.isSale,
+    });
+    const response = await axiosInstance.get(`/products?${query}`);
+    return response.data;
+  },
+
   async getAllProducts(page: number = 1): Promise<ProductsResponse> {
-    const response = await axiosInstance.get<ProductsResponse>(
-      `/public/product/get-all-product?page=${page}`
-    );
-    return response.data;
+    return fetchProducts(buildQuery({ page, limit: 20 }));
   },
 
-  // Get all sale products
   async getAllSaleProducts(page: number = 1): Promise<ProductsResponse> {
-    const response = await axiosInstance.get<ProductsResponse>(
-      `/public/product/get-all-sale?page=${page}`
-    );
-    return response.data;
+    return fetchProducts(buildQuery({ isSale: true, page, limit: 20 }));
   },
 
-  // Get one product by ID
-  async getOneProduct(id: string): Promise<SingleProductResponse> {
+  // GET /products/:id → { data: { product, liked } }
+  async getOneProduct(id: string, userId?: string): Promise<SingleProductResponse> {
+    const q = userId ? `?user=${userId}` : "";
     const response = await axiosInstance.get<SingleProductResponse>(
-      `/public/product/get-one-product/${id}`
+      `/products/${id}${q}`
     );
     return response.data;
   },
 
-  // Get products by category ID
   async getProductsByCategoryId(
     categoryId: string,
     page: number = 1,
-    filters: {
-      priceRange?: (typeof priceRange)[keyof typeof priceRange];
-      sort?: (typeof sort)[keyof typeof sort];
-    }
+    filters: Filters = {}
   ): Promise<ProductsResponse> {
-    const queryParams = new URLSearchParams();
-
-    // Add page parameter
-    if (page) {
-      queryParams.append("page", page.toString());
-    }
-
-    // Add sort parameter
-    if (filters.sort) {
-      queryParams.append("sort", filters.sort);
-    }
-
-    // Add price range parameter
-    if (filters.priceRange) {
-      queryParams.append("priceRange", filters.priceRange);
-    }
-
-    const response = await axiosInstance.get<ProductsResponse>(
-      `/public/product/get-category/${categoryId}?${queryParams.toString()}`
+    return fetchProducts(
+      buildQuery({
+        category: categoryId,
+        page,
+        limit: 20,
+        sort: mapSort(filters.sort),
+        ...mapPrice(filters.priceRange),
+      })
     );
-    return response.data;
   },
 
-  // Get products by category slug (keeping for backwards compatibility)
   async getProductsByCategory(
-    categorySlug: string,
+    categoryId: string,
     page: number = 1
   ): Promise<ProductsResponse> {
-    const response = await axiosInstance.get<ProductsResponse>(
-      `/public/product/by-category/${categorySlug}?page=${page}`
-    );
-    return response.data;
+    return fetchProducts(buildQuery({ category: categoryId, page, limit: 20 }));
   },
 
-  // Sort products
   async getSortedProducts(
     sortBy: string = "createdAt",
-    sortOrder: "asc" | "desc" = "desc",
+    _sortOrder: "asc" | "desc" = "desc",
     page: number = 1
   ): Promise<ProductsResponse> {
-    const response = await axiosInstance.get<ProductsResponse>(
-      `/public/product/sort?sortBy=${sortBy}&sortOrder=${sortOrder}&page=${page}`
-    );
-    return response.data;
+    return fetchProducts(buildQuery({ sort: mapSort(sortBy), page, limit: 20 }));
   },
 
-  // Search products
+  // GET /products/search?searchQuery= → { data: { products: Product[] } }
   async searchProducts(query: string): Promise<ProductsResponse> {
-    const response = await axiosInstance.get<ProductsResponse>(
-      `/public/product/search-product?searchQuery=${query}`
+    const res = await axiosInstance.get(
+      `/products/search?searchQuery=${encodeURIComponent(query)}`
     );
-    return response.data;
+    return adaptList(res.data);
   },
 
-  // Filter and sort products
   async getFilteredProducts(
-    filters: {
-      priceRange?: (typeof priceRange)[keyof typeof priceRange];
-      sort?: (typeof sort)[keyof typeof sort];
-    },
+    filters: Filters = {},
     page: number = 1
   ): Promise<ProductsResponse> {
-    const queryParams = new URLSearchParams();
-
-    // Add page parameter
-    if (page) {
-      queryParams.append("page", page.toString());
-    }
-
-    // Add sort parameter
-    if (filters.sort) {
-      queryParams.append("sort", filters.sort);
-    }
-
-    // Add price range parameter
-    if (filters.priceRange) {
-      queryParams.append("priceRange", filters.priceRange);
-    }
-
-    const response = await axiosInstance.get<ProductsResponse>(
-      `/public/product?${queryParams.toString()}`
+    return fetchProducts(
+      buildQuery({
+        page,
+        limit: 20,
+        sort: mapSort(filters.sort),
+        ...mapPrice(filters.priceRange),
+      })
     );
-    return response.data;
+  },
+
+  // POST /products/available-items → live stock for a set of products/variants
+  async getProductsAndAvailableItems(payload: unknown): Promise<any> {
+    const res = await axiosInstance.post(`/products/available-items`, payload);
+    return res.data;
   },
 };

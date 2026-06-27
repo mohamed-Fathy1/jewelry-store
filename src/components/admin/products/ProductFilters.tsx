@@ -1,117 +1,82 @@
 "use client";
 
-import { useState } from "react";
-import { MagnifyingGlassIcon, FunnelIcon } from "@heroicons/react/24/outline";
-import { Dialog } from "@headlessui/react";
-import { colors } from "@/constants/colors";
-import { useDebounce } from "@/hooks/useDebounce";
+import { Category } from "@/types/category.types";
+import { SearchInput, Select, type SelectOption } from "@/components/admin/ui";
 
 interface ProductFiltersProps {
-  onSearch: (query: string) => void;
-  onFilterChange: (filter: "all" | "sale" | "soldout" | "wishlisted") => void;
+  categories: Category[];
+  search: string;
+  category: string;
+  isBestSeller: "" | "true" | "false";
+  sort: "" | "price" | "createdAt" | "soldItems";
+  onSearchChange: (value: string) => void;
+  onCategoryChange: (value: string) => void;
+  onIsBestSellerChange: (value: "" | "true" | "false") => void;
+  onSortChange: (value: "" | "price" | "createdAt" | "soldItems") => void;
 }
 
 export default function ProductFilters({
-  onSearch,
-  onFilterChange,
-  selectedFilter,
+  categories,
+  search,
+  category,
+  isBestSeller,
+  sort,
+  onSearchChange,
+  onCategoryChange,
+  onIsBestSellerChange,
+  onSortChange,
 }: ProductFiltersProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  // Use debounce hook for search
-  const debouncedSearch = useDebounce((value: string) => {
-    onSearch(0, value);
-  }, 300);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    debouncedSearch(value);
-  };
-
-  const handleFilterSelect = (
-    filter: "all" | "sale" | "soldout" | "wishlisted"
-  ) => {
-    onFilterChange(filter);
-    setSearchQuery(""); // Clear search when changing filters
-    setIsFilterOpen(false);
-  };
-
-  const filterOptions = [
-    { value: "all", label: "All Products" },
-    { value: "sale", label: "On Sale" },
-    { value: "soldout", label: "Sold Out" },
-    { value: "wishlisted", label: "Most Wishlisted" },
+  const categoryOptions: SelectOption[] = [
+    { value: "", label: "All Categories" },
+    ...categories.map((cat) => ({ value: cat._id, label: cat.categoryName })),
   ];
 
   return (
-    <div className="mb-6">
-      <div className="flex items-center gap-4">
-        {/* Search Input */}
-        <div className="relative flex-1">
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-brown"
-          />
-          <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-        </div>
+    <div className="mb-6 space-y-3">
+      {/* Search */}
+      <SearchInput
+        value={search}
+        onChange={(e) => onSearchChange(e.target.value)}
+        placeholder="Search products by name or description…"
+        ariaLabel="Search products"
+        className="w-full"
+      />
 
-        {/* Filter Button */}
-        <button
-          onClick={() => setIsFilterOpen(true)}
-          className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900"
-        >
-          <FunnelIcon className="h-5 w-5 mr-2" />
-          Filter
-        </button>
+      {/* Filters */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Select
+          ariaLabel="Filter by category"
+          value={category}
+          onChange={onCategoryChange}
+          options={categoryOptions}
+          searchable
+        />
+
+        <Select
+          ariaLabel="Filter by best seller"
+          value={isBestSeller}
+          onChange={(v) => onIsBestSellerChange(v as "" | "true" | "false")}
+          options={[
+            { value: "", label: "All Best Sellers" },
+            { value: "true", label: "Best Seller" },
+            { value: "false", label: "Not Best Seller" },
+          ]}
+        />
+
+        <Select
+          ariaLabel="Sort products"
+          value={sort}
+          onChange={(v) =>
+            onSortChange(v as "" | "price" | "createdAt" | "soldItems")
+          }
+          options={[
+            { value: "", label: "Sort: Newest" },
+            { value: "createdAt", label: "Sort: Date" },
+            { value: "price", label: "Sort: Price" },
+            { value: "soldItems", label: "Sort: Best Selling" },
+          ]}
+        />
       </div>
-
-      {/* Filter Dialog */}
-      <Dialog
-        open={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
-        className="fixed inset-0 z-50 overflow-y-auto"
-      >
-        <div className="flex items-center justify-center min-h-screen">
-          <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
-
-          <div className="relative bg-white rounded-lg w-full max-w-md mx-auto p-6">
-            <Dialog.Title className="text-lg font-medium mb-4">
-              Filter Products
-            </Dialog.Title>
-
-            <div className="space-y-4">
-              {filterOptions.map((option) => (
-                <label
-                  key={option.value}
-                  className="flex items-center space-x-3"
-                >
-                  <input
-                    type="radio"
-                    checked={selectedFilter === option.value}
-                    onChange={() => handleFilterSelect(option.value)}
-                    className="form-radio text-brown"
-                  />
-                  <span>{option.label}</span>
-                </label>
-              ))}
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setIsFilterOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      </Dialog>
     </div>
   );
 }

@@ -26,6 +26,15 @@ export const authService = {
     return response.data;
   },
 
+  // Re-issue a fresh OTP for an existing admin
+  async emailNewCode(email: string): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse>(
+      `/authentication/email-new-code`,
+      { email }
+    );
+    return response.data;
+  },
+
   // Logout user
   async logout(): Promise<AuthResponse> {
     try {

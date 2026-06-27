@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "@headlessui/react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Shipping } from "@/types/shipping.types";
 import { adminService } from "@/services/admin.service";
 import toast from "react-hot-toast";
-import { colors } from "@/constants/colors";
+import { Modal, Field, Button, adminInputClass } from "@/components/admin/ui";
 
 interface ShippingModalProps {
   isOpen: boolean;
@@ -78,83 +76,51 @@ export default function ShippingModal({
   };
 
   return (
-    <Dialog
+    <Modal
       open={isOpen}
       onClose={onClose}
-      className="fixed inset-0 z-50 overflow-y-auto"
+      title={shipping ? "Edit Shipping Option" : "Add New Shipping Option"}
+      size="sm"
     >
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Region Name" htmlFor="shipping-category">
+          <input
+            id="shipping-category"
+            type="text"
+            value={formData.category}
+            className={adminInputClass}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, category: e.target.value }))
+            }
+            placeholder="Region…"
+          />
+        </Field>
 
-        <div className="relative bg-white rounded-lg w-full max-w-md mx-auto p-6">
-          <div className="flex justify-between items-center mb-4">
-            <Dialog.Title
-              className="text-xl font-semibold"
-              style={{ color: colors.textPrimary }}
-            >
-              {shipping ? "Edit Shipping Option" : "Add New Shipping Option"}
-            </Dialog.Title>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
-          </div>
+        <Field label="Cost (EGP)" htmlFor="shipping-cost" required>
+          <input
+            id="shipping-cost"
+            type="number"
+            inputMode="decimal"
+            step="0.01"
+            value={formData.cost}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, cost: e.target.value }))
+            }
+            placeholder="Cost…"
+            className={`${adminInputClass} tabular-nums`}
+            required
+          />
+        </Field>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Region Name
-              </label>
-              <input
-                type="text"
-                value={formData.category}
-                className="mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, category: e.target.value }))
-                }
-                placeholder="Region"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Cost (EGP)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.cost}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, cost: e.target.value }))
-                }
-                placeholder="Cost"
-                className="mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
-                required
-              />
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-4 py-2 rounded-md text-white"
-                style={{ backgroundColor: colors.brown }}
-              >
-                {isSubmitting ? "Saving..." : shipping ? "Update" : "Create"}
-              </button>
-            </div>
-          </form>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="secondary" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" loading={isSubmitting}>
+            Save
+          </Button>
         </div>
-      </div>
-    </Dialog>
+      </form>
+    </Modal>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { colors } from "@/constants/colors";
 
 interface SliderProps {
   min: number;
@@ -42,12 +41,11 @@ export function Slider({ min, max, value, onChange }: SliderProps) {
 
   return (
     <div className="space-y-4">
-      <div className="relative h-2 bg-gray-200 rounded-full">
+      <div className="relative h-2 bg-surface-sunken rounded-full">
         {/* Track Fill */}
         <div
-          className="absolute h-full rounded-full"
+          className="absolute h-full rounded-full bg-primary"
           style={{
-            backgroundColor: colors.brown,
             left: `${getPercentage(localValue[0])}%`,
             right: `${100 - getPercentage(localValue[1])}%`,
           }}
@@ -55,11 +53,10 @@ export function Slider({ min, max, value, onChange }: SliderProps) {
 
         {/* Min Handle */}
         <div
-          className="absolute w-4 h-4 -mt-1.5 -ml-2 rounded-full cursor-pointer"
+          className={`absolute w-4 h-4 -mt-1.5 -ml-2 rounded-full cursor-pointer border-2 border-primary ${
+            isDragging === "min" ? "bg-primary" : "bg-surface"
+          }`}
           style={{
-            backgroundColor:
-              isDragging === "min" ? colors.brown : colors.background,
-            border: `2px solid ${colors.brown}`,
             left: `${getPercentage(localValue[0])}%`,
           }}
         >
@@ -68,6 +65,7 @@ export function Slider({ min, max, value, onChange }: SliderProps) {
             min={min}
             max={max}
             value={localValue[0]}
+            aria-label="Minimum price"
             onChange={(e) => handleChange("min", parseInt(e.target.value))}
             onBlur={handleBlur}
             onFocus={() => setIsDragging("min")}
@@ -77,11 +75,10 @@ export function Slider({ min, max, value, onChange }: SliderProps) {
 
         {/* Max Handle */}
         <div
-          className="absolute w-4 h-4 -mt-1.5 -ml-2 rounded-full cursor-pointer"
+          className={`absolute w-4 h-4 -mt-1.5 -ml-2 rounded-full cursor-pointer border-2 border-primary ${
+            isDragging === "max" ? "bg-primary" : "bg-surface"
+          }`}
           style={{
-            backgroundColor:
-              isDragging === "max" ? colors.brown : colors.background,
-            border: `2px solid ${colors.brown}`,
             left: `${getPercentage(localValue[1])}%`,
           }}
         >
@@ -90,6 +87,7 @@ export function Slider({ min, max, value, onChange }: SliderProps) {
             min={min}
             max={max}
             value={localValue[1]}
+            aria-label="Maximum price"
             onChange={(e) => handleChange("max", parseInt(e.target.value))}
             onBlur={handleBlur}
             onFocus={() => setIsDragging("max")}
@@ -99,10 +97,7 @@ export function Slider({ min, max, value, onChange }: SliderProps) {
       </div>
 
       {/* Price Display */}
-      <div
-        className="flex justify-between text-sm"
-        style={{ color: colors.textSecondary }}
-      >
+      <div className="flex justify-between text-sm text-ink-muted">
         <span>EGP {localValue[0].toLocaleString()}</span>
         <span>EGP {localValue[1].toLocaleString()}</span>
       </div>

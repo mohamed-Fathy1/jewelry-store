@@ -1,6 +1,6 @@
 "use client";
 
-import { colors } from "@/constants/colors";
+import { Button } from "@/components/ui/Button";
 
 interface PaymentFormData {
   paymentMethod: string;
@@ -9,91 +9,73 @@ interface PaymentFormData {
 interface Props {
   onSubmit: (data: PaymentFormData) => void;
   onBack: () => void;
+  /** Block confirmation until the backend total (preview) has resolved, so the
+   *  shown total always matches what the customer will be charged. */
+  disabled?: boolean;
 }
 
-export default function PaymentForm({ onSubmit, onBack }: Props) {
+export default function PaymentForm({ onSubmit, onBack, disabled }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (disabled) return;
     onSubmit({ paymentMethod: "cod" });
   };
 
   return (
     <div className="space-y-6">
-      <h2
-        className="text-2xl font-light mb-6"
-        style={{ color: colors.textPrimary }}
-      >
+      <h2 className="font-display text-2xl mb-6 text-heading">
         Payment Method
       </h2>
 
-      <div
-        className="p-6 rounded-lg border"
-        style={{
-          backgroundColor: colors.background,
-          borderColor: colors.border,
-        }}
-      >
+      <div className="p-6 rounded-lg border border-hairline bg-surface">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3
-              className="text-lg font-medium"
-              style={{ color: colors.textPrimary }}
-            >
-              Cash on Delivery
-            </h3>
-            <p className="mt-1" style={{ color: colors.textSecondary }}>
+            <h3 className="text-lg font-medium text-ink">Cash on Delivery</h3>
+            <p className="mt-1 text-ink-muted">
               Pay with cash when your order arrives
             </p>
           </div>
-          <div
-            className="px-3 py-1 rounded-full text-sm"
-            style={{
-              backgroundColor: colors.brown,
-              color: colors.textLight,
-            }}
-          >
+          <div className="px-3 py-1 rounded-full text-sm bg-primary text-on-primary">
             Recommended
           </div>
         </div>
 
-        <ul className="space-y-2 mb-6" style={{ color: colors.textSecondary }}>
+        <ul className="space-y-2 mb-6 text-ink-muted">
           <li>• No advance payment required</li>
           <li>• Pay only when you receive your items</li>
           <li>• Inspect your items before payment</li>
           <li>• Cash and digital payments accepted on delivery</li>
         </ul>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <button
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <Button
+            type="button"
+            variant="secondary"
+            size="lg"
             onClick={onBack}
-            className="px-6 py-3 rounded-md transition-colors duration-200 order-2 sm:order-1"
-            style={{
-              backgroundColor: colors.background,
-              color: colors.textPrimary,
-              borderColor: colors.border,
-            }}
+            className="order-2 sm:order-1"
           >
             Back to Shipping
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="flex-1 px-6 py-3 rounded-md transition-colors duration-200 order-1 sm:order-2"
+          </Button>
+          <Button
             type="button"
-            style={{
-              backgroundColor: colors.brown,
-              color: colors.textLight,
-            }}
+            size="lg"
+            onClick={handleSubmit}
+            disabled={disabled}
+            className="order-1 flex-1 sm:order-2"
           >
             Confirm Order
-          </button>
+          </Button>
         </div>
+        {disabled && (
+          <p className="mt-3 text-center text-sm text-ink-muted">
+            Calculating your total…
+          </p>
+        )}
       </div>
 
-      <div
-        className="p-4 rounded-lg"
-        style={{ backgroundColor: colors.accentLight }}
-      >
-        <p className="text-sm" style={{ color: colors.textSecondary }}>
+      <div className="p-4 rounded-lg bg-accent-soft">
+        <p className="text-sm text-ink-muted">
           Note: Our delivery partner will contact you before delivery. Please
           keep your phone handy.
         </p>

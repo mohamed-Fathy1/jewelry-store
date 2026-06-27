@@ -1,3 +1,6 @@
+import { Order } from "@/types/order.types";
+import { Product } from "@/types/product.types";
+
 export interface DashboardStats {
   totalRevenue: number;
   totalOrders: number;
@@ -20,7 +23,7 @@ export interface DashboardStatsResponse {
   };
 }
 
-export interface AdminOrder extends Order {
+export interface AdminOrder extends Omit<Order, "status"> {
   customer: {
     name: string;
     email: string;

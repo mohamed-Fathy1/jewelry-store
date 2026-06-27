@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { colors } from "@/constants/colors";
 import { Button } from "@/components/ui/Button";
 import { useUser } from "@/contexts/UserContext";
 import AddressManager from "@/components/profile/AddressManager";
@@ -14,7 +13,7 @@ export default function AccountProfile() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
   const [mounted, setMounted] = useState(false);
-  const [currentDefaultAddress, setCurrentDefaultAddress] = useState();
+  const [currentDefaultAddress, setCurrentDefaultAddress] = useState<any>();
 
   useEffect(() => {
     getProfile();
@@ -25,12 +24,14 @@ export default function AccountProfile() {
   }, []);
 
   const getDefaultAddress = useCallback(() => {
-    if (!user) return null;
+    // `user` is treated as an address list here by the existing UI.
+    const addressList = (user as any) ?? null;
+    if (!addressList) return null;
 
     if (defaultAddressId) {
-      return user.find((addr) => addr._id === defaultAddressId);
+      return addressList.find((addr: any) => addr._id === defaultAddressId);
     }
-    return user.length > 0 ? user[0] : null;
+    return addressList.length > 0 ? addressList[0] : null;
   }, [user, defaultAddressId]);
 
   useEffect(() => {
@@ -44,18 +45,10 @@ export default function AccountProfile() {
   return (
     <div className="space-y-12">
       {/* Basic User Information */}
-      <div
-        className="max-w-4xl p-6 border rounded-lg"
-        style={{ borderColor: colors.border }}
-      >
-        <h2
-          className="text-xl font-medium"
-          style={{ color: colors.textPrimary }}
-        >
-          User Information
-        </h2>
-        <p style={{ color: colors.textSecondary }}>Email: {authUser?.email}</p>
-        <p style={{ color: colors.textSecondary }}>
+      <div className="max-w-4xl p-6 border border-hairline rounded-2xl bg-surface">
+        <h2 className="font-display text-xl text-heading">User Information</h2>
+        <p className="text-ink-muted">Email: {authUser?.email}</p>
+        <p className="text-ink-muted">
           Name: {currentDefaultAddress?.firstName}{" "}
           {currentDefaultAddress?.lastName}
         </p>
@@ -65,7 +58,7 @@ export default function AccountProfile() {
       </div>
 
       {/* Address Manager */}
-      <AddressManager addresses={user} />
+      <AddressManager addresses={user as any} />
 
       {/* Address Popup */}
       {mounted && isPopupOpen && (

@@ -2,20 +2,40 @@
 
 import { useState, useRef, useEffect } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
-import { colors } from "@/constants/colors";
 
 interface SelectOption {
   value: string;
   label: string;
+  // Optional hex color rendered as a small swatch before the label.
+  swatch?: string;
 }
 
 interface SelectProps {
   value: string;
   onChange: (value: string) => void;
   options: SelectOption[];
+  placeholder?: string;
+  // When provided, fully controls the trigger styling (used to match form
+  // inputs). When omitted, the default standalone styling is used.
+  className?: string;
 }
 
-export function Select({ value, onChange, options }: SelectProps) {
+function Swatch({ hex }: { hex: string }) {
+  return (
+    <span
+      className="inline-block h-4 w-4 rounded-full border border-hairline flex-shrink-0"
+      style={{ backgroundColor: hex }}
+    />
+  );
+}
+
+export function Select({
+  value,
+  onChange,
+  options,
+  placeholder = "Select an option",
+  className,
+}: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
 
@@ -34,54 +54,49 @@ export function Select({ value, onChange, options }: SelectProps) {
   }, []);
 
   const selectedOption = options.find((option) => option.value === value);
+  const useCustomTrigger = Boolean(className);
 
   return (
     <div className="relative" ref={selectRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2 text-left border rounded-md flex items-center justify-between transition-colors"
-        style={{
-          backgroundColor: colors.background,
-          borderColor: colors.border,
-          color: colors.textPrimary,
-        }}
+        className={
+          useCustomTrigger
+            ? `${className} text-left flex items-center justify-between text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent`
+            : "w-full px-4 py-2 text-left rounded-lg border border-hairline bg-surface text-ink flex items-center justify-between transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        }
       >
-        <span>
-          {selectedOption ? selectedOption.label : "Select an option"}
+        <span className="flex items-center gap-2 min-w-0">
+          {selectedOption?.swatch && <Swatch hex={selectedOption.swatch} />}
+          <span className="truncate">
+            {selectedOption ? selectedOption.label : placeholder}
+          </span>
         </span>
         <ChevronDownIcon
-          className={`w-5 h-5 transition-transform ${
+          aria-hidden="true"
+          className={`w-5 h-5 flex-shrink-0 text-ink-muted transition-transform ${
             isOpen ? "rotate-180" : ""
           }`}
-          style={{ color: colors.textSecondary }}
         />
       </button>
 
       {isOpen && (
-        <div
-          className="absolute z-10 w-full mt-1 border rounded-md shadow-lg"
-          style={{
-            backgroundColor: colors.background,
-            borderColor: colors.border,
-          }}
-        >
+        <div className="absolute z-10 w-full mt-1 rounded-lg border border-hairline bg-surface shadow-card max-h-60 overflow-auto">
           {options.map((option) => (
             <button
+              type="button"
               key={option.value}
               onClick={() => {
                 onChange(option.value);
                 setIsOpen(false);
               }}
-              className="w-full px-4 py-2 text-left transition-colors hover:bg-opacity-50 first:rounded-t-md last:rounded-b-md"
-              style={{
-                color: colors.textPrimary,
-                backgroundColor:
-                  option.value === value
-                    ? `${colors.brown}15`
-                    : colors.background,
-              }}
+              className={`w-full px-4 py-2 text-left text-ink transition-colors hover:bg-surface-muted first:rounded-t-lg last:rounded-b-lg flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                option.value === value ? "bg-accent-soft" : "bg-surface"
+              }`}
             >
-              {option.label}
+              {option.swatch && <Swatch hex={option.swatch} />}
+              <span className="truncate">{option.label}</span>
             </button>
           ))}
         </div>

@@ -30,10 +30,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // setIsLoading(true);
       try {
         const response = await authService.registerEmail(email);
-        if (response.success) {
+        // Non-admin accounts receive an accessToken straight away — log them in.
+        // Admin accounts return no token here (they must verify via OTP), so we
+        // skip storage and let the caller open the OTP step.
+        if (response.success && response.data?.accessToken) {
           const userData = {
             email,
-            id: response.data.id,
+            id: response.data.userId ?? response.data.id,
             accessToken: response.data.accessToken,
           };
           try {
@@ -180,6 +183,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const publicPaths = [
           "/authentication/register-email",
           "/authentication/active-account",
+          "/authentication/email-new-code",
           "/authentication/refresh-token",
           // Add other public paths here
         ];

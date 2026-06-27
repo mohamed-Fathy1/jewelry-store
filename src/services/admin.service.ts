@@ -38,35 +38,20 @@ export const adminService = {
     }
   },
 
-  async getRecentOrders() {
-    try {
-      const response = await api.get("/admin/orders/recent");
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching recent orders:", error);
-      throw error;
-    }
-  },
-
-  async getTopProducts() {
-    try {
-      const response = await api.get("/admin/products/top");
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching top products:", error);
-      throw error;
-    }
-  },
-
-  async getPresignedUrls(files: File[]): Promise<string[]> {
+  async getPresignedUrls(
+    files: File[],
+    folder: string = "imageSlider"
+  ): Promise<string[]> {
     const fileData = files.map((file) => ({
       contentType: file.type,
     }));
 
     const response = await api.post(
-      "https://api.atozaccessory.com/aws/get-presigned-url?type=octet-stream",
+      // Relative path → resolves against the configured API base URL
+      // (NEXT_PUBLIC_API_URL) so uploads work in every environment, not just local.
+      "/aws/get-presigned-url?type=octet-stream",
       {
-        folder: "imageSlider",
+        folder,
         files: fileData,
       }
     );
@@ -83,9 +68,12 @@ export const adminService = {
     }
   },
 
-  async uploadImages(files: File[]): Promise<string[]> {
+  async uploadImages(
+    files: File[],
+    folder: string = "imageSlider"
+  ): Promise<string[]> {
     try {
-      const presignedUrls = await this.getPresignedUrls(files);
+      const presignedUrls = await this.getPresignedUrls(files, folder);
       if (!presignedUrls || presignedUrls.length === 0) {
         throw new Error("No presigned URLs returned");
       }
@@ -99,7 +87,7 @@ export const adminService = {
         );
         myHeaders.append("Content-Disposition", "inline");
 
-        const requestOptions = {
+        const requestOptions: RequestInit = {
           method: "PUT",
           headers: myHeaders,
           body: file,
@@ -155,9 +143,7 @@ export const adminService = {
 
   async getProducts(page: number = 1): Promise<ProductResponse> {
     try {
-      const response = await api.get(
-        `/public/product/get-all-product?page=${page}`
-      );
+      const response = await api.get(`/admin/products?page=${page}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching products:", error);

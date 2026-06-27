@@ -3,13 +3,15 @@
 import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
-import { colors } from "@/constants/colors";
+import { cn } from "@/lib/cn";
 import { useSearchParams, useRouter } from "next/navigation";
 
+// "Price: High to Low" is intentionally omitted: the backend has no descending
+// price sort (only ascending `price`), so offering it would silently behave
+// like Low-to-High. Re-add it here once the API supports a price-desc sort.
 const sortOptions = [
   { name: "Newest", value: "Newest" },
   { name: "Price: Low to High", value: "Low to High" },
-  { name: "Price: High to Low", value: "High to Low" },
 ];
 
 interface SortDropdownProps {
@@ -22,7 +24,6 @@ interface SortDropdownProps {
 export default function SortDropdown({ value, onChange }: SortDropdownProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const sort = searchParams.get("sort");
   const price = searchParams.get("price");
 
   const getCurrentSortName = () => {
@@ -35,14 +36,10 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
       as="div"
       className="relative inline-block text-left z-10 mr-3 md:mr-2"
     >
-      <Menu.Button
-        className="group inline-flex justify-center text-sm font-medium transition-colors duration-200 hover:text-[--text-secondary]"
-        style={{ color: colors.textPrimary }}
-      >
+      <Menu.Button className="group inline-flex justify-center text-sm font-medium text-ink transition-colors duration-200 hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded">
         Sort by: {getCurrentSortName()}
         <ChevronDownIcon
-          className="flex-shrink-0 -mr-1 ml-1 h-5 w-5 transition-colors duration-200 hover:text-[--text-primary]"
-          style={{ color: colors.textSecondary }}
+          className="flex-shrink-0 -mr-1 ml-1 h-5 w-5 text-ink-muted transition-colors duration-200 group-hover:text-heading"
           aria-hidden="true"
         />
       </Menu.Button>
@@ -56,13 +53,7 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items
-          className="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-2xl ring-1 focus:outline-none"
-          style={{
-            backgroundColor: colors.background,
-            borderColor: colors.border,
-          }}
-        >
+        <Menu.Items className="origin-top-right absolute right-0 mt-2 w-40 overflow-hidden rounded-xl border border-hairline bg-surface shadow-card-hover focus:outline-none">
           <div>
             {sortOptions.map((option) => (
               <Menu.Item key={option.value}>
@@ -77,15 +68,12 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
                       newSearchParams.set("price", price || "");
                       router.push(`/shop?${newSearchParams.toString()}`);
                     }}
-                    className={`${
-                      active ? "bg-opacity-10" : ""
-                    } block w-full text-left px-4 py-2 text-sm
-                    first:rounded-t-md last:rounded-b-md
-                    transition-colors duration-200`}
-                    style={{
-                      backgroundColor: active ? colors.brown : "transparent",
-                      color: active ? colors.textLight : colors.textPrimary,
-                    }}
+                    className={cn(
+                      "block w-full text-left px-4 py-2 text-sm transition-colors duration-200",
+                      active
+                        ? "bg-primary text-on-primary"
+                        : "text-ink"
+                    )}
                   >
                     {option.name}
                   </button>

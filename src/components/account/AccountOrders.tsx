@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { colors } from "@/constants/colors";
-import Image from "next/image";
+import SmartImage from "@/components/ui/SmartImage";
 import Link from "next/link";
 import { orderService } from "@/services/order.service"; // Import the order service
 import toast from "react-hot-toast";
-import { adminService } from "@/services/admin.service";
+import { getOrderStatusMeta } from "@/utils/orderStatus";
+import { Button } from "@/components/ui/Button";
 
 export default function AccountOrders() {
-  const [orders, setOrders] = useState([]); // State to hold orders
+  const [orders, setOrders] = useState<any[]>([]); // State to hold orders
   const [loading, setLoading] = useState(true); // Loading state
 
   useEffect(() => {
@@ -17,7 +17,7 @@ export default function AccountOrders() {
       try {
         const result = await orderService.getUserOrders();
         if (result.success) {
-          setOrders(result.data.orders); // Set orders from the response
+          setOrders(result.data.orders ?? []); // Set orders from the response
         } else {
           toast.error(result.message);
           console.error("Failed to fetch orders:", result.message);
@@ -32,21 +32,6 @@ export default function AccountOrders() {
     fetchOrders();
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "delivered":
-        return "bg-green-100 text-green-800";
-      case "processing":
-        return "bg-blue-100 text-blue-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      case "confirmed":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const canCancelOrder = (status: string) => {
     // User can only cancel if order is under_review, confirmed, or ordered
     const cancellableStatuses = ["under_review", "confirmed", "ordered"];
@@ -59,7 +44,7 @@ export default function AccountOrders() {
     }
 
     try {
-      await adminService.updateOrderStatus(orderId, "cancelled");
+      await orderService.cancelOrder(orderId);
       toast.success("Order cancelled successfully");
       // Refresh orders list
       const result = await orderService.getUserOrders();
@@ -73,28 +58,21 @@ export default function AccountOrders() {
   };
 
   if (loading) {
-    return <div>Loading orders...</div>; // Loading state
+    return (
+      <div className="py-12 text-center text-ink-muted">Loading orders…</div>
+    );
   }
 
-  if (orders.length === 0) {
+  if (!orders?.length) {
     return (
       <div className="text-center py-12">
-        <h2
-          className="text-lg font-medium"
-          style={{ color: colors.textPrimary }}
-        >
-          No Orders Found
-        </h2>
-        <p className="mt-2" style={{ color: colors.textSecondary }}>
+        <h2 className="font-display text-lg text-heading">No Orders Found</h2>
+        <p className="mt-2 text-ink-muted">
           You have not placed any orders yet.
         </p>
         <Link
           href="/shop" // Link to the shop or products page
-          className="mt-4 inline-block px-4 py-2 rounded-md"
-          style={{
-            backgroundColor: colors.brown,
-            color: colors.textLight,
-          }}
+          className="mt-4 inline-block rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           Start Shopping
         </Link>
@@ -107,70 +85,56 @@ export default function AccountOrders() {
       {orders.map((order) => (
         <div
           key={order._id}
-          className="rounded-lg p-6"
-          style={{ backgroundColor: colors.background }}
+          className="rounded-2xl bg-surface-muted p-6"
         >
           {/* Order Header */}
           <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
             <div>
-              <p className="text-sm" style={{ color: colors.textSecondary }}>
-                Order placed
-              </p>
-              <p className="font-medium" style={{ color: colors.textPrimary }}>
+              <p className="text-sm text-ink-muted">Order placed</p>
+              <p className="font-medium text-ink">
                 {new Date(order.createdAt).toLocaleDateString()}
               </p>
             </div>
             <div>
-              <p className="text-sm" style={{ color: colors.textSecondary }}>
-                Order number
-              </p>
-              <p className="font-medium" style={{ color: colors.textPrimary }}>
-                #{order._id.slice(-8)}
-              </p>
+              <p className="text-sm text-ink-muted">Order number</p>
+              <p className="font-medium text-ink">#{order._id.slice(-8)}</p>
             </div>
             <div>
-              <p className="text-sm" style={{ color: colors.textSecondary }}>
-                Total
-              </p>
-              <p className="font-medium" style={{ color: colors.textPrimary }}>
-                EGP {order.price.toFixed(2)}
+              <p className="text-sm text-ink-muted">Total</p>
+              <p className="font-medium text-ink tabular-nums">
+                EGP {(order.totalAmount ?? 0).toFixed(2)}
               </p>
             </div>
             <div>
               <span
-                className={`px-3 py-1 rounded-full text-sm ${getStatusColor(
-                  order.status
-                )}`}
+                className={`inline-flex rounded-full px-3 py-1 text-sm ${
+                  getOrderStatusMeta(order.status).badgeClass
+                }`}
               >
-                {order.status}
+                {getOrderStatusMeta(order.status).label}
               </span>
             </div>
           </div>
 
           {/* Order Items */}
           <div className="space-y-4">
-            {order.products.map((item) => (
-              <div key={item.productId._id} className="flex gap-4">
-                <div className="w-20 h-20 flex-shrink-0">
-                  <Image
+            {order.products.map((item, idx) => (
+              <div
+                key={item._id ?? item.productId?._id ?? idx}
+                className="flex gap-4"
+              >
+                <div className="w-20 h-20 flex-shrink-0 relative overflow-hidden rounded-lg">
+                  <SmartImage
                     src={item.productId.defaultImage.mediaUrl} // Ensure the image URL is correct
                     alt={item.productName}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover rounded-md"
+                    fill
+                    className="object-cover"
                   />
                 </div>
                 <div className="flex-1">
-                  <h3
-                    className="font-medium"
-                    style={{ color: colors.textPrimary }}
-                  >
-                    {item.productName}
-                  </h3>
-                  <p style={{ color: colors.textSecondary }}>
-                    Quantity: {item.quantity}
-                  </p>
-                  <p className="mt-1" style={{ color: colors.textPrimary }}>
+                  <h3 className="font-medium text-ink">{item.productName}</h3>
+                  <p className="text-ink-muted">Quantity: {item.quantity}</p>
+                  <p className="mt-1 text-ink tabular-nums">
                     EGP {item.itemPrice.toFixed(2)}
                   </p>
                 </div>
@@ -182,27 +146,18 @@ export default function AccountOrders() {
           <div className="mt-6 flex flex-wrap gap-4">
             <Link
               href={`/account/orders/${order._id}`}
-              className="px-4 py-2 rounded-md transition-colors duration-200"
-              style={{
-                backgroundColor: colors.brown,
-                color: colors.textLight,
-              }}
+              className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Track Order
             </Link>
 
             {canCancelOrder(order.status) && (
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => handleCancelOrder(order._id)}
-                className="px-4 py-2 rounded-md border transition-colors duration-200"
-                style={{
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                  backgroundColor: "white",
-                }}
               >
                 Cancel Order
-              </button>
+              </Button>
             )}
           </div>
         </div>

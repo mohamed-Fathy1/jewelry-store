@@ -1,22 +1,22 @@
 export const colors = {
   // Base colors
-  background: "#FAF9F6", // Off-white
-  beige: "#E5D3B3", // Warm beige/tan
-  peach: "#FFCDB2", // Soft peach
-  gold: "#D4AF37", // Muted gold/brass
-  brown: "#8B4513", // Reddish-brown
+  background: "#F6F2EB", // Warm oat
+  beige: "#E7DAC8", // Warm beige
+  peach: "#D8C2A6", // Sand
+  gold: "#BC955C", // Gold/brass
+  brown: "#6F7358", // Olive
 
   // Text colors
-  textPrimary: "#8B4513", // Reddish-brown for primary text
-  textSecondary: "#B87E5C", // Lighter brown for secondary text
-  textLight: "#FAF9F6", // Off-white for text on dark backgrounds
+  textPrimary: "#4A433C", // Dark heading tone for primary text
+  textSecondary: "#6E685F", // Warm grey for secondary text
+  textLight: "#FBFAF8", // White cards for text on dark backgrounds
 
   // Accent colors
-  accentLight: "#F5E6D3", // Light beige for hover states
-  accentDark: "#6B4423", // Dark brown for emphasis
+  accentLight: "#E9E1D5", // Divider tint for hover states
+  accentDark: "#595C46", // Dark olive for emphasis
 
   // UI elements
-  border: "#E5D3B3", // Warm beige for borders
-  buttonHover: "#D4AF37", // Gold for button hover states
-  shadow: "rgba(139, 69, 19, 0.1)", // Brown-tinted shadows
+  border: "#E9E1D5", // Divider for borders
+  buttonHover: "#BC955C", // Gold for button hover states
+  shadow: "rgba(89, 92, 70, 0.1)", // Olive-tinted shadows
 };

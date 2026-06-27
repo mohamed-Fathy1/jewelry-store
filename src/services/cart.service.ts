@@ -1,31 +1,38 @@
 import axios from "axios";
 import { CartResponse } from "@/types/cart.types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-const axiosInstance = axios.create({
-  baseURL: API_URL,
+// Dedicated instance: it attaches the Bearer token (the cart/stock endpoints
+// require auth) via a request interceptor, but deliberately has NO response
+// interceptor. The shared @/lib/axios instance wipes accessToken + authUser on
+// ANY 401, which would silently log a customer out when the cart's background
+// stock check happens to hit an expired token. Here a 401 just rejects and is
+// swallowed by the caller's try/catch, leaving the session intact.
+const cartApi = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL });
+cartApi.interceptors.request.use((config) => {
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("accessToken")
+      : null;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
 });
 
 export const cartService = {
   async getCart(): Promise<CartResponse> {
-    const response = await axiosInstance.get<CartResponse>(`/cart/get-cart`);
+    const response = await cartApi.get<CartResponse>(`/cart/get-cart`);
     return response.data;
   },
 
   async addToCart(productId: string, quantity: number): Promise<CartResponse> {
-    const response = await axiosInstance.post<CartResponse>(
-      `/cart/add-to-cart`,
-      {
-        productId,
-        quantity,
-      }
-    );
+    const response = await cartApi.post<CartResponse>(`/cart/add-to-cart`, {
+      productId,
+      quantity,
+    });
     return response.data;
   },
 
   async removeFromCart(productId: string): Promise<CartResponse> {
-    const response = await axiosInstance.delete<CartResponse>(
+    const response = await cartApi.delete<CartResponse>(
       `/cart/remove-from-cart/${productId}`
     );
     return response.data;
@@ -35,23 +42,30 @@ export const cartService = {
     productId: string,
     quantity: number
   ): Promise<CartResponse> {
-    const response = await axiosInstance.patch<CartResponse>(
-      `/cart/update-quantity`,
-      {
-        productId,
-        quantity,
-      }
-    );
+    const response = await cartApi.patch<CartResponse>(`/cart/update-quantity`, {
+      productId,
+      quantity,
+    });
     return response.data;
   },
 
-  async checkStockAmount(productIds) {
-    const response = await await axiosInstance.post(
-      "/public/product/available-items",
-      {
-        products: productIds,
-      }
-    );
+  // Product-level totals (sum across variants) — for legacy variant-less items.
+  async checkStockAmount(productIds): Promise<Record<string, number>> {
+    const response = await cartApi.post("/products/available-items", {
+      products: productIds,
+    });
+    return response.data;
+  },
+
+  // Per-variant availability → { [variantId]: availableItems }. The cart
+  // validates each line against its exact color+size variant, not the
+  // product-level total.
+  async checkVariantStock(
+    variantIds: string[]
+  ): Promise<Record<string, number>> {
+    const response = await cartApi.post("/products/variants-availability", {
+      variantIds,
+    });
     return response.data;
   },
 };

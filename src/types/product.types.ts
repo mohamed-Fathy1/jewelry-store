@@ -1,27 +1,58 @@
-interface Media {
+export interface Media {
   mediaUrl: string;
   mediaId: string;
   _id?: string;
   id?: string;
 }
 
-interface Category {
-  image: Media;
+export interface ProductCategory {
+  _id: string;
   categoryName: string;
-  slug: string;
+  slug?: string;
+}
+
+export interface VariantColor {
+  _id: string;
+  name: string;
+  hex: string;
+}
+
+export interface VariantSize {
+  _id: string;
+  number: string;
+  order: number;
+}
+
+export interface ProductVariant {
+  _id: string;
+  product?: string;
+  /** Populated object on the public single-product endpoint; id string elsewhere.
+   *  null for a "simple" product — a single variant with no colour/size options. */
+  color?: VariantColor | string | null;
+  size?: VariantSize | string | null;
+  availableItems: number;
 }
 
 export interface Product {
   _id: string;
   productName: string;
-  productDescription: string;
+  productDescription?: string;
+  slug?: string;
   price: number;
-  availableItems: number;
   salePrice?: number;
+  finalPrice?: number;
+  discount?: number;
+  discountPercentage?: number;
+  isSale?: boolean;
+  isBestSeller?: boolean;
+  isSoldOut?: boolean;
+  /** Stock count. Absent on aggregated /home payloads, so treat `undefined` as in-stock. */
+  availableItems?: number;
   expiredSale?: number | string;
-  categoryId: string;
-  defaultImage: string;
-  albumImages: string[];
+  category?: ProductCategory;
+  defaultImage: Media;
+  albumImages?: Media[];
+  variants?: ProductVariant[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -45,6 +76,18 @@ export interface ProductResponse {
     products?: Product[];
     total?: number;
     perPage?: number;
+  };
+}
+
+export interface ProductsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    products: {
+      data: Product[];
+      totalPages: number;
+      currentPage: number;
+    };
   };
 }
 

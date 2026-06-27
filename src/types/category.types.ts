@@ -5,11 +5,20 @@ interface Media {
   id?: string;
 }
 
+export interface CategoryIcon {
+  _id: string;
+  key: string;
+  /** Raw SVG markup (admin-curated). */
+  svg: string;
+}
+
 export interface Category {
   _id: string;
   categoryName: string;
   slug: string;
   image: Media;
+  /** Populated by the public categories endpoint as { _id, key, svg }; null when unset. */
+  icon_id?: CategoryIcon | null;
   createdAt?: string;
   updatedAt?: string;
 }

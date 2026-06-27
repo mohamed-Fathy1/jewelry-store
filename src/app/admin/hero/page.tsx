@@ -4,8 +4,8 @@ import { useState } from "react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import HeroList from "@/components/admin/hero/HeroList";
 import HeroModal from "@/components/admin/hero/HeroModal";
-import { colors } from "@/constants/colors";
 import { HeroSlider } from "@/types/hero.types";
+import { Button, PageHeader } from "@/components/admin/ui";
 
 export default function HeroPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,22 +23,15 @@ export default function HeroPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1
-          className="text-2xl font-semibold"
-          style={{ color: colors.textPrimary }}
-        >
-          Hero Section
-        </h1>
-        <button
-          onClick={handleAddSlider}
-          className="flex items-center px-4 py-2 rounded-md text-white"
-          style={{ backgroundColor: colors.brown }}
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Add Slider
-        </button>
-      </div>
+      <PageHeader
+        title="Hero Section"
+        description="Manage the slides featured on the storefront homepage."
+        actions={
+          <Button onClick={handleAddSlider} leftIcon={<PlusIcon className="h-5 w-5" />}>
+            Add Slider
+          </Button>
+        }
+      />
 
       <HeroList onEdit={handleEditSlider} />
 

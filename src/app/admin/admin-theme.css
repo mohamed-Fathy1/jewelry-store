@@ -1,0 +1,95 @@
+/**
+ * Warm Editorial Luxury — admin theme.
+ *
+ * Everything here is scoped under `.admin-theme` (set on the admin shell root in
+ * layout.tsx and the login page) so NOTHING leaks into the storefront. CSS vars
+ * mirror src/constants/adminTheme.ts. Legacy `--color-*` names are kept as
+ * aliases so orders/wishlists keep working until they migrate.
+ */
+
+.admin-theme {
+  /* surfaces */
+  --admin-canvas: #f5f1e8;
+  --admin-surface: #ffffff;
+  --admin-surface-muted: #fbf7ef;
+  --admin-surface-sunken: #f0eadd;
+  --admin-overlay: rgba(58, 42, 24, 0.45);
+
+  /* ink */
+  --admin-heading: #8b4513;
+  --admin-ink: #3d2f23;
+  --admin-ink-muted: #7c6248;
+  --admin-ink-subtle: #a8917a;
+  --admin-on-accent: #fbf7ef;
+
+  /* lines & accents */
+  --admin-hairline: #e7dbc6;
+  --admin-gold: #c9a227;
+  --admin-gold-soft: rgba(201, 162, 39, 0.12);
+  --admin-gold-bg: #f3e9cc;
+  --admin-brown: #8b4513;
+  --admin-brown-soft: rgba(139, 69, 19, 0.1);
+  --admin-brown-hover: #743a10;
+
+  /* shadows */
+  --admin-shadow-card: 0 1px 2px rgba(80, 50, 20, 0.04),
+    0 6px 16px -4px rgba(80, 50, 20, 0.08);
+  --admin-shadow-popover: 0 8px 24px -6px rgba(58, 42, 24, 0.18);
+
+  /* legacy aliases (orders / wishlists) — retire as those files migrate */
+  --color-primary: var(--admin-brown);
+  --color-primary-light: var(--admin-gold-bg);
+  --color-primary-text: var(--admin-ink);
+  --color-danger: #b4503c;
+  --color-bg-page: var(--admin-canvas);
+  --color-bg-surface: var(--admin-surface);
+  --color-text-primary: var(--admin-ink);
+  --color-text-muted: var(--admin-ink-muted);
+  --color-border: var(--admin-hairline);
+
+  color: var(--admin-ink);
+}
+
+/* Tabular figures so number columns align (the editorial "luxury" tell). */
+.admin-theme .tabular,
+.admin-theme [data-tabular] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Visible keyboard focus everywhere in admin — replaces the bare
+   `focus:outline-none` sites with an accessible gold ring. */
+.admin-theme :is(a, button, [role="button"], input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--admin-gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* One-shot staggered reveal for dashboard panels. */
+@keyframes admin-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-theme .admin-reveal {
+  opacity: 0;
+  animation: admin-rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Honor reduced-motion: no reveal, no pulse. */
+@media (prefers-reduced-motion: reduce) {
+  .admin-theme .admin-reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .admin-theme .animate-pulse {
+    animation: none;
+  }
+}

@@ -8,52 +8,72 @@ import {
   CubeIcon,
   ShoppingBagIcon,
   FolderIcon,
-  UsersIcon,
-  ChartBarIcon,
-  Cog6ToothIcon,
   TruckIcon,
   PhotoIcon,
   Bars3Icon,
   XMarkIcon,
   HeartIcon,
+  TagIcon,
+  SwatchIcon,
+  Squares2X2Icon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
-import { colors } from "@/constants/colors";
+import { IconButton } from "@/components/admin/ui";
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: HomeIcon },
   { name: "Products", href: "/admin/products", icon: CubeIcon },
   { name: "Orders", href: "/admin/orders", icon: ShoppingBagIcon },
   { name: "Categories", href: "/admin/categories", icon: FolderIcon },
-  // { name: "Customers", href: "/admin/customers", icon: UsersIcon },
-  // { name: "Analytics", href: "/admin/analytics", icon: ChartBarIcon },
-  // { name: "Settings", href: "/admin/settings", icon: Cog6ToothIcon },
+  { name: "Offers", href: "/admin/offers", icon: TagIcon },
+  { name: "Colors", href: "/admin/colors", icon: SwatchIcon },
+  { name: "Sizes", href: "/admin/sizes", icon: Squares2X2Icon },
+  { name: "Icons", href: "/admin/icons", icon: SparklesIcon },
   { name: "Shipping", href: "/admin/shipping", icon: TruckIcon },
   { name: "Hero Section", href: "/admin/hero", icon: PhotoIcon },
   { name: "Wishlists", href: "/admin/wishlists", icon: HeartIcon },
 ];
+
+function Wordmark() {
+  return (
+    <Link href="/admin" className="group block rounded-md">
+      <span className="block text-2xl font-normal italic leading-none text-admin-heading">
+        A&nbsp;to&nbsp;Z
+      </span>
+      <span className="mt-2 block h-px w-10 bg-admin-gold" aria-hidden="true" />
+      <span className="mt-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-admin-ink-muted">
+        Admin
+      </span>
+    </Link>
+  );
+}
 
 export default function AdminSidebar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const NavLinks = () => (
-    <nav className="flex-1 px-2 space-y-1">
+    <nav className="flex-1 space-y-1 px-3" aria-label="Admin">
       {navigation.map((item) => {
-        const isActive = pathname === item.href;
+        const isActive =
+          item.href === "/admin"
+            ? pathname === "/admin"
+            : pathname.startsWith(item.href);
         return (
           <Link
             key={item.name}
             href={item.href}
             onClick={() => setIsMobileMenuOpen(false)}
-            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+            aria-current={isActive ? "page" : undefined}
+            className={`group flex items-center gap-3 rounded-md border-l-2 px-3 py-2 text-sm font-medium transition-colors ${
               isActive
-                ? "bg-gray-100 text-gray-900"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                ? "border-admin-gold bg-admin-surface-muted text-admin-brown"
+                : "border-transparent text-admin-ink-muted hover:bg-admin-surface-muted hover:text-admin-ink"
             }`}
           >
             <item.icon
-              className={`mr-3 flex-shrink-0 h-6 w-6 ${
-                isActive ? "text-gray-500" : "text-gray-400"
+              className={`h-5 w-5 flex-shrink-0 ${
+                isActive ? "text-admin-gold" : "text-admin-ink-subtle group-hover:text-admin-brown"
               }`}
               aria-hidden="true"
             />
@@ -67,42 +87,35 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Mobile menu button */}
-      <div className="md:hidden fixed top-0 left-0 z-50 p-4">
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
-        >
-          <span className="sr-only">Open sidebar</span>
-          <Bars3Icon className="h-6 w-6" aria-hidden="true" />
-        </button>
+      <div className="fixed left-0 top-0 z-50 p-4 md:hidden">
+        <IconButton
+          label="Open sidebar"
+          icon={<Bars3Icon />}
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="bg-admin-surface shadow-admin-card ring-1 ring-admin-hairline"
+        />
       </div>
 
       {/* Mobile menu */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          {/* Background overlay */}
           <div
-            className="fixed inset-0 bg-gray-600 bg-opacity-75"
+            className="fixed inset-0"
+            style={{ backgroundColor: "var(--admin-overlay)" }}
             onClick={() => setIsMobileMenuOpen(false)}
+            aria-hidden="true"
           />
-
-          {/* Sidebar */}
-          <div className="fixed inset-y-0 left-0 w-full max-w-xs bg-white">
-            <div className="h-full flex flex-col pt-5 pb-4">
-              <div className="flex items-center justify-between px-4">
-                <Link href="/admin" className="text-2xl font-semibold">
-                  Admin Panel
-                </Link>
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
-                >
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
-              <div className="mt-5 flex-1 overflow-y-auto">
-                <NavLinks />
-              </div>
+          <div className="fixed inset-y-0 left-0 flex w-full max-w-xs flex-col bg-admin-surface pb-4 pt-6 shadow-admin-popover [overscroll-behavior:contain]">
+            <div className="flex items-start justify-between px-5">
+              <Wordmark />
+              <IconButton
+                label="Close sidebar"
+                icon={<XMarkIcon />}
+                onClick={() => setIsMobileMenuOpen(false)}
+              />
+            </div>
+            <div className="mt-6 flex-1 overflow-y-auto">
+              <NavLinks />
             </div>
           </div>
         </div>
@@ -110,15 +123,13 @@ export default function AdminSidebar() {
 
       {/* Desktop sidebar */}
       <div className="hidden md:flex md:flex-shrink-0">
-        <div className="flex flex-col w-64">
-          <div className="flex flex-col h-0 flex-1 border-r border-gray-200 bg-white">
-            <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-              <div className="flex items-center flex-shrink-0 px-4">
-                <Link href="/admin" className="text-2xl font-semibold">
-                  Admin Panel
-                </Link>
+        <div className="flex w-64 flex-col">
+          <div className="flex h-0 flex-1 flex-col border-r border-admin-hairline bg-admin-surface">
+            <div className="flex flex-1 flex-col overflow-y-auto pb-4 pt-6">
+              <div className="flex-shrink-0 px-5">
+                <Wordmark />
               </div>
-              <div className="mt-5 flex-1">
+              <div className="mt-7 flex-1">
                 <NavLinks />
               </div>
             </div>

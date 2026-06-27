@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MagnifyingGlassIcon as SearchIcon } from "@heroicons/react/24/outline";
-import { colors } from "@/constants/colors";
-import { searchService } from "@/services/search.service";
-import { Product } from "@/types/product.types";
+import {
+  MagnifyingGlassIcon as SearchIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import Link from "next/link";
-import Image from "next/image";
+import { Product } from "@/types/product.types";
 import { useDebounce } from "@/hooks/useDebounce";
 import { productService } from "@/services/product.service";
+import SmartImage from "@/components/ui/SmartImage";
 
 interface SearchProps {
   isOpen: boolean;
@@ -19,19 +20,24 @@ export default function Search({ isOpen, onClose }: SearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const debouncedSearch = useDebounce(async () => {
-    console.log("searchTerm", searchTerm);
-    if (searchTerm.length < 1) {
+    if (searchTerm.trim().length < 1) {
       setResults([]);
       return;
     }
-
     setIsLoading(true);
     try {
       const response = await productService.searchProducts(searchTerm);
       if (response.success) {
-        setResults(response.data.products);
+        const prods = response.data?.products as unknown;
+        setResults(
+          Array.isArray(prods)
+            ? (prods as Product[])
+            : ((prods as { data?: Product[] })?.data ?? [])
+        );
       }
     } catch (error) {
       console.error("Search failed:", error);
@@ -41,128 +47,125 @@ export default function Search({ isOpen, onClose }: SearchProps) {
   }, 200);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        searchRef.current &&
-        !searchRef.current.contains(event.target as Node)
-      ) {
-        onClose();
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
-
-  useEffect(() => {
-    console.log("searchTerm", searchTerm);
     debouncedSearch();
   }, [searchTerm]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    const onClick = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onClick);
+    const t = setTimeout(() => inputRef.current?.focus(), 50);
+    // Lock background scroll while the modal is open (matches NavDrawer).
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onClick);
+      document.body.style.overflow = prevOverflow;
+      clearTimeout(t);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center pt-20"
-      style={{ backdropFilter: "blur(4px)" }}
+      className="fixed inset-0 z-[60] flex items-start justify-center bg-ink/40 px-4 pt-[15vh] backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Search products"
     >
       <div
-        ref={searchRef}
-        className="w-full max-w-2xl mx-4 rounded-lg shadow-xl"
-        style={{ backgroundColor: colors.background }}
+        ref={panelRef}
+        className="w-full max-w-2xl overflow-hidden rounded-2xl bg-surface shadow-card-hover ring-1 ring-hairline"
       >
-        <div
-          className="p-4 flex items-center gap-3 border-b"
-          style={{ borderColor: colors.border }}
-        >
-          <SearchIcon
-            className="w-5 h-5"
-            style={{ color: colors.textSecondary }}
-          />
+        <div className="flex items-center gap-3 border-b border-hairline px-5 py-4">
+          <SearchIcon className="h-5 w-5 text-ink-muted" aria-hidden="true" />
           <input
+            ref={inputRef}
             type="text"
-            placeholder="Search for jewelry..."
+            inputMode="search"
+            placeholder="Search for jewelry…"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 outline-none text-lg"
-            style={{
-              backgroundColor: colors.background,
-              color: colors.textPrimary,
-            }}
-            autoFocus
+            spellCheck={false}
+            aria-label="Search for jewelry"
+            className="flex-1 bg-transparent text-base text-ink outline-none placeholder:text-ink-subtle"
           />
           <button
             onClick={onClose}
-            className="text-sm px-3 py-1 rounded-md"
-            style={{ color: colors.textSecondary }}
+            aria-label="Close search"
+            className="grid h-8 w-8 place-items-center rounded-full text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            ESC
+            <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="max-h-96 overflow-y-auto">
+        <div className="max-h-[26rem] overflow-y-auto overscroll-contain">
           {isLoading ? (
-            <div className="p-4 space-y-4">
+            <div className="space-y-3 p-4" aria-live="polite">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gray-200 rounded-md"></div>
-                  <div className="flex-1">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div key={i} className="flex animate-pulse items-center gap-4">
+                  <div className="h-14 w-14 rounded-lg bg-surface-sunken" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 w-2/3 rounded bg-surface-sunken" />
+                    <div className="h-3 w-1/3 rounded bg-surface-sunken" />
                   </div>
                 </div>
               ))}
             </div>
           ) : results.length > 0 ? (
-            <div className="p-2">
+            <ul className="p-2">
               {results.map((product) => (
-                <Link
-                  key={product._id}
-                  href={`/product/${product._id}`}
-                  onClick={onClose}
-                  className="flex items-center gap-4 p-2 rounded-md hover:bg-opacity-50 transition-colors duration-200"
-                  style={{ backgroundColor: colors.background }}
-                >
-                  <div className="h-12 w-12 relative flex-shrink-0">
-                    <Image
-                      src={product.defaultImage.mediaUrl}
-                      alt={product.productName}
-                      fill
-                      className="rounded-md object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h4 style={{ color: colors.textPrimary }}>
-                      {product.productName}
-                    </h4>
-                    <p style={{ color: colors.textSecondary }}>
-                      {typeof product.category === "object"
-                        ? product.category.categoryName
-                        : ""}
-                    </p>
-                  </div>
-                  <p
-                    className="font-medium"
-                    style={{ color: colors.textPrimary }}
+                <li key={product._id}>
+                  <Link
+                    href={`/product/${product._id}`}
+                    onClick={onClose}
+                    className="flex items-center gap-4 rounded-xl p-2.5 transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
-                    EGP {product.price.toLocaleString()}
-                  </p>
-                </Link>
+                    <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-surface-muted">
+                      <SmartImage
+                        src={product.defaultImage?.mediaUrl}
+                        alt={product.productName}
+                        fill
+                        sizes="56px"
+                        className="object-cover"
+                        fallbackLabel={product.productName?.charAt(0)}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-ink">
+                        {product.productName}
+                      </p>
+                      <p className="truncate text-xs text-ink-muted">
+                        {typeof product.category === "object"
+                          ? product.category?.categoryName
+                          : ""}
+                      </p>
+                    </div>
+                    <p className="shrink-0 text-sm font-semibold tabular-nums text-heading">
+                      EGP{" "}
+                      {(product.salePrice || product.price)?.toLocaleString()}
+                    </p>
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ul>
           ) : searchTerm ? (
-            <div
-              className="p-8 text-center"
-              style={{ color: colors.textSecondary }}
-            >
-              No results found for &quot;{searchTerm}&quot;
+            <div className="px-8 py-12 text-center text-sm text-ink-muted">
+              No results for &ldquo;{searchTerm}&rdquo;
             </div>
           ) : (
-            <div
-              className="p-8 text-center"
-              style={{ color: colors.textSecondary }}
-            >
-              Start typing to search...
+            <div className="px-8 py-12 text-center text-sm text-ink-muted">
+              Start typing to search the collection.
             </div>
           )}
         </div>

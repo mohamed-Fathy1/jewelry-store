@@ -13,7 +13,7 @@ export const searchService = {
     page: number = 1
   ): Promise<SearchResponse> {
     const response = await axiosInstance.get<SearchResponse>(
-      `/public/product/search?search=${query}&page=${page}`
+      `/products/search?searchQuery=${encodeURIComponent(query)}`
     );
     return response.data;
   },

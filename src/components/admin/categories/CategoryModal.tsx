@@ -1,20 +1,40 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "@headlessui/react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Category, CreateCategoryDto } from "@/types/category.types";
-import { categoryService } from "@/services/category.service";
 import toast from "react-hot-toast";
-import { colors } from "@/constants/colors";
+import {
+  AdminCategory,
+  CreateCategoryDto,
+  UpdateCategoryDto,
+} from "@/types/admin-category.types";
+import { Icon } from "@/types/icon.types";
+import { categoriesService } from "@/services/categories.service";
+import { iconsService } from "@/services/icons.service";
+import {
+  Modal,
+  Field,
+  Button,
+  Select,
+  Thumbnail,
+  adminInputClass,
+  type SelectOption,
+} from "@/components/admin/ui";
 import ImageUpload from "../products/ImageUpload";
 
 interface CategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  category?: Category | null;
+  category?: AdminCategory | null;
   onSuccess?: () => void;
 }
+
+// Resolve the current icon id from a category's icon_id, which may be a
+// populated object, a raw id string, or null.
+const resolveIconId = (category?: AdminCategory | null): string => {
+  const icon = category?.icon_id;
+  if (!icon) return "";
+  return typeof icon === "object" ? icon._id : icon;
+};
 
 export default function CategoryModal({
   isOpen,
@@ -24,39 +44,98 @@ export default function CategoryModal({
 }: CategoryModalProps) {
   const [formData, setFormData] = useState({
     categoryName: "",
-    image: "",
+    imageUrl: "",
+    iconId: "",
   });
+  const [icons, setIcons] = useState<Icon[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     if (category) {
       setFormData({
-        categoryName: category.categoryName,
-        image: category.image,
+        categoryName: category.categoryName || "",
+        imageUrl: category.image?.mediaUrl || "",
+        iconId: resolveIconId(category),
       });
     } else {
-      setFormData({
-        categoryName: "",
-        image: "",
-      });
+      setFormData({ categoryName: "", imageUrl: "", iconId: "" });
     }
-  }, [category]);
+  }, [category, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // The icons endpoint only accepts `page`, so walk every page to gather all
+    // icons for the dropdown.
+    const loadAllIcons = async () => {
+      try {
+        const first = await iconsService.getIcons({ page: 1 });
+        const all = [...(first.data.data || [])];
+        const totalPages = first.data.totalPages || 1;
+
+        for (let page = 2; page <= totalPages; page++) {
+          const res = await iconsService.getIcons({ page });
+          all.push(...(res.data.data || []));
+        }
+
+        setIcons(all);
+      } catch (error) {
+        /* dropdown just shows “No icon” if icons can't be loaded */
+      }
+    };
+
+    loadAllIcons();
+  }, [isOpen]);
+
+  // The upload component returns the presigned-URL objects; persist the S3
+  // mediaUrl of the first uploaded file.
+  const handleImageUpload = (urls: any[]) => {
+    if (urls.length > 0) {
+      setFormData((prev) => ({ ...prev, imageUrl: urls[0].mediaUrl }));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.imageUrl) {
+      toast.error("Please upload a category image");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const categoryData: CreateCategoryDto = {
-        categoryName: formData.categoryName,
-        image: formData.image.mediaUrl,
-      };
-
       if (category) {
-        await categoryService.updateCategory(category._id, categoryData);
+        // Send only the fields that actually changed.
+        const payload: UpdateCategoryDto = {};
+        if (formData.categoryName !== category.categoryName) {
+          payload.categoryName = formData.categoryName;
+        }
+        if (formData.imageUrl !== category.image?.mediaUrl) {
+          payload.imageUrl = formData.imageUrl;
+        }
+        if (formData.iconId !== resolveIconId(category)) {
+          payload.icon_id = formData.iconId || null;
+        }
+
+        if (Object.keys(payload).length === 0) {
+          toast("No changes to update");
+          onClose();
+          return;
+        }
+
+        await categoriesService.updateCategory(category._id, payload);
         toast.success("Category updated successfully");
       } else {
-        await categoryService.createCategory(categoryData);
+        const payload: CreateCategoryDto = {
+          categoryName: formData.categoryName,
+          imageUrl: formData.imageUrl,
+          icon_id: formData.iconId || null,
+        };
+        await categoriesService.createCategory(payload);
         toast.success("Category created successfully");
       }
 
@@ -71,101 +150,79 @@ export default function CategoryModal({
     }
   };
 
-  const handleImageUpload = (urls: string[]) => {
-    if (urls.length > 0) {
-      setFormData((prev) => ({
-        ...prev,
-        image: urls[0],
-      }));
-    }
-  };
+  // "No icon" sentinel + one option per icon, each showing its inline SVG glyph.
+  const iconOptions: SelectOption[] = [
+    { value: "", label: "No icon" },
+    ...icons.map((icon) => ({
+      value: icon._id,
+      label: icon.key,
+      glyph: icon.svg,
+    })),
+  ];
 
   return (
-    <Dialog
+    <Modal
       open={isOpen}
       onClose={onClose}
-      className="fixed inset-0 z-50 overflow-y-auto"
+      title={category ? "Edit Category" : "Add New Category"}
+      size="md"
     >
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Category Name */}
+        <Field label="Category Name" htmlFor="category-name" required>
+          <input
+            id="category-name"
+            type="text"
+            value={formData.categoryName}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                categoryName: e.target.value,
+              }))
+            }
+            placeholder="Category Name"
+            className={adminInputClass}
+            required
+          />
+        </Field>
 
-        <div className="relative bg-white rounded-lg w-full max-w-md mx-auto p-6">
-          <div className="flex justify-between items-center mb-4">
-            <Dialog.Title
-              className="text-xl font-semibold"
-              style={{ color: colors.textPrimary }}
-            >
-              {category ? "Edit Category" : "Add New Category"}
-            </Dialog.Title>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
-          </div>
+        {/* Image (upload only) */}
+        <Field label="Category Image">
+          <ImageUpload folder="categories" onUpload={handleImageUpload} />
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Category Name
-              </label>
-              <input
-                type="text"
-                value={formData.categoryName}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    categoryName: e.target.value,
-                  }))
-                }
-                placeholder="Category Name"
-                className="mt-1 p-1 md:px-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brown focus:ring-brown"
-                required
-              />
-            </div>
+          {formData.imageUrl && (
+            <Thumbnail
+              src={formData.imageUrl}
+              alt="Category"
+              className="mt-4 h-52 w-full"
+              fit="contain"
+            />
+          )}
+        </Field>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category Image
-              </label>
-              <ImageUpload onUpload={handleImageUpload} />
+        {/* Icon */}
+        <Field label="Icon">
+          <Select
+            ariaLabel="Category icon"
+            value={formData.iconId}
+            onChange={(value) =>
+              setFormData((prev) => ({ ...prev, iconId: value }))
+            }
+            placeholder="No icon"
+            searchable
+            options={iconOptions}
+          />
+        </Field>
 
-              {formData.image && (
-                <div className="mt-4">
-                  <img
-                    src={formData.image.mediaUrl}
-                    alt="Category"
-                    className="w-full h-32 object-cover rounded-md"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-4 py-2 rounded-md text-white"
-                style={{ backgroundColor: colors.brown }}
-              >
-                {isSubmitting
-                  ? "Saving..."
-                  : category
-                  ? "Update Category"
-                  : "Create Category"}
-              </button>
-            </div>
-          </form>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="secondary" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" loading={isSubmitting}>
+            {category ? "Update Category" : "Create Category"}
+          </Button>
         </div>
-      </div>
-    </Dialog>
+      </form>
+    </Modal>
   );
 }

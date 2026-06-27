@@ -14,12 +14,18 @@ import toast from "react-hot-toast";
 
 export const UserContext = createContext<{
   user: User | null;
-  getProfile: () => Promise<void>;
+  isLoading: boolean;
+  getProfile: () => Promise<UserResponse | void>;
+  updateProfile: (data: Partial<User>) => Promise<UserResponse>;
   defaultAddressId: string | null;
   setDefaultAddressId: (id: string | null) => void;
 }>({
   user: null,
+  isLoading: false,
   getProfile: async () => {},
+  updateProfile: async () => {
+    throw new Error("UserProvider not mounted");
+  },
   defaultAddressId: null,
   setDefaultAddressId: () => {},
 });
@@ -41,7 +47,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     setDefaultAddressId(storedDefaultId);
   }, []);
 
-  const getProfile = useCallback(async (): Promise<UserResponse> => {
+  const getProfile = useCallback(async (): Promise<UserResponse | void> => {
     setIsLoading(true);
     try {
       const response = await userService.getUserInformation();

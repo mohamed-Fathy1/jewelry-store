@@ -2,6 +2,25 @@ import React, { createContext, useContext, useState } from "react";
 import { Address } from "@/types/address.types";
 import { Shipping } from "@/types/shipping.types";
 
+// Shapes submitted by ShippingForm / PaymentForm (kept structurally compatible
+// with their local interfaces).
+export interface ShippingFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  apartment?: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
+export interface PaymentFormData {
+  paymentMethod: string;
+}
+
 interface CheckoutContextType {
   shippingData: ShippingFormData | null;
   paymentData: PaymentFormData | null;

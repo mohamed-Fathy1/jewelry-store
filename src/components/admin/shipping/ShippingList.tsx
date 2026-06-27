@@ -1,12 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { colors } from "@/constants/colors";
+import { PencilIcon, TrashIcon, TruckIcon } from "@heroicons/react/24/outline";
 import { Shipping } from "@/types/shipping.types";
 import { adminService } from "@/services/admin.service";
 import toast from "react-hot-toast";
 import { formatPrice } from "@/utils/format";
+import {
+  TableShell,
+  Thead,
+  Tbody,
+  Th,
+  Td,
+  Tr,
+  IconButton,
+  SkeletonTable,
+  EmptyState,
+  ConfirmDialog,
+} from "@/components/admin/ui";
 
 interface ShippingListProps {
   onEdit: (shipping: Shipping) => void;
@@ -15,6 +26,8 @@ interface ShippingListProps {
 export default function ShippingList({ onEdit }: ShippingListProps) {
   const [shippings, setShippings] = useState<Shipping[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingDelete, setPendingDelete] = useState<Shipping | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchShippings = async () => {
     try {
@@ -31,75 +44,84 @@ export default function ShippingList({ onEdit }: ShippingListProps) {
     fetchShippings();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (
-      window.confirm("Are you sure you want to delete this shipping option?")
-    ) {
-      try {
-        await adminService.deleteShipping(id);
-        toast.success("Shipping option deleted successfully");
-        fetchShippings();
-      } catch (error) {
-        toast.error("Failed to delete shipping option");
-      }
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setIsDeleting(true);
+    try {
+      await adminService.deleteShipping(pendingDelete._id);
+      toast.success("Shipping option deleted successfully");
+      fetchShippings();
+      setPendingDelete(null);
+    } catch (error) {
+      toast.error("Failed to delete shipping option");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <SkeletonTable rows={6} cols={3} />;
+
+  if (!shippings || shippings.length === 0) {
+    return (
+      <EmptyState
+        icon={TruckIcon}
+        title="No shipping regions"
+        description="Add a region to define delivery costs."
+      />
+    );
+  }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm w-full overflow-y-scroll">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+    <div>
+      <TableShell>
+        <Thead>
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Region
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Cost
-            </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
-            </th>
+            <Th>Region</Th>
+            <Th>Cost</Th>
+            <Th className="text-right">Actions</Th>
           </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        </Thead>
+        <Tbody>
           {shippings.map((shipping) => (
-            <tr key={shipping._id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div
-                  className="text-sm font-medium"
-                  style={{ color: colors.textPrimary }}
-                >
-                  {shipping.category}
+            <Tr key={shipping._id}>
+              <Td className="font-medium text-admin-ink">{shipping.category}</Td>
+              <Td className="tabular font-medium text-admin-ink">
+                {formatPrice(shipping.cost)}
+              </Td>
+              <Td className="text-right">
+                <div className="flex items-center justify-end gap-1">
+                  <IconButton
+                    label={`Edit ${shipping.category}`}
+                    icon={<PencilIcon />}
+                    onClick={() => onEdit(shipping)}
+                  />
+                  <IconButton
+                    label={`Delete ${shipping.category}`}
+                    icon={<TrashIcon />}
+                    variant="danger"
+                    onClick={() => setPendingDelete(shipping)}
+                  />
                 </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div
-                  className="text-sm font-medium"
-                  style={{ color: colors.textPrimary }}
-                >
-                  {formatPrice(shipping.cost)}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button
-                  onClick={() => onEdit(shipping)}
-                  className="text-indigo-600 hover:text-indigo-900 mr-4"
-                >
-                  <PencilIcon className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => handleDelete(shipping._id)}
-                  className="text-red-600 hover:text-red-900"
-                >
-                  <TrashIcon className="h-5 w-5" />
-                </button>
-              </td>
-            </tr>
+              </Td>
+            </Tr>
           ))}
-        </tbody>
-      </table>
+        </Tbody>
+      </TableShell>
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete shipping option"
+        description={
+          pendingDelete
+            ? `“${pendingDelete.category}” will be permanently removed.`
+            : ""
+        }
+        confirmLabel="Delete"
+        danger
+        loading={isDeleting}
+      />
     </div>
   );
 }

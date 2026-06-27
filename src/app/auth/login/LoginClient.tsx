@@ -1,133 +1,186 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { colors } from "@/constants/colors";
+import { authService } from "@/services/auth.service";
 import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 
+type Step = "email" | "otp";
+
 export function LoginClient() {
-  const [email, setEmail] = useState("");
-  const { registerEmail } = useAuth();
-  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+  const { registerEmail, activateAccount } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  // Return the user to where they came from (e.g. checkout) after login.
+  const returnUrl = searchParams.get("returnUrl") || "/";
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [step, setStep] = useState<Step>("email");
+  const [email, setEmail] = useState("");
+  const [activeCode, setActiveCode] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Step 1 — request a login code
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsRegisterLoading(true);
+    setIsLoading(true);
     try {
       const response = await registerEmail(email);
       if (response.success) {
-        toast.success("Login successful!");
-        // Check for return URL
-        const returnUrlFromQuery = searchParams.get("returnUrl");
-        let storedReturnUrl: string | null = null;
-
-        try {
-          if (returnUrlFromQuery) {
-            localStorage.setItem("returnUrl", returnUrlFromQuery);
-          }
-          storedReturnUrl = localStorage.getItem("returnUrl");
-        } catch (storageError: unknown) {
-          console.error(
-            "Failed to access returnUrl in localStorage",
-            storageError
-          );
-        }
-
-        const destination = returnUrlFromQuery || storedReturnUrl;
-
-        if (destination) {
-          try {
-            localStorage.removeItem("returnUrl"); // Clean up
-          } catch (removeError: unknown) {
-            console.error(
-              "Failed to remove returnUrl from localStorage",
-              removeError
-            );
-          }
-          router.push(destination);
+        if (response.data?.accessToken) {
+          // Non-admin: token returned directly → already logged in by the context.
+          toast.success("Login successful!");
+          router.push(returnUrl);
         } else {
-          router.push("/"); // Default fallback
+          // Admin / verification required → step up to the OTP form.
+          toast.success("Code sent successfully");
+          setStep("otp");
         }
       } else {
         toast.error(response.message);
       }
     } catch (error) {
-      toast.error("Failed to log in. Please try again.", error);
+      toast.error("Failed to send code. Please try again.");
     } finally {
-      setIsRegisterLoading(false);
+      setIsLoading(false);
+    }
+  };
+
+  // Step 2 — verify the 6-digit code
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const response = await activateAccount(email, activeCode);
+      if (response?.success && response.data?.accessToken) {
+        toast.success("Login successful!");
+        router.push(returnUrl);
+      } else {
+        toast.error(response?.message || "Invalid or expired code");
+      }
+    } catch (error) {
+      toast.error("Failed to verify code. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Resend a fresh code
+  const handleResend = async () => {
+    setIsLoading(true);
+    try {
+      const response = await authService.emailNewCode(email);
+      if (response.success) {
+        toast.success("A new code has been sent");
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      toast.error("Failed to resend code. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex justify-center mt-[20vh] px-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="flex min-h-screen items-start justify-center bg-bg px-4 pt-[18vh] pb-16">
+      <div className="w-full max-w-md rounded-2xl border border-hairline bg-surface p-8 shadow-card sm:p-10">
         <div className="text-center">
-          <h2
-            className="text-3xl font-light"
-            style={{ color: colors.textPrimary }}
-          >
+          <p className="font-display text-lg text-heading">A to Z Accessories</p>
+          <h2 className="mt-5 font-display text-3xl text-heading">
             Welcome Back
           </h2>
-          <p className="mt-2 text-sm" style={{ color: colors.textSecondary }}>
-            Sign in to your account to continue
+          <p className="mt-2 text-sm text-ink-muted">
+            {step === "email"
+              ? "Enter your email to receive a login code"
+              : "Enter the code we sent to your email"}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium"
-                style={{ color: colors.textPrimary }}
-              >
-                Email Address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full px-4 py-3 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                }}
-                placeholder="Enter your email"
-              />
+        {step === "email" ? (
+          <form onSubmit={handleEmailSubmit} className="mt-8 space-y-6">
+            <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-ink"
+                >
+                  Email Address
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-hairline bg-surface px-4 py-3 text-ink placeholder:text-ink-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  placeholder="Enter your email"
+                />
+              </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={isRegisterLoading}
-            className="w-full py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50"
-            style={{
-              backgroundColor: colors.brown,
-              color: colors.textLight,
-            }}
-          >
-            {isRegisterLoading ? "Logging in..." : "Log in"}
-          </button>
-
-          <p className="text-center" style={{ color: colors.textSecondary }}>
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/auth/register"
-              className="font-medium hover:underline"
-              style={{ color: colors.brown }}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full rounded-full bg-primary px-4 py-3 font-medium text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Sign up
-            </Link>
-          </p>
-        </form>
+              {isLoading ? "Sending..." : "Send Code"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleOtpSubmit} className="mt-8 space-y-6">
+            <div className="space-y-4">
+              <p className="text-center text-sm text-ink-muted">
+                Code sent to{" "}
+                <span className="text-ink">{email}</span>
+              </p>
+
+              <div>
+                <label
+                  htmlFor="activeCode"
+                  className="block text-sm font-medium text-ink"
+                >
+                  Verification Code
+                </label>
+                <input
+                  id="activeCode"
+                  name="activeCode"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d{6}"
+                  maxLength={6}
+                  required
+                  value={activeCode}
+                  onChange={(e) =>
+                    setActiveCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  className="mt-1 w-full rounded-lg border border-hairline bg-surface px-4 py-3 text-center tracking-[0.5em] text-ink placeholder:text-ink-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  placeholder="000000"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading || activeCode.length !== 6}
+              className="w-full rounded-full bg-primary px-4 py-3 font-medium text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isLoading ? "Verifying..." : "Verify"}
+            </button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={isLoading}
+                className="rounded-sm font-medium text-primary transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
+              >
+                Resend Code
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

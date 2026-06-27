@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { Product } from "@/types/product.types";
 import ProductCard from "./ProductCard";
-import { colors } from "@/constants/colors";
 import { productService } from "@/services/product.service";
 
 interface RelatedProductsProps {
   productId: string;
-  category: string;
+  // Product.category can be a populated object or a bare id.
+  category: string | { _id: string } | null | undefined;
 }
 
 export default function RelatedProducts({
@@ -18,58 +18,55 @@ export default function RelatedProducts({
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const categoryId =
+    typeof category === "string" ? category : category?._id ?? "";
+
   useEffect(() => {
-    const fetchRelatedProducts = async () => {
+    if (!categoryId) {
+      setIsLoading(false);
+      return;
+    }
+    let active = true;
+    (async () => {
       try {
-        // Use productService to fetch products by category
-        const response = await productService.getProductsByCategoryId(category);
-        // Filter out the current product
-        if (response.success) {
-          const filteredProducts = response.data.products.data
-            .filter((p) => p._id !== productId)
-            .slice(0, 4);
-          setProducts(filteredProducts);
+        const response = await productService.getProductsByCategoryId(
+          categoryId
+        );
+        if (active && response.success) {
+          setProducts(
+            (response.data.products.data || [])
+              .filter((p) => p._id !== productId)
+              .slice(0, 4)
+          );
         }
       } catch (error) {
         console.error("Error fetching related products:", error);
-        setProducts([]);
+        if (active) setProducts([]);
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
+    })();
+    return () => {
+      active = false;
     };
+  }, [productId, categoryId]);
 
-    console.log("category", category);
-
-    if (category) {
-      fetchRelatedProducts();
-    }
-  }, [productId, category]);
-
-  if (products.length === 0) return null;
+  if (!isLoading && products.length === 0) return null;
 
   return (
-    <section className="mt-16">
-      <h2
-        className="text-2xl font-medium mb-8"
-        style={{ color: colors.textPrimary }}
-      >
-        Related Products
+    <section>
+      <h2 className="mb-10 font-display text-3xl text-heading">
+        You may also like
       </h2>
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {Array(4)
-            .fill(0)
-            .map((_, index) => (
-              <ProductCard.Skeleton key={index} />
+      <div className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-4">
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <ProductCard.Skeleton key={i} />
+            ))
+          : products.map((product) => (
+              <ProductCard key={product._id} product={product} />
             ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))}
-        </div>
-      )}
+      </div>
     </section>
   );
 }

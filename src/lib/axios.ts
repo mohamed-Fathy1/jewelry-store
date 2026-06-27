@@ -44,6 +44,20 @@ api.interceptors.response.use(
       localStorage.removeItem("accessToken");
       localStorage.removeItem("authUser");
     }
+
+    // Global 401 handling for the admin panel: any admin API request that
+    // returns 401 (missing/invalid/expired token) clears the stored token and
+    // redirects the admin straight to the login page — no toast, just redirect.
+    if (
+      error.response?.status === 401 &&
+      typeof window !== "undefined" &&
+      window.location.pathname.startsWith("/admin") &&
+      window.location.pathname !== "/admin/login"
+    ) {
+      localStorage.removeItem("accessToken");
+      window.location.replace("/admin/login");
+    }
+
     return Promise.reject(error);
   }
 );

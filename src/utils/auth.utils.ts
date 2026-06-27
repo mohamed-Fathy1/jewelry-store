@@ -1,5 +1,9 @@
 import jwt from "jsonwebtoken";
-import { User } from "@/types/user.types";
+
+// isAdmin / isAuthorizedRole only read the access token, so they accept any
+// user-like object that carries one — works for both auth.types.User and
+// user.types.User without coupling to either shape.
+type AuthLike = { accessToken?: string | null } | null | undefined;
 
 interface DecodedToken {
   email: string;
@@ -17,7 +21,7 @@ export const decodeToken = (token: string): DecodedToken | null => {
   }
 };
 
-export const isAdmin = (user: User | null): boolean => {
+export const isAdmin = (user: AuthLike): boolean => {
   if (!user?.accessToken) return false;
 
   const decoded = decodeToken(user.accessToken);
@@ -25,7 +29,7 @@ export const isAdmin = (user: User | null): boolean => {
 };
 
 export const isAuthorizedRole = (
-  user: User | null,
+  user: AuthLike,
   allowedRoles: string[]
 ): boolean => {
   if (!user?.accessToken) return false;

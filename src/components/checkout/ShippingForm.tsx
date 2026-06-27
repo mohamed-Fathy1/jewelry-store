@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { colors } from "@/constants/colors";
 
 interface ShippingFormData {
   firstName: string;
@@ -19,6 +18,9 @@ interface ShippingFormData {
 interface Props {
   onSubmit: (data: ShippingFormData) => void;
 }
+
+const inputClass =
+  "w-full rounded-lg border border-hairline bg-surface px-4 py-3 text-ink placeholder:text-ink-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
 export default function ShippingForm({ onSubmit }: Props) {
   const [formData, setFormData] = useState<ShippingFormData>({
@@ -46,28 +48,16 @@ export default function ShippingForm({ onSubmit }: Props) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const inputStyle = {
-    backgroundColor: colors.background,
-    borderColor: colors.border,
-    color: colors.textPrimary,
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <h2
-        className="text-2xl font-light mb-6"
-        style={{ color: colors.textPrimary }}
-      >
+      <h2 className="font-display text-2xl mb-6 text-heading">
         Shipping Information
       </h2>
 
       {/* Name Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label
-            className="block text-sm font-medium mb-2"
-            style={{ color: colors.textPrimary }}
-          >
+          <label className="block text-sm font-medium mb-2 text-ink">
             First Name
           </label>
           <input
@@ -76,15 +66,11 @@ export default function ShippingForm({ onSubmit }: Props) {
             required
             value={formData.firstName}
             onChange={handleChange}
-            className="w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-            style={inputStyle}
+            className={inputClass}
           />
         </div>
         <div>
-          <label
-            className="block text-sm font-medium mb-2"
-            style={{ color: colors.textPrimary }}
-          >
+          <label className="block text-sm font-medium mb-2 text-ink">
             Last Name
           </label>
           <input
@@ -93,8 +79,7 @@ export default function ShippingForm({ onSubmit }: Props) {
             required
             value={formData.lastName}
             onChange={handleChange}
-            className="w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-            style={inputStyle}
+            className={inputClass}
           />
         </div>
       </div>
@@ -102,10 +87,7 @@ export default function ShippingForm({ onSubmit }: Props) {
       {/* Contact Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label
-            className="block text-sm font-medium mb-2"
-            style={{ color: colors.textPrimary }}
-          >
+          <label className="block text-sm font-medium mb-2 text-ink">
             Email
           </label>
           <input
@@ -114,15 +96,11 @@ export default function ShippingForm({ onSubmit }: Props) {
             required
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-            style={inputStyle}
+            className={inputClass}
           />
         </div>
         <div>
-          <label
-            className="block text-sm font-medium mb-2"
-            style={{ color: colors.textPrimary }}
-          >
+          <label className="block text-sm font-medium mb-2 text-ink">
             Phone
           </label>
           <input
@@ -131,18 +109,14 @@ export default function ShippingForm({ onSubmit }: Props) {
             required
             value={formData.phone}
             onChange={handleChange}
-            className="w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-            style={inputStyle}
+            className={inputClass}
           />
         </div>
       </div>
 
       {/* Address */}
       <div>
-        <label
-          className="block text-sm font-medium mb-2"
-          style={{ color: colors.textPrimary }}
-        >
+        <label className="block text-sm font-medium mb-2 text-ink">
           Address
         </label>
         <input
@@ -151,16 +125,12 @@ export default function ShippingForm({ onSubmit }: Props) {
           required
           value={formData.address}
           onChange={handleChange}
-          className="w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-          style={inputStyle}
+          className={inputClass}
         />
       </div>
 
       <div>
-        <label
-          className="block text-sm font-medium mb-2"
-          style={{ color: colors.textPrimary }}
-        >
+        <label className="block text-sm font-medium mb-2 text-ink">
           Apartment, suite, etc. (optional)
         </label>
         <input
@@ -168,18 +138,14 @@ export default function ShippingForm({ onSubmit }: Props) {
           name="apartment"
           value={formData.apartment}
           onChange={handleChange}
-          className="w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-          style={inputStyle}
+          className={inputClass}
         />
       </div>
 
       {/* City, State, Zip */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label
-            className="block text-sm font-medium mb-2"
-            style={{ color: colors.textPrimary }}
-          >
+          <label className="block text-sm font-medium mb-2 text-ink">
             City
           </label>
           <input
@@ -188,15 +154,11 @@ export default function ShippingForm({ onSubmit }: Props) {
             required
             value={formData.city}
             onChange={handleChange}
-            className="w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-            style={inputStyle}
+            className={inputClass}
           />
         </div>
         <div>
-          <label
-            className="block text-sm font-medium mb-2"
-            style={{ color: colors.textPrimary }}
-          >
+          <label className="block text-sm font-medium mb-2 text-ink">
             State
           </label>
           <input
@@ -205,15 +167,11 @@ export default function ShippingForm({ onSubmit }: Props) {
             required
             value={formData.state}
             onChange={handleChange}
-            className="w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-            style={inputStyle}
+            className={inputClass}
           />
         </div>
         <div>
-          <label
-            className="block text-sm font-medium mb-2"
-            style={{ color: colors.textPrimary }}
-          >
+          <label className="block text-sm font-medium mb-2 text-ink">
             ZIP Code
           </label>
           <input
@@ -222,19 +180,14 @@ export default function ShippingForm({ onSubmit }: Props) {
             required
             value={formData.zipCode}
             onChange={handleChange}
-            className="w-full px-4 py-2 rounded-md border focus:outline-none focus:ring-2 transition-all duration-200"
-            style={inputStyle}
+            className={inputClass}
           />
         </div>
       </div>
 
       <button
         type="submit"
-        className="w-full py-3 px-4 rounded-md transition-colors duration-200"
-        style={{
-          backgroundColor: colors.brown,
-          color: colors.textLight,
-        }}
+        className="w-full py-3 px-4 rounded-full bg-primary text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         Continue to Payment
       </button>

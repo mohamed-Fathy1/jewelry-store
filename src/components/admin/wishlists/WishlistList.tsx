@@ -1,160 +1,192 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { colors } from "@/constants/colors";
-import { WishlistItem } from "@/types/wishlist.types";
-import { adminService } from "@/services/admin.service";
-import toast from "react-hot-toast";
-import { formatPrice } from "@/utils/format";
+import { useState } from "react";
+import { AxiosError } from "axios";
 import { format } from "date-fns";
+import { HeartIcon, CubeIcon } from "@heroicons/react/24/outline";
+import { useAllWishlist } from "@/hooks/useAdminWishlists";
+import { WishlistEntry } from "@/types/admin-wishlist.types";
+import { formatEGP } from "@/utils/format";
+import { getApiErrorMessage } from "@/utils/apiError";
+import {
+  TableShell,
+  Thead,
+  Tbody,
+  Th,
+  Td,
+  Tr,
+  Thumbnail,
+  Pagination,
+  SkeletonTable,
+  EmptyState,
+} from "@/components/admin/ui";
 
 export default function WishlistList() {
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  // Server-side pagination: 20 items per page, driven by totalPages/currentPage.
+  const [page, setPage] = useState(1);
 
-  const fetchWishlists = async (page: number) => {
-    try {
-      const response = await adminService.getWishlists(page);
-      setWishlistItems(response.data.wishlist.products);
-      setTotalPages(response.data.wishlist.totalPages);
-    } catch (error) {
-      toast.error("Failed to fetch wishlists");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data, isLoading, isError, error } = useAllWishlist(page);
 
-  useEffect(() => {
-    fetchWishlists(currentPage);
-  }, [currentPage]);
+  const status = (error as AxiosError | undefined)?.response?.status;
+  const entries = data?.data?.wishlist?.products ?? [];
+  const totalPages = data?.data?.wishlist?.totalPages ?? 1;
+  const currentPage = data?.data?.wishlist?.currentPage ?? page;
 
-  if (isLoading) return <div>Loading...</div>;
+  // 401 is handled globally by the axios interceptor (redirect to /admin/login).
+  // 403 means the account is authenticated but not allowed to view wishlists.
+  if (isError && status === 403) {
+    return (
+      <EmptyState
+        icon={HeartIcon}
+        title="Not authorized"
+        description="You don't have permission to view wishlists."
+      />
+    );
+  }
+
+  if (isError) {
+    return (
+      <EmptyState
+        icon={HeartIcon}
+        title="Failed to load wishlists"
+        description={getApiErrorMessage(error, "Failed to fetch wishlists")}
+      />
+    );
+  }
+
+  if (isLoading) {
+    return <SkeletonTable rows={8} cols={3} />;
+  }
+
+  if (entries.length === 0) {
+    return (
+      <EmptyState
+        icon={HeartIcon}
+        title="No wishlist items"
+        description="Nothing has been saved yet."
+      />
+    );
+  }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-      <div className="w-full overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Product
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Items
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                User
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Added Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Price
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {wishlistItems.map((item) => (
-              <tr key={item._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="h-12 w-12 relative flex-shrink-0">
-                      <Image
-                        src={item.productId.defaultImage.mediaUrl}
-                        alt={item.productId.productName}
-                        fill
-                        className="rounded-md object-cover"
-                      />
-                    </div>
-                    <div className="ml-4">
-                      <Link
-                        href={`/product/${item.productId._id}`}
-                        className="text-sm font-medium hover:text-brown"
-                        style={{ color: colors.textPrimary }}
-                      >
-                        {item.productId.productName}
-                      </Link>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="">
-                    <div className="text-sm font-medium text-gray-900 mb-1">
-                      <span className="font-medium">Available: </span>
-                      {item.productId.availableItems}
-                    </div>
-                    <div className="text-xs text-gray-500 flex items-center">
-                      {/* <span className="font-medium">SKU:</span>
-                                <span className="ml-1">{product.}</span> */}
-                    </div>
-                    <div className="text-xs text-gray-500 flex items-center mt-1">
-                      <span className="font-medium">Sold:</span>
-                      <span className="ml-1">{item.productId.soldItems}</span>
-                    </div>
-                  </div>{" "}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div
-                    className="text-sm"
-                    style={{ color: colors.textPrimary }}
-                  >
-                    {item?.user?.email}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div
-                    className="text-sm"
-                    style={{ color: colors.textSecondary }}
-                  >
-                    {format(new Date(item.createdAt), "MMM d, yyyy")}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div
-                    className="text-sm font-medium"
-                    style={{ color: colors.textPrimary }}
-                  >
-                    {formatPrice(item.productId.price)}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <>
+      <TableShell>
+        <Thead>
+          <tr>
+            <Th>Product</Th>
+            <Th>Customer</Th>
+            <Th>Saved</Th>
+          </tr>
+        </Thead>
+        <Tbody>
+          {entries.map((entry) => (
+            <WishlistRow key={entry._id} entry={entry} />
+          ))}
+        </Tbody>
+      </TableShell>
 
-      {/* Pagination */}
-      <div className="flex justify-between items-center px-6 py-3 border-t">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className={`px-3 py-1 rounded-md text-sm ${
-            currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          style={{ backgroundColor: colors.brown, color: colors.textLight }}
-        >
-          Previous
-        </button>
-        <span className="text-sm" style={{ color: colors.textSecondary }}>
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
-          disabled={currentPage === totalPages}
-          className={`px-3 py-1 rounded-md text-sm ${
-            currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          style={{ backgroundColor: colors.brown, color: colors.textLight }}
-        >
-          Next
-        </button>
-      </div>
-    </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
+    </>
+  );
+}
+
+function WishlistRow({ entry }: { entry: WishlistEntry }) {
+  const product = entry.productId;
+  const info = entry.userInformation;
+  const outOfStock = product.availableItems === 0;
+
+  return (
+    <Tr>
+      {/* Product: thumbnail + name + category + price/salePrice + stock */}
+      <Td>
+        <div className="flex items-center gap-3">
+          <Thumbnail
+            src={product.defaultImage?.mediaUrl}
+            alt={product.productName}
+            icon={CubeIcon}
+          />
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="truncate text-sm font-semibold text-admin-ink">
+                {product.productName}
+              </span>
+              {product.isSale && (
+                <span className="inline-flex items-center rounded-full bg-admin-danger px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-admin-on-accent">
+                  Sale
+                </span>
+              )}
+            </div>
+            <div className="mt-0.5 text-xs text-admin-ink-muted">
+              {product.category?.categoryName ?? "—"}
+            </div>
+            <div className="mt-1 flex items-center gap-2">
+              {product.isSale ? (
+                <>
+                  <span className="tabular text-sm font-semibold text-admin-ink">
+                    {formatEGP(product.salePrice)}
+                  </span>
+                  <span className="tabular text-xs text-admin-ink-muted line-through">
+                    {formatEGP(product.price)}
+                  </span>
+                </>
+              ) : (
+                <span className="tabular text-sm font-semibold text-admin-ink">
+                  {formatEGP(product.price)}
+                </span>
+              )}
+              <span
+                className={`tabular text-xs ${
+                  outOfStock ? "text-admin-danger" : "text-admin-ink-muted"
+                }`}
+              >
+                {outOfStock
+                  ? "Out of stock"
+                  : `${product.availableItems} in stock`}
+              </span>
+            </div>
+          </div>
+        </div>
+      </Td>
+
+      {/* Customer: name + email, phone, city + address — or "No profile". */}
+      <Td className="align-top">
+        {info ? (
+          <div className="space-y-0.5">
+            <div className="text-sm font-medium text-admin-ink">
+              {info.firstName} {info.lastName}
+            </div>
+            <div className="text-xs text-admin-ink-muted">
+              {entry.user?.email}
+            </div>
+            <div className="text-xs text-admin-ink-muted">
+              {info.primaryPhone}
+            </div>
+            <div className="text-xs text-admin-ink-muted">
+              {[info.shipping?.category, info.address]
+                .filter(Boolean)
+                .join(" · ")}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-0.5">
+            <span className="text-sm italic text-admin-ink-muted">
+              No profile
+            </span>
+            <div className="text-xs text-admin-ink-muted">
+              {entry.user?.email}
+            </div>
+          </div>
+        )}
+      </Td>
+
+      {/* Saved date (epoch ms -> formatted date). */}
+      <Td className="whitespace-nowrap align-top tabular text-admin-ink-muted">
+        {format(new Date(entry.createdAt), "MMM d, yyyy")}
+      </Td>
+    </Tr>
   );
 }
