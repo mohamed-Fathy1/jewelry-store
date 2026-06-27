@@ -330,7 +330,7 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
           <Field label="Image" error={errors.image} hint="Optional — used on the storefront offer banner.">
             <ImageUpload folder="offers" onUpload={handleImageUpload} />
             {formData.imageUrl && (
-              <Thumbnail src={formData.imageUrl} alt="Offer" className="mt-3 h-32 w-full" />
+              <Thumbnail src={formData.imageUrl} alt="Offer" className="mt-3 h-52 w-full" fit="contain" />
             )}
           </Field>
         </Section>

@@ -455,7 +455,8 @@ export default function ProductModal({
                       <Thumbnail
                         src={formData.defaultImage}
                         alt="Default"
-                        className="h-24 w-24"
+                        className="h-32 w-32"
+                        fit="contain"
                       />
                       <button
                         type="button"
@@ -485,7 +486,8 @@ export default function ProductModal({
                             <Thumbnail
                               src={url}
                               alt={`Album ${index + 1}`}
-                              className="h-24 w-full"
+                              className="h-28 w-full"
+                              fit="contain"
                             />
                             <button
                               type="button"

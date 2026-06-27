@@ -11,6 +11,12 @@ interface ThumbnailProps {
   rounded?: string;
   /** Fallback glyph shown when there's no src or the image fails to load. */
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
+  /**
+   * How the image fills the box. "cover" (default) crops to fill — right for
+   * small table avatars. "contain" shows the whole image, letterboxed on the
+   * muted surface — right for large previews where cropping hides the product.
+   */
+  fit?: "cover" | "contain";
 }
 
 /**
@@ -24,6 +30,7 @@ export function Thumbnail({
   className = "h-12 w-12",
   rounded = "rounded-md",
   icon: Icon = PhotoIcon,
+  fit = "cover",
 }: ThumbnailProps) {
   const [failed, setFailed] = useState(false);
 
@@ -43,7 +50,7 @@ export function Thumbnail({
           alt={alt}
           loading="lazy"
           onError={() => setFailed(true)}
-          className="h-full w-full object-cover"
+          className={`h-full w-full ${fit === "contain" ? "object-contain p-2" : "object-cover"}`}
         />
       ) : (
         <Icon className="h-1/2 w-1/2 text-admin-ink-subtle" aria-hidden="true" />

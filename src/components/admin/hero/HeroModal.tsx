@@ -102,8 +102,9 @@ export default function HeroModal({ isOpen, onClose, slider }: HeroModalProps) {
             <Thumbnail
               src={formData.smallImage}
               alt="Small preview"
-              className="mt-2 h-32 w-full"
+              className="mt-2 h-52 w-full"
               rounded="rounded-lg"
+              fit="contain"
             />
           )}
         </Field>
@@ -115,8 +116,9 @@ export default function HeroModal({ isOpen, onClose, slider }: HeroModalProps) {
             <Thumbnail
               src={formData.largeImage}
               alt="Large preview"
-              className="mt-2 h-32 w-full"
+              className="mt-2 h-52 w-full"
               rounded="rounded-lg"
+              fit="contain"
             />
           )}
         </Field>

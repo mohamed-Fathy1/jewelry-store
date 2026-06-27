@@ -194,7 +194,8 @@ export default function CategoryModal({
             <Thumbnail
               src={formData.imageUrl}
               alt="Category"
-              className="mt-4 h-32 w-full"
+              className="mt-4 h-52 w-full"
+              fit="contain"
             />
           )}
         </Field>
