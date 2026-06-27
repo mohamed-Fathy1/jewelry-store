@@ -279,6 +279,13 @@ export default function CheckoutPage() {
   };
 
   const handlePaymentSubmit = async (data: PaymentFormData) => {
+    // The backend preview is the source of truth for the charged total
+    // (shipping + offers). Don't place an order until it has resolved, or the
+    // customer could confirm a total that omits shipping/discounts.
+    if (!preview) {
+      toast.error("Still calculating your total — please try again in a moment.");
+      return;
+    }
     setPaymentData(data);
     setLoading(true);
     console.log(selectedAddress);
@@ -454,6 +461,7 @@ export default function CheckoutPage() {
             <PaymentForm
               onSubmit={handlePaymentSubmit}
               onBack={() => setCurrentStep("shipping")}
+              disabled={!preview || previewLoading}
             />
           )}
           {currentStep === "confirmation" && shippingData && (

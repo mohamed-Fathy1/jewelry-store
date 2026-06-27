@@ -26,7 +26,9 @@ export function getApiErrorMessage(
     case 403:
       return "You don't have permission to perform this action.";
     case 404:
-      return serverMessage || "Order not found.";
+      // Generic by default — this helper is shared (offers, products, wishlists,
+      // …), so callers needing a domain-specific message pass `fallback`.
+      return serverMessage || fallback;
     default:
       return serverMessage || fallback;
   }

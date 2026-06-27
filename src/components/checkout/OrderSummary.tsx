@@ -145,20 +145,29 @@ export default function OrderSummary({
 
         <div className="flex items-baseline justify-between pt-3 font-medium border-t border-hairline">
           <span className="text-ink">Total</span>
-          <span className="flex items-baseline gap-2.5">
-            {hasSaving ? (
-              <span className="text-sm text-ink-muted line-through tabular-nums">
-                EGP {originalTotal.toFixed(2)}
-              </span>
-            ) : null}
-            <span
-              className={`tabular-nums ${
-                hasSaving ? "text-accent" : "text-ink"
-              }`}
-            >
-              EGP {finalTotal.toFixed(2)}
+          {!hasPreview ? (
+            // Until the backend preview resolves we don't know shipping/discount,
+            // so show a pending state rather than a bare subtotal that would
+            // understate what the customer is charged.
+            <span className="text-sm font-normal text-ink-muted">
+              {previewLoading ? "Calculating…" : "Calculated at checkout"}
             </span>
-          </span>
+          ) : (
+            <span className="flex items-baseline gap-2.5">
+              {hasSaving ? (
+                <span className="text-sm text-ink-muted line-through tabular-nums">
+                  EGP {originalTotal.toFixed(2)}
+                </span>
+              ) : null}
+              <span
+                className={`tabular-nums ${
+                  hasSaving ? "text-accent" : "text-ink"
+                }`}
+              >
+                EGP {finalTotal.toFixed(2)}
+              </span>
+            </span>
+          )}
         </div>
 
         {hasSaving && (

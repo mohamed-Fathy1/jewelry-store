@@ -9,11 +9,15 @@ interface PaymentFormData {
 interface Props {
   onSubmit: (data: PaymentFormData) => void;
   onBack: () => void;
+  /** Block confirmation until the backend total (preview) has resolved, so the
+   *  shown total always matches what the customer will be charged. */
+  disabled?: boolean;
 }
 
-export default function PaymentForm({ onSubmit, onBack }: Props) {
+export default function PaymentForm({ onSubmit, onBack, disabled }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (disabled) return;
     onSubmit({ paymentMethod: "cod" });
   };
 
@@ -57,11 +61,17 @@ export default function PaymentForm({ onSubmit, onBack }: Props) {
             type="button"
             size="lg"
             onClick={handleSubmit}
+            disabled={disabled}
             className="order-1 flex-1 sm:order-2"
           >
             Confirm Order
           </Button>
         </div>
+        {disabled && (
+          <p className="mt-3 text-center text-sm text-ink-muted">
+            Calculating your total…
+          </p>
+        )}
       </div>
 
       <div className="p-4 rounded-lg bg-accent-soft">

@@ -6,10 +6,12 @@ import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/cn";
 import { useSearchParams, useRouter } from "next/navigation";
 
+// "Price: High to Low" is intentionally omitted: the backend has no descending
+// price sort (only ascending `price`), so offering it would silently behave
+// like Low-to-High. Re-add it here once the API supports a price-desc sort.
 const sortOptions = [
   { name: "Newest", value: "Newest" },
   { name: "Price: Low to High", value: "Low to High" },
-  { name: "Price: High to Low", value: "High to Low" },
 ];
 
 interface SortDropdownProps {
