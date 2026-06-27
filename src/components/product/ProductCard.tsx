@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { ShoppingBagIcon } from "@heroicons/react/24/outline";
 import { HeartIcon } from "lucide-react";
@@ -11,6 +12,7 @@ import { useCart } from "@/contexts/CartContext";
 import { CartItem } from "@/types/cart.types";
 import { useWishlist } from "@/contexts/WishlistContext";
 import Badge from "@/components/ui/Badge";
+import { analytics } from "@/lib";
 
 interface ProductCardProps {
   product: Product;
@@ -47,6 +49,7 @@ function ProductCard({
   const { addToCart } = useCart();
   const { wishlist, toggleWishlist } = useWishlist();
   const reduceMotion = useReducedMotion();
+  const router = useRouter();
 
   // Prefer the backend's reliable `isSoldOut` flag (derived from variant stock).
   // /home payloads omit availableItems → treat undefined as in-stock.
@@ -62,16 +65,41 @@ function ProductCard({
     typeof product.category === "object" ? product.category?.categoryName : "";
   const href = `/product/${product._id}`;
 
+  // Quick-add can only safely add a product whose exact variant + stock are
+  // known here: a "simple" product (a single variant with no colour/size). For
+  // variant products — or aggregated payloads (e.g. /home) that omit `variants`
+  // entirely — we have no real variantId/stock, so adding directly would create
+  // a phantom cart line that fails at checkout. Those route to the product page
+  // to pick a variant instead.
+  const variants = product.variants ?? [];
+  const simpleVariant =
+    variants.length === 1 && !variants[0].color && !variants[0].size
+      ? variants[0]
+      : null;
+
   const handleAddToCart = () => {
     if (!inStock) return;
+    if (!simpleVariant) {
+      // Can't resolve a concrete variant from card data → choose it on the PDP.
+      router.push(href);
+      return;
+    }
+    if (simpleVariant.availableItems <= 0) return;
     addToCart({
       productId: product._id,
+      variantId: simpleVariant._id,
       quantity: 1,
       price: displayPrice,
       productName: product.productName,
       productImage: product.defaultImage.mediaUrl,
-      availableItems: product.availableItems ?? 99,
+      availableItems: simpleVariant.availableItems,
     } as CartItem);
+    analytics.trackAddToCart({
+      id: product._id,
+      name: product.productName,
+      price: displayPrice,
+      quantity: 1,
+    });
   };
 
   return (
