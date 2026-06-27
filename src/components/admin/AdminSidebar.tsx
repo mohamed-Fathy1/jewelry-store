@@ -17,6 +17,7 @@ import {
   SwatchIcon,
   Squares2X2Icon,
   SparklesIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { IconButton } from "@/components/admin/ui";
 
@@ -32,6 +33,7 @@ const navigation = [
   { name: "Shipping", href: "/admin/shipping", icon: TruckIcon },
   { name: "Hero Section", href: "/admin/hero", icon: PhotoIcon },
   { name: "Wishlists", href: "/admin/wishlists", icon: HeartIcon },
+  { name: "Backups", href: "/admin/backups", icon: ShieldCheckIcon },
 ];
 
 function Wordmark() {

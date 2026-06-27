@@ -152,9 +152,17 @@ export default function ColorModal({
               id="color-hex"
               type="text"
               value={formData.hex}
-              readOnly
+              onChange={(e) => {
+                // Allow typing a hex manually; normalise to a leading "#"
+                // and keep only hex digits so it stays in sync with the picker.
+                let next = e.target.value.trim();
+                if (next && !next.startsWith("#")) next = `#${next}`;
+                next = next.replace(/[^#0-9A-Fa-f]/g, "").slice(0, 7);
+                setFormData((prev) => ({ ...prev, hex: next }));
+              }}
               placeholder="#RRGGBB"
-              className={`${adminInputClass} bg-admin-surface-muted uppercase tabular-nums`}
+              maxLength={7}
+              className={`${adminInputClass} uppercase tabular-nums`}
             />
           </div>
         </Field>
