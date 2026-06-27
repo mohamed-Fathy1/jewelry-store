@@ -206,7 +206,6 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
     if (!formData.title.trim()) e.title = "Title is required.";
-    if (!formData.imageUrl) e.image = "An image is required.";
     if (!formData.offerType) {
       e.offerType = "Select an offer type.";
       return e;
@@ -254,9 +253,11 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
         title: formData.title.trim(),
         description: formData.description,
         isActive: formData.isActive,
-        image: { mediaUrl: formData.imageUrl },
         offerType: formData.offerType as OfferType,
       };
+
+      // Image is optional — only send it when one was uploaded.
+      if (formData.imageUrl) payload.image = { mediaUrl: formData.imageUrl };
 
       const condition: Record<string, any> = {};
       if (cfg.minQuantity) condition.minQuantity = Number(formData.minQuantity);
@@ -326,7 +327,7 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
             />
           </Field>
 
-          <Field label="Image" required error={errors.image} hint="Used on the storefront offer banner.">
+          <Field label="Image" error={errors.image} hint="Optional — used on the storefront offer banner.">
             <ImageUpload folder="offers" onUpload={handleImageUpload} />
             {formData.imageUrl && (
               <Thumbnail src={formData.imageUrl} alt="Offer" className="mt-3 h-32 w-full" />

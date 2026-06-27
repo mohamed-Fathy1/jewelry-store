@@ -36,7 +36,7 @@ export interface Offer {
   description?: string;
   isActive: boolean;
   status: OfferStatus;
-  image: OfferImage;
+  image?: OfferImage;
   offerType: OfferType;
   timing?: OfferTiming;
   condition?: OfferCondition;
@@ -51,7 +51,7 @@ export interface CreateOfferDto {
   title: string;
   description?: string;
   isActive?: boolean;
-  image: { mediaUrl: string };
+  image?: { mediaUrl: string };
   offerType: OfferType;
   timing?: OfferTiming;
   condition?: OfferCondition;
