@@ -264,6 +264,17 @@ export default function ProductDetails({ productId }: { productId: string }) {
     return <LoadingSpinner />; // Updated loading return
   }
 
+  // albumImages is optional and may be empty (minimal/aggregated payloads), so
+  // fall back to the defaultImage — the gallery must never index into undefined.
+  const galleryImages =
+    currentProduct.albumImages && currentProduct.albumImages.length > 0
+      ? currentProduct.albumImages
+      : [currentProduct.defaultImage];
+  const safeActiveImage = Math.min(
+    Math.max(activeImage, 0),
+    galleryImages.length - 1
+  );
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* Image gallery */}
@@ -271,7 +282,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
         {/* Main image */}
         <div className="relative aspect-[2.25/3] md:aspect-[4/3] rounded-2xl overflow-hidden bg-surface-muted">
           <SmartImage
-            src={currentProduct.albumImages[activeImage].mediaUrl}
+            src={galleryImages[safeActiveImage]?.mediaUrl}
             alt={`${currentProduct.productName} - Main View`}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
@@ -286,7 +297,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
               clearInterval(sliderRef.current);
               setAutoPlay(false);
               setActiveImage((prev) =>
-                prev === 0 ? currentProduct.albumImages.length - 1 : prev - 1
+                prev === 0 ? galleryImages.length - 1 : prev - 1
               );
             }}
             aria-label="Previous image"
@@ -299,7 +310,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
               clearInterval(sliderRef.current);
               setAutoPlay(false);
               setActiveImage((next) =>
-                next === currentProduct.albumImages.length - 1 ? 0 : next + 1
+                next === galleryImages.length - 1 ? 0 : next + 1
               );
             }}
             aria-label="Next image"
@@ -320,7 +331,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
         {/* Thumbnail strip */}
         <div className="flex gap-2 overflow-x-auto p-2">
-          {currentProduct.albumImages.map((image, index) => (
+          {galleryImages.map((image, index) => (
             <button
               key={index}
               onClick={() => setActiveImage(index)}
@@ -329,7 +340,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
               }`}
               className={cn(
                 "flex-none relative aspect-square w-20 overflow-hidden rounded-lg bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-                activeImage === index ? "ring-2 ring-accent" : "opacity-70"
+                safeActiveImage === index ? "ring-2 ring-accent" : "opacity-70"
               )}
             >
               <SmartImage

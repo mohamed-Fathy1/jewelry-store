@@ -47,7 +47,9 @@ export const adminService = {
     }));
 
     const response = await api.post(
-      "http://localhost:5000/aws/get-presigned-url?type=octet-stream",
+      // Relative path → resolves against the configured API base URL
+      // (NEXT_PUBLIC_API_URL) so uploads work in every environment, not just local.
+      "/aws/get-presigned-url?type=octet-stream",
       {
         folder,
         files: fileData,

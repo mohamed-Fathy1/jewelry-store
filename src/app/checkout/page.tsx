@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import LoadingSpinner from "../../components/LoadingSpinner"; // Import the new loading component
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { analytics } from "@/lib";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 interface ShippingFormData {
   firstName: string;
@@ -351,7 +352,7 @@ export default function CheckoutPage() {
         setOrderMessage("Failed to create order. Please try again.");
       }
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(getApiErrorMessage(error, "Failed to place your order. Please try again."));
       console.error("Error creating order:", error);
       setOrderMessage("An error occurred. Please try again.");
     } finally {

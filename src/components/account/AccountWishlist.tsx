@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import SmartImage from "@/components/ui/SmartImage";
 import Link from "next/link";
 import { TrashIcon, ShoppingBagIcon } from "@heroicons/react/24/outline";
@@ -13,6 +14,7 @@ import { formatPrice } from "@/utils/format";
 import { Product } from "@/types/product.types";
 import { CartItem } from "@/types/cart.types";
 import { WishlistItem } from "@/types/wishlist.types";
+import { analytics } from "@/lib";
 
 export default function AccountWishlist() {
   const { toggleWishlist } = useWishlist();
@@ -21,6 +23,7 @@ export default function AccountWishlist() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { addToCart } = useCart();
+  const router = useRouter();
   // const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,16 +57,38 @@ export default function AccountWishlist() {
   };
 
   const handleAddToCart = (product: Product) => {
-    const cartItem: CartItem = {
+    // Only add directly when we can resolve a concrete variant (a "simple"
+    // product: one variant, no colour/size). Variant products — or payloads
+    // without variant data — would otherwise become an invalid variant-less
+    // line that fails at checkout, so route to the product page to choose.
+    const variants = product.variants ?? [];
+    const simpleVariant =
+      variants.length === 1 && !variants[0].color && !variants[0].size
+        ? variants[0]
+        : null;
+
+    if (!simpleVariant) {
+      router.push(`/product/${product._id}`);
+      return;
+    }
+    if (simpleVariant.availableItems <= 0) return;
+
+    const price = product.salePrice || product.price;
+    addToCart({
       productId: product._id,
+      variantId: simpleVariant._id,
       quantity: 1,
-      price: product.salePrice || product.price,
+      price,
       productName: product.productName,
       productImage: product.defaultImage.mediaUrl,
-      availableItems: product.availableItems,
-    };
-
-    addToCart(cartItem);
+      availableItems: simpleVariant.availableItems,
+    } as CartItem);
+    analytics.trackAddToCart({
+      id: product._id,
+      name: product.productName,
+      price,
+      quantity: 1,
+    });
   };
 
   if (loading) {
