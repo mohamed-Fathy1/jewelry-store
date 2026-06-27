@@ -14,7 +14,7 @@ import WhatsAppIcon from "@/components/home/WhatsAppIcon";
 
 export default function HomePage() {
   // Single /home fetch; slices flow to sections as props.
-  const { bestSellers, onSale, flashSale, isLoading } = useHome();
+  const { bestSellers, onSale, newArrivals, flashSale, isLoading } = useHome();
 
   return (
     <div>
@@ -26,7 +26,7 @@ export default function HomePage() {
       <WaysToSave />
       <FeaturedCategories />
       <TarnishingPromo />
-      <NewArrivals />
+      <NewArrivals products={newArrivals} isLoading={isLoading} />
       <WhatsAppIcon />
     </div>
   );

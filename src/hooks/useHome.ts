@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import { homeService } from "@/services/home.service";
 import { HomeData } from "@/types/home.types";
 
-const EMPTY: HomeData = { bestSellers: [], onSale: [], flashSale: [] };
+const EMPTY: HomeData = {
+  bestSellers: [],
+  onSale: [],
+  newArrivals: [],
+  flashSale: [],
+};
 
 /**
  * Fetches the aggregated /home payload exactly once. Call this ONCE on the
@@ -27,6 +32,7 @@ export function useHome() {
           setData({
             bestSellers: res.data.bestSellers ?? [],
             onSale: res.data.onSale ?? [],
+            newArrivals: res.data.newArrivals ?? [],
             flashSale: Array.isArray(fs) ? fs : fs ? [fs as never] : [],
           });
         }

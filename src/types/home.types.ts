@@ -13,6 +13,7 @@ export interface FlashSale {
 export interface HomeData {
   bestSellers: Product[];
   onSale: Product[];
+  newArrivals: Product[];
   /** /home now returns every live flash sale (soonest-ending first). */
   flashSale: FlashSale[];
 }

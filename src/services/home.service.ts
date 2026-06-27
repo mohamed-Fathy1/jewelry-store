@@ -8,7 +8,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const axiosInstance = axios.create({ baseURL: API_URL });
 
 export const homeService = {
-  // Aggregated homepage payload: best sellers, on-sale, and the active flash sale.
+  // Aggregated homepage payload: best sellers, on-sale, new arrivals, and flash sales.
   async getHome(): Promise<HomeResponse> {
     const response = await axiosInstance.get<HomeResponse>("/home");
     return response.data;

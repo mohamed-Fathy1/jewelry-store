@@ -1,35 +1,21 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import Section from "@/components/ui/Section";
 import SectionHeading from "@/components/ui/SectionHeading";
 import ProductCard from "@/components/product/ProductCard";
-import { productService } from "@/services/product.service";
 import { Product } from "@/types/product.types";
 
-export default function NewArrivals() {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+interface NewArrivalsProps {
+  products: Product[];
+  isLoading: boolean;
+}
 
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        // Newest first (the public /products endpoint defaults to createdAt desc).
-        const res = await productService.getProductsList({ limit: 12 });
-        if (active) setProducts(res?.data?.products ?? []);
-      } catch (err) {
-        console.error("Failed to fetch new arrivals:", err);
-      } finally {
-        if (active) setIsLoading(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
+// Data comes from the aggregated /home payload (via useHome on the homepage),
+// passed in as props — this section does not fetch on its own.
+export default function NewArrivals({ products, isLoading }: NewArrivalsProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
@@ -41,7 +27,7 @@ export default function NewArrivals() {
     }
   };
 
-  const items = products.slice(0, 12);
+  const items = (products ?? []).slice(0, 12);
   if (!isLoading && items.length === 0) return null;
 
   return (
