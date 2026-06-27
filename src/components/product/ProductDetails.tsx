@@ -26,6 +26,7 @@ import {
   VariantColor,
   VariantSize,
 } from "@/types/product.types";
+import { analytics } from "@/lib";
 
 // Variants arrive populated from the public endpoint, but stay defensive in case
 // an id string slips through.
@@ -59,6 +60,18 @@ export default function ProductDetails({ productId }: { productId: string }) {
       if (currentProduct.isSoldOut) setQuantity(0);
     }
   }, [currentProduct]);
+
+  // GA4 / Pixel view_item — fire once the product resolves.
+  useEffect(() => {
+    if (currentProduct?._id) {
+      analytics.trackViewItem({
+        id: currentProduct._id,
+        name: currentProduct.productName,
+        price: currentProduct.salePrice || currentProduct.price,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentProduct?._id]);
 
   useEffect(() => {
     const checkWishlist = () => {
@@ -184,6 +197,12 @@ export default function ProductDetails({ productId }: { productId: string }) {
     };
 
     addToCart(cartItem);
+    analytics.trackAddToCart({
+      id: currentProduct._id,
+      name: currentProduct.productName,
+      price: cartItem.price,
+      quantity,
+    });
   };
 
   const handleBuyNow = () => {
@@ -214,6 +233,12 @@ export default function ProductDetails({ productId }: { productId: string }) {
     };
 
     addToCart(cartItem);
+    analytics.trackAddToCart({
+      id: currentProduct._id,
+      name: currentProduct.productName,
+      price: cartItem.price,
+      quantity,
+    });
     router.push("/checkout");
   };
 

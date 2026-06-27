@@ -335,8 +335,9 @@ export default function CheckoutPage() {
             currency: "EGP",
             numItems: totalItems,
             value,
+            transactionId: (result.data?.order as any)?._id,
             contents: cart.items.map((item) => ({
-              id: item.productId,
+              id: item.variantId ?? item.productId,
               quantity: item.quantity,
               price: item.price || 0,
             })),

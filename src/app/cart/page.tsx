@@ -14,11 +14,13 @@ import { useEffect, useState } from "react";
 import { cartService } from "@/services/cart.service";
 import toast from "react-hot-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { analytics } from "@/lib";
 
 export default function CartPage() {
   const { cart, setCart, updateQuantity, removeFromCart, clearCart } =
     useCart();
   const [isCartQuantityChecked, setIsCartQuantityChecked] = useState(false);
+  const [viewCartTracked, setViewCartTracked] = useState(false);
   const { authUser } = useAuth();
   // Reconcile cart quantities against live stock. Stock is tracked per VARIANT
   // (a specific colour+size), so each line is checked against its own variant;
@@ -119,6 +121,22 @@ export default function CartPage() {
     setIsCartQuantityChecked(true);
     checkAvailableStock();
   }, [cart]); // Dependency on cart to check whenever it changes
+
+  // GA4 / Pixel view_cart — fire once the cart page has items.
+  useEffect(() => {
+    if (viewCartTracked || !cart.items.length) return;
+    setViewCartTracked(true);
+    analytics.trackViewCart({
+      contents: cart.items.map((item) => ({
+        id: item.variantId ?? item.productId,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      numItems: cart.items.reduce((n, item) => n + item.quantity, 0),
+      value: cart.totalAmount,
+      currency: "EGP",
+    });
+  }, [cart, viewCartTracked]);
 
   if (cart.items.length === 0) {
     return (

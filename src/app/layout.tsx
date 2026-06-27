@@ -14,6 +14,9 @@ import CheckoutPage from "./checkout/page";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import LayoutWrapper from "@/components/layout/LayoutWrapper";
 import Script from "next/script";
+import { Suspense } from "react";
+import AnalyticsRouteTracker from "@/components/analytics/AnalyticsRouteTracker";
+import { GA_MEASUREMENT_ID } from "@/lib/analytics";
 
 const hanken = Hanken_Grotesk({
   subsets: ["latin"],
@@ -49,6 +52,21 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${hanken.variable} ${marcellus.variable}`}>
       <head>
+        {/* Google Analytics 4 (gtag.js) */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });
+          `}
+        </Script>
+        {/* End Google Analytics */}
+
         {/* Meta Pixel Code - First Pixel */}
         <Script id="facebook-pixel-1" strategy="afterInteractive">
           {`
@@ -102,6 +120,9 @@ export default function RootLayout({
         {/* End Second Meta Pixel Code */}
       </head>
       <body className="bg-bg text-ink font-body" suppressHydrationWarning>
+        <Suspense fallback={null}>
+          <AnalyticsRouteTracker />
+        </Suspense>
         <AuthProvider>
           <UserProvider>
             <CategoryProvider>
