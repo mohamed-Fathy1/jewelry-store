@@ -25,74 +25,83 @@ export default function OrderConfirmation({
   selectedAddress,
   shippingData,
 }: Props) {
+  const streetLine = [selectedAddress.address, selectedAddress.apartmentSuite]
+    .filter(Boolean)
+    .join(", ");
+  const regionLine = [
+    shippingData.shipping?.name,
+    selectedAddress.governorate,
+    selectedAddress.postalCode,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   return (
-    <div className="text-center space-y-6">
-      <CheckCircleIcon className="w-16 h-16 mx-auto text-primary" />
-      <div>
-        <h2 className="font-display text-2xl mb-2 text-heading">
+    <div className="mx-auto max-w-md py-2">
+      {/* Success header */}
+      <div className="text-center">
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-accent-soft">
+          <CheckCircleIcon className="h-9 w-9 text-primary" />
+        </div>
+        <h2 className="mt-5 font-display text-2xl text-heading">
           Order Confirmed!
         </h2>
-        <p className="text-ink-muted">
+        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-ink-muted">
           Thank you for your order. We&apos;ll send you a confirmation email
           shortly.
         </p>
       </div>
 
-      <div className="p-6 rounded-lg bg-surface-muted">
-        <div className="space-y-4">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.12em] text-ink-muted">
-              Order Number
-            </p>
-            <p className="mt-1 text-lg font-medium text-ink tabular-nums">
-              #{shippingData._id.slice(-8)}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.12em] text-ink-muted">
-              Shipping Address
-            </p>
-            <p className="mt-1 text-lg text-ink">
-              {selectedAddress.firstName} {selectedAddress.lastName}
-              <br />
-              {[selectedAddress.address, selectedAddress.apartmentSuite]
-                .filter(Boolean)
-                .join(", ")}
-              <br />
-              {[
-                shippingData.shipping?.name,
-                selectedAddress.governorate,
-                selectedAddress.postalCode,
-              ]
-                .filter(Boolean)
-                .join(", ")}
-              <br />
-              {selectedAddress.primaryPhone}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.12em] text-ink-muted">
-              Payment Method
-            </p>
-            <p className="mt-1 text-lg text-ink">Cash on Delivery</p>
-          </div>
+      {/* Details — left-aligned, structured */}
+      <dl className="mt-8 overflow-hidden rounded-2xl border border-hairline bg-surface">
+        <div className="flex items-center justify-between gap-4 px-5 py-4">
+          <dt className="text-xs font-medium uppercase tracking-[0.12em] text-ink-subtle">
+            Order number
+          </dt>
+          <dd className="font-medium text-ink tabular-nums">
+            #{shippingData._id.slice(-8)}
+          </dd>
         </div>
-      </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-        <Link
-          href="/shop"
-          className="px-6 py-3 rounded-full border border-hairline bg-surface text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          Continue Shopping
-        </Link>
+        <div className="border-t border-hairline px-5 py-4">
+          <dt className="text-xs font-medium uppercase tracking-[0.12em] text-ink-subtle">
+            Shipping address
+          </dt>
+          <dd className="mt-2 space-y-0.5 text-sm leading-relaxed text-ink">
+            <p className="font-medium">
+              {selectedAddress.firstName} {selectedAddress.lastName}
+            </p>
+            {streetLine && <p>{streetLine}</p>}
+            {regionLine && <p>{regionLine}</p>}
+            {selectedAddress.primaryPhone && (
+              <p className="text-ink-muted tabular-nums">
+                {selectedAddress.primaryPhone}
+              </p>
+            )}
+          </dd>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 border-t border-hairline px-5 py-4">
+          <dt className="text-xs font-medium uppercase tracking-[0.12em] text-ink-subtle">
+            Payment
+          </dt>
+          <dd className="text-ink">Cash on Delivery</dd>
+        </div>
+      </dl>
+
+      {/* Actions */}
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
         <Link
           href={`/account/orders/${shippingData._id}`}
-          className="px-6 py-3 rounded-full bg-primary text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="flex-1 rounded-full bg-primary px-6 py-3 text-center font-medium text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           Track Order
+        </Link>
+        <Link
+          href="/shop"
+          className="flex-1 rounded-full border border-hairline bg-surface px-6 py-3 text-center text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          Continue Shopping
         </Link>
       </div>
     </div>
