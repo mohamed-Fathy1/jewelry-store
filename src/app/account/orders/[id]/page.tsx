@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { orderService } from "@/services/order.service";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { adminService } from "@/services/admin.service";
 import SmartImage from "@/components/ui/SmartImage";
 import { formatPrice } from "@/utils/format";
 import { format } from "date-fns";
@@ -52,7 +51,7 @@ export default function OrderTrackingPage({
     }
 
     try {
-      await adminService.updateOrderStatus(params.id, "cancelled");
+      await orderService.cancelOrder(params.id);
       toast.success("Order cancelled successfully");
       router.push("/account/orders");
     } catch (error) {

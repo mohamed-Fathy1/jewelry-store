@@ -5,7 +5,6 @@ import SmartImage from "@/components/ui/SmartImage";
 import Link from "next/link";
 import { orderService } from "@/services/order.service"; // Import the order service
 import toast from "react-hot-toast";
-import { adminService } from "@/services/admin.service";
 import { getOrderStatusMeta } from "@/utils/orderStatus";
 import { Button } from "@/components/ui/Button";
 
@@ -45,7 +44,7 @@ export default function AccountOrders() {
     }
 
     try {
-      await adminService.updateOrderStatus(orderId, "cancelled");
+      await orderService.cancelOrder(orderId);
       toast.success("Order cancelled successfully");
       // Refresh orders list
       const result = await orderService.getUserOrders();

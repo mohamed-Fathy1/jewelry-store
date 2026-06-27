@@ -20,6 +20,14 @@ export const orderService = {
     return response.data?.data;
   },
 
+  // Customer-initiated cancellation. Hits the user order route
+  // (PATCH /order/cancel/:orderId) which restocks inventory and emails the
+  // customer + admins. Distinct from the admin status-update endpoint.
+  async cancelOrder(orderId: string): Promise<OrderResponse> {
+    const response = await api.patch(`/order/cancel/${orderId}`);
+    return response.data;
+  },
+
   async getUserOrders(): Promise<OrdersResponse> {
     try {
       const response = await api.get(`/order/get-user-orders`);
