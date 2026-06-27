@@ -31,14 +31,24 @@ export default function CartPage() {
       .filter((item) => !item.variantId)
       .map((item) => item.productId);
 
-    const [variantStock, productStock] = await Promise.all([
-      variantIds.length
-        ? cartService.checkVariantStock(variantIds)
-        : Promise.resolve<Record<string, number>>({}),
-      legacyProductIds.length
-        ? cartService.checkStockAmount(legacyProductIds)
-        : Promise.resolve<Record<string, number>>({}),
-    ]);
+    let variantStock: Record<string, number> = {};
+    let productStock: Record<string, number> = {};
+    try {
+      [variantStock, productStock] = await Promise.all([
+        variantIds.length
+          ? cartService.checkVariantStock(variantIds)
+          : Promise.resolve<Record<string, number>>({}),
+        legacyProductIds.length
+          ? cartService.checkStockAmount(legacyProductIds)
+          : Promise.resolve<Record<string, number>>({}),
+      ]);
+    } catch (error) {
+      // Stock reconciliation is best-effort: a failed/unauthorized check must
+      // never crash the cart. Leave quantities as-is; the order endpoint is the
+      // final stock authority at checkout.
+      console.warn("Stock availability check failed:", error);
+      return;
+    }
 
     const updatedCart = cart.items.map((item) => {
       const availableQuantity = item.variantId
@@ -54,17 +64,17 @@ export default function CartPage() {
           {
             icon: (
               <svg
-                shape-rendering="geometricPrecision"
-                text-rendering="geometricPrecision"
-                image-rendering="optimizeQuality"
+                shapeRendering="geometricPrecision"
+                textRendering="geometricPrecision"
+                imageRendering="optimizeQuality"
                 fill="#0066b2"
-                fill-rule="evenodd"
-                clip-rule="evenodd"
+                fillRule="evenodd"
+                clipRule="evenodd"
                 viewBox="0 0 512 512"
                 className="w-6 h-6"
               >
                 <path
-                  fill-rule="nonzero"
+                  fillRule="nonzero"
                   d="M256 0c70.686 0 134.69 28.658 181.016 74.984C483.342 121.31 512 185.314 512 256c0 70.686-28.658 134.69-74.984 181.016C390.69 483.342 326.686 512 256 512c-70.686 0-134.69-28.658-181.016-74.984C28.658 390.69 0 326.686 0 256c0-70.686 28.658-134.69 74.984-181.016C121.31 28.658 185.314 0 256 0z"
                 />
                 <path
