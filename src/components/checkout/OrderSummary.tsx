@@ -14,11 +14,27 @@ export default function OrderSummary({
     ? cart.items
     : orderSummaryPreview?.items ?? [];
 
+  // Live per-line prices keyed by variant. The cart only holds a price *snapshot*
+  // taken when the item was added, which goes stale the moment a product's sale
+  // price (finalPrice) changes. The backend preview always reflects the current
+  // price, so we prefer it for the displayed row price — this is what keeps the
+  // rows reconciling with the Subtotal (the backend's source of truth).
+  const livePriceByKey = new Map<string, any>(
+    (preview?.items ?? []).map((it: any) => [
+      String(it.variantId ?? it.productId),
+      it,
+    ])
+  );
+  const lineUnitPrice = (item) => {
+    const live = livePriceByKey.get(String(item.variantId ?? item.productId));
+    return live?.listedUnitPrice ?? item.price;
+  };
+
   // Plain line-item sum — DISPLAY ONLY, shown until the backend preview arrives.
   // No offer/discount/free-shipping math happens here anymore: every total comes
   // from the backend `POST /order/preview` endpoint (the single source of truth).
   const lineItemsSubtotal = cartData.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + lineUnitPrice(item) * item.quantity,
     0
   );
 
@@ -79,7 +95,7 @@ export default function OrderSummary({
                   Qty: {item.quantity}
                 </p>
                 <p className="text-sm font-medium text-ink tabular-nums">
-                  EGP {(item.price * item.quantity).toFixed(2)}
+                  EGP {(lineUnitPrice(item) * item.quantity).toFixed(2)}
                 </p>
               </div>
             </div>

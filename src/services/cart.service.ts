@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CartResponse } from "@/types/cart.types";
+import { CartResponse, CartPreview } from "@/types/cart.types";
 
 // Dedicated instance: it attaches the Bearer token (the cart/stock endpoints
 // require auth) via a request interceptor, but deliberately has NO response
@@ -50,22 +50,39 @@ export const cartService = {
   },
 
   // Product-level totals (sum across variants) — for legacy variant-less items.
-  async checkStockAmount(productIds): Promise<Record<string, number>> {
+  // → { [productId]: { availableItems, finalPrice } }. finalPrice lets the cart
+  // refresh its stale price snapshot to the live price.
+  async checkStockAmount(
+    productIds
+  ): Promise<Record<string, { availableItems: number; finalPrice: number | null }>> {
     const response = await cartApi.post("/products/available-items", {
       products: productIds,
     });
     return response.data;
   },
 
-  // Per-variant availability → { [variantId]: availableItems }. The cart
-  // validates each line against its exact color+size variant, not the
-  // product-level total.
+  // Per-variant availability → { [variantId]: { availableItems, finalPrice } }.
+  // The cart validates each line against its exact color+size variant, not the
+  // product-level total; finalPrice refreshes the line's price.
   async checkVariantStock(
     variantIds: string[]
-  ): Promise<Record<string, number>> {
+  ): Promise<Record<string, { availableItems: number; finalPrice: number | null }>> {
     const response = await cartApi.post("/products/variants-availability", {
       variantIds,
     });
     return response.data;
+  },
+
+  // Public, no auth/address: live offer & flash-sale pricing for the cart page.
+  // Returns null on any failure so the cart falls back to its snapshot totals.
+  async previewCart(
+    items: Array<{ productId?: string; variantId?: string; quantity: number }>
+  ): Promise<CartPreview | null> {
+    try {
+      const response = await cartApi.post("/products/cart-preview", { items });
+      return response.data?.data ?? null;
+    } catch {
+      return null;
+    }
   },
 };

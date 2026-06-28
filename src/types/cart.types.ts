@@ -34,3 +34,44 @@ export interface CartResponse {
   message?: string;
   success: boolean;
 }
+
+// ── Cart preview (POST /products/cart-preview) ──────────────────────────────
+// Live offer/flash pricing for the cart, computed server-side. Shipping is not
+// known yet, so only the merchandise total is returned; free shipping is a flag.
+export interface CartPreviewItem {
+  productId: string;
+  variantId: string;
+  quantity: number;
+  productName: string;
+  /** Post-flash unit price / line total. */
+  itemPrice: number;
+  totalPrice: number;
+  /** Pre-flash live unit price / line total (what each row shows). */
+  listedUnitPrice: number;
+  listedLineTotal: number;
+  size?: string;
+  color?: string;
+}
+
+export interface CartPreviewOfferRef {
+  _id: string;
+  title: string;
+  offerType: string;
+}
+
+export interface CartPreview {
+  items: CartPreviewItem[];
+  /** Merchandise subtotal AFTER flash discounts. */
+  subTotal: number;
+  appliedOffer:
+    | { _id: string; title: string; offerType: string; savedAmount: number }
+    | null;
+  flashSale: { offers: CartPreviewOfferRef[]; savedAmount: number };
+  /** Order-level offer discount (excludes flash savings). */
+  discount: number;
+  /** True when a free-shipping offer qualifies (final cost resolved at checkout). */
+  freeShipping: boolean;
+  totalSaved: number;
+  /** subTotal − discount. Shipping is added at checkout. */
+  merchandiseTotal: number;
+}

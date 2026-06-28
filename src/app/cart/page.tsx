@@ -15,6 +15,8 @@ import { cartService } from "@/services/cart.service";
 import toast from "react-hot-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { analytics } from "@/lib";
+import { BoltIcon, TruckIcon } from "@heroicons/react/24/solid";
+import type { CartPreview } from "@/types/cart.types";
 
 export default function CartPage() {
   const { cart, setCart, updateQuantity, removeFromCart, clearCart } =
@@ -22,6 +24,9 @@ export default function CartPage() {
   const [isCartQuantityChecked, setIsCartQuantityChecked] = useState(false);
   const [viewCartTracked, setViewCartTracked] = useState(false);
   const { authUser } = useAuth();
+  // Live offer/flash pricing for the cart, computed server-side (same engine as
+  // checkout). Shipping resolves at checkout, so this is a merchandise estimate.
+  const [preview, setPreview] = useState<CartPreview | null>(null);
   // Reconcile cart quantities against live stock. Stock is tracked per VARIANT
   // (a specific colour+size), so each line is checked against its own variant;
   // legacy variant-less items fall back to the product-level total.
@@ -33,16 +38,17 @@ export default function CartPage() {
       .filter((item) => !item.variantId)
       .map((item) => item.productId);
 
-    let variantStock: Record<string, number> = {};
-    let productStock: Record<string, number> = {};
+    type LiveInfo = { availableItems: number; finalPrice: number | null };
+    let variantInfo: Record<string, LiveInfo> = {};
+    let productInfo: Record<string, LiveInfo> = {};
     try {
-      [variantStock, productStock] = await Promise.all([
+      [variantInfo, productInfo] = await Promise.all([
         variantIds.length
           ? cartService.checkVariantStock(variantIds)
-          : Promise.resolve<Record<string, number>>({}),
+          : Promise.resolve<Record<string, LiveInfo>>({}),
         legacyProductIds.length
           ? cartService.checkStockAmount(legacyProductIds)
-          : Promise.resolve<Record<string, number>>({}),
+          : Promise.resolve<Record<string, LiveInfo>>({}),
       ]);
     } catch (error) {
       // Stock reconciliation is best-effort: a failed/unauthorized check must
@@ -53,12 +59,20 @@ export default function CartPage() {
     }
 
     const updatedCart = cart.items.map((item) => {
-      const availableQuantity = item.variantId
-        ? variantStock[item.variantId]
-        : productStock[item.productId];
+      const info = item.variantId
+        ? variantInfo[item.variantId]
+        : productInfo[item.productId];
       // Unknown (variant/product not returned) → leave the line untouched
       // rather than zeroing it on transient/missing data.
-      if (availableQuantity == null) return item;
+      if (info == null) return item;
+      const availableQuantity = info.availableItems;
+      // The cart stores a price snapshot from add-time, which goes stale when a
+      // sale starts/ends. Refresh it to the live price so the displayed rows and
+      // total match what checkout/preview will actually charge.
+      const priced =
+        typeof info.finalPrice === "number" && info.finalPrice !== item.price
+          ? { ...item, price: info.finalPrice }
+          : item;
       if (item.quantity > availableQuantity) {
         // Show message to user
         toast(
@@ -89,17 +103,17 @@ export default function CartPage() {
           }
         ); // Assuming item has a 'name'
         return {
-          ...item,
+          ...priced,
           quantity: availableQuantity,
           availableItems: availableQuantity,
-        }; // Update quantity
+        }; // Update quantity (+ refreshed price)
       } else if (item.availableItems !== availableQuantity) {
         return {
-          ...item,
+          ...priced,
           availableItems: availableQuantity,
         };
       }
-      return item; // No change
+      return priced; // price refreshed (quantity unchanged)
     });
 
     // Update cart with new quantities
@@ -122,6 +136,33 @@ export default function CartPage() {
     checkAvailableStock();
   }, [cart]); // Dependency on cart to check whenever it changes
 
+  // Fetch live offer/flash pricing whenever the cart contents change. Keyed on
+  // each line's id + quantity so it refreshes on add/remove/quantity changes.
+  const previewKey = cart.items
+    .map((item) => `${item.variantId ?? item.productId}:${item.quantity}`)
+    .join("|");
+  useEffect(() => {
+    if (!cart.items.length) {
+      setPreview(null);
+      return;
+    }
+    let active = true;
+    (async () => {
+      const result = await cartService.previewCart(
+        cart.items.map((item) =>
+          item.variantId
+            ? { variantId: item.variantId, quantity: item.quantity }
+            : { productId: item.productId, quantity: item.quantity }
+        )
+      );
+      if (active) setPreview(result);
+    })();
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewKey]);
+
   // GA4 / Pixel view_cart — fire once the cart page has items.
   useEffect(() => {
     if (viewCartTracked || !cart.items.length) return;
@@ -137,6 +178,17 @@ export default function CartPage() {
       currency: "EGP",
     });
   }, [cart, viewCartTracked]);
+
+  // Summary figures: prefer the server preview (live offers/flash); fall back to
+  // the cart's snapshot totals if the preview is unavailable (e.g. offline).
+  const listedSubtotal = preview
+    ? preview.items.reduce((sum, i) => sum + i.listedLineTotal, 0)
+    : cart.totalAmount;
+  const flashSaved = preview?.flashSale.savedAmount ?? 0;
+  const offerDiscount = preview?.discount ?? 0;
+  const offerTitle = preview?.appliedOffer?.title;
+  const freeShipping = preview?.freeShipping ?? false;
+  const merchandiseTotal = preview?.merchandiseTotal ?? cart.totalAmount;
 
   if (cart.items.length === 0) {
     return (
@@ -258,22 +310,63 @@ export default function CartPage() {
             <div className="flex justify-between">
               <span className="text-ink-muted">Subtotal</span>
               <span className="text-ink tabular-nums">
-                {formatPrice(cart.totalAmount)}
+                {formatPrice(listedSubtotal)}
               </span>
             </div>
+
+            {flashSaved > 0 && (
+              <div className="flex justify-between">
+                <span className="flex items-center gap-1.5 text-primary">
+                  <BoltIcon className="h-4 w-4" aria-hidden="true" />
+                  Flash sale
+                </span>
+                <span className="text-primary tabular-nums">
+                  &minus;{formatPrice(flashSaved)}
+                </span>
+              </div>
+            )}
+
+            {offerDiscount > 0 && (
+              <div className="flex justify-between">
+                <span className="text-primary">
+                  Offer{offerTitle ? ` · ${offerTitle}` : ""}
+                </span>
+                <span className="text-primary tabular-nums">
+                  &minus;{formatPrice(offerDiscount)}
+                </span>
+              </div>
+            )}
+
             <div className="flex justify-between">
               <span className="text-ink-muted">Shipping</span>
-              <span className="text-ink">Calculated at checkout</span>
+              {freeShipping ? (
+                <span className="flex items-center gap-1.5 font-medium text-primary">
+                  <TruckIcon className="h-4 w-4" aria-hidden="true" />
+                  Free
+                </span>
+              ) : (
+                <span className="text-ink">Calculated at checkout</span>
+              )}
             </div>
           </div>
 
           <div className="border-t border-hairline pt-4 mt-4">
-            <div className="flex justify-between mb-4">
-              <span className="text-lg font-medium text-ink">Total</span>
+            <div className="mb-1 flex items-baseline justify-between">
+              <span className="text-lg font-medium text-ink">
+                Total{" "}
+                <span className="text-xs font-normal text-ink-muted">
+                  (excl. shipping)
+                </span>
+              </span>
               <span className="text-lg font-medium text-heading tabular-nums">
-                {formatPrice(cart.totalAmount)}
+                {formatPrice(merchandiseTotal)}
               </span>
             </div>
+            <p className="mb-4 text-xs text-ink-muted">
+              {freeShipping
+                ? "Free shipping applied. Final total confirmed at checkout."
+                : "Shipping and any final adjustments are calculated at checkout."}
+            </p>
 
             <Link
               href={

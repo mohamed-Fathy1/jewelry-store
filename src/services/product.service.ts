@@ -111,6 +111,10 @@ export const productService = {
     return fetchProducts(buildQuery({ isSale: true, page, limit: 20 }));
   },
 
+  async getAllBestSellerProducts(page: number = 1): Promise<ProductsResponse> {
+    return fetchProducts(buildQuery({ isBestSeller: true, page, limit: 20 }));
+  },
+
   // GET /products/:id → { data: { product, liked } }
   async getOneProduct(id: string, userId?: string): Promise<SingleProductResponse> {
     const q = userId ? `?user=${userId}` : "";

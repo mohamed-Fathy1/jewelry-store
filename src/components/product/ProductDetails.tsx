@@ -27,6 +27,9 @@ import {
   VariantSize,
 } from "@/types/product.types";
 import { analytics } from "@/lib";
+import { useProductFlashSale } from "@/hooks/useProductFlashSale";
+import ProductFlashSale from "@/components/product/ProductFlashSale";
+import ProductPerks from "@/components/product/ProductPerks";
 
 // Variants arrive populated from the public endpoint, but stay defensive in case
 // an id string slips through.
@@ -49,6 +52,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
   const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
+  // Live flash-sale offer for this product (applied by the backend at checkout).
+  const flashSale = useProductFlashSale(currentProduct);
 
   useEffect(() => {
     getOneProduct(productId);
@@ -275,6 +280,22 @@ export default function ProductDetails({ productId }: { productId: string }) {
     galleryImages.length - 1
   );
 
+  // Pricing for display. basePrice is the live pre-flash price (manual sale or
+  // regular). A flash sale stacks on top of it; the backend charges the same
+  // discounted figure at checkout, so we mirror it here.
+  const basePrice = currentProduct.salePrice || currentProduct.price;
+  const flashPrice = flashSale
+    ? Math.round(basePrice * (1 - flashSale.discountPercentage / 100))
+    : null;
+  const displayPrice = flashPrice ?? basePrice;
+  // What to strike through next to the headline: the pre-flash price when on
+  // flash, otherwise the original price when a manual sale is active.
+  const strikePrice = flashSale
+    ? basePrice
+    : currentProduct.salePrice > 0
+    ? currentProduct.price
+    : null;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* Image gallery */}
@@ -361,15 +382,19 @@ export default function ProductDetails({ productId }: { productId: string }) {
         </h1>
         <p className="text-ink-muted">{currentProduct.productDescription}</p>
         <div className="space-y-2">
-          <p className="text-2xl font-semibold tabular-nums text-heading">
-            EGP{" "}
-            {(
-              currentProduct.salePrice || currentProduct.price
-            ).toLocaleString()}
-          </p>
-          {currentProduct.salePrice > 0 && (
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-2xl font-semibold tabular-nums text-heading">
+              EGP {displayPrice.toLocaleString()}
+            </p>
+            {flashSale && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                Flash Sale &minus;{flashSale.discountPercentage}%
+              </span>
+            )}
+          </div>
+          {strikePrice !== null && (
             <p className="text-lg tabular-nums line-through text-ink-muted">
-              EGP {currentProduct.price.toLocaleString()}
+              EGP {strikePrice.toLocaleString()}
             </p>
           )}
         </div>
@@ -536,6 +561,18 @@ export default function ProductDetails({ productId }: { productId: string }) {
           >
             <span>{productSoldOut ? "Sold Out" : "Buy Now"}</span>
           </Button>
+        </div>
+
+        {/* Offers & assurances — shown right under the buy buttons. The flash
+            sale box only appears when the product is in a live flash sale. */}
+        <div className="space-y-3 pt-2">
+          {flashSale && (
+            <ProductFlashSale
+              discountPercentage={flashSale.discountPercentage}
+              endDate={flashSale.endDate}
+            />
+          )}
+          <ProductPerks />
         </div>
       </div>
     </div>
