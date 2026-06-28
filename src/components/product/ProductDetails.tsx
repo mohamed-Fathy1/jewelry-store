@@ -30,6 +30,7 @@ import { analytics } from "@/lib";
 import { useProductFlashSale } from "@/hooks/useProductFlashSale";
 import ProductFlashSale from "@/components/product/ProductFlashSale";
 import ProductPerks from "@/components/product/ProductPerks";
+import ShareButton from "@/components/product/ShareButton";
 
 // Variants arrive populated from the public endpoint, but stay defensive in case
 // an id string slips through.
@@ -296,6 +297,27 @@ export default function ProductDetails({ productId }: { productId: string }) {
     ? currentProduct.price
     : null;
 
+  // All distinct sizes across variants, ordered — used in the share message.
+  const allSizes = (() => {
+    const seen = new Map<string, VariantSize>();
+    variants.forEach((v) => {
+      const s = getSize(v);
+      if (s && !seen.has(s._id)) seen.set(s._id, s);
+    });
+    return Array.from(seen.values())
+      .sort((a, b) => a.order - b.order)
+      .map((s) => s.number)
+      .join(", ");
+  })();
+
+  const shareText = [
+    `EGP ${displayPrice.toLocaleString()}`,
+    allSizes && `المقاسات: ${allSizes}`,
+    currentProduct.productDescription,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* Image gallery */}
@@ -514,21 +536,27 @@ export default function ProductDetails({ productId }: { productId: string }) {
               : "Out of Stock"}
           </p>
 
-          <button
-            onClick={addToWishlist}
-            aria-label={
-              isInWishlist ? "Remove from wishlist" : "Add to wishlist"
-            }
-            aria-pressed={isInWishlist}
-            className="rounded-lg border border-hairline bg-surface p-3 text-ink transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            <HeartIcon
-              className={cn(
-                "w-6 h-6",
-                isInWishlist && "fill-primary text-primary"
-              )}
+          <div className="flex items-center gap-2">
+            <ShareButton
+              title={currentProduct.productName}
+              text={shareText}
             />
-          </button>
+            <button
+              onClick={addToWishlist}
+              aria-label={
+                isInWishlist ? "Remove from wishlist" : "Add to wishlist"
+              }
+              aria-pressed={isInWishlist}
+              className="rounded-lg border border-hairline bg-surface p-3 text-ink transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <HeartIcon
+                className={cn(
+                  "w-6 h-6",
+                  isInWishlist && "fill-primary text-primary"
+                )}
+              />
+            </button>
+          </div>
         </div>
 
         {productSoldOut && (
