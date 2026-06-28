@@ -97,49 +97,90 @@ export default function FilterSidebar({
 
       {/* Mobile Price Filter Button */}
       <button
-        className="md:hidden flex gap-5 items-center justify-between py-2 px-4 rounded-lg border border-hairline bg-surface text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className={cn(
+          "md:hidden inline-flex h-10 items-center gap-2 rounded-full border bg-surface pl-3 pr-4 text-sm font-medium shadow-soft transition-colors duration-200 hover:border-primary/40 hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+          activeFilters.priceRange
+            ? "border-primary/50 text-heading"
+            : "border-hairline text-ink"
+        )}
         onClick={() => setIsPricePopupOpen(true)}
       >
-        <span className="font-medium">Filter by Price</span>
-        <FunnelIcon className="w-5 h-5" />
+        <FunnelIcon className="h-4 w-4 text-ink-muted" />
+        <span>{activeFilters.priceRange || "Filter by Price"}</span>
+        {activeFilters.priceRange && (
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+        )}
       </button>
 
-      {/* Price Filter Popup */}
+      {/* Price Filter Popup — bottom-sheet on mobile, centered card on larger screens */}
       {isPricePopupOpen && (
-        <div className="fixed inset-0 bg-noir/50 flex items-center justify-center z-50">
-          <div className="w-3/4 max-w-md rounded-xl bg-surface p-4 shadow-card-hover">
-            <h3 className="mb-4 font-display text-lg text-heading">
-              Filter by Price
-            </h3>
-            {filterOptions.price.map((option) => (
-              <label key={option.id} className="flex items-center mb-2">
-                <input
-                  type="radio"
-                  name="price"
-                  className="h-4 w-4 rounded border-hairline accent-primary"
-                  checked={activeFilters.priceRange === option.value}
-                  onChange={() => handlePriceRangeChange(option.value!)}
-                />
-                <span className="ml-3 text-ink-muted">{option.name}</span>
-              </label>
-            ))}
-            <button
-              onClick={() =>
-                onFilterChange({
-                  material: [],
-                  style: [],
-                  priceRange: "",
-                })
-              }
-              className="w-full text-left text-sm text-ink-muted transition-all duration-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              Clear filters
-            </button>
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-noir/50 backdrop-blur-sm p-0 sm:items-center sm:p-4 animate-[fadeIn_150ms_ease-out]"
+          onClick={() => setIsPricePopupOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-t-3xl bg-surface px-5 pb-6 pt-3 shadow-card-hover sm:rounded-3xl sm:pt-5 motion-safe:animate-[sheetUp_220ms_cubic-bezier(0.22,1,0.36,1)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Grabber handle (mobile sheet affordance) */}
+            <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-hairline sm:hidden" />
+
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-display text-xl text-heading">
+                Filter by Price
+              </h3>
+              {activeFilters.priceRange && (
+                <button
+                  onClick={() =>
+                    onFilterChange({ material: [], style: [], priceRange: "" })
+                  }
+                  className="rounded-full px-3 py-1 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-sunken hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              {filterOptions.price.map((option) => {
+                const selected = activeFilters.priceRange === option.value;
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => handlePriceRangeChange(option.value!)}
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-2xl border px-4 py-3.5 text-left text-[15px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                      selected
+                        ? "border-primary/50 bg-primary/10 font-semibold text-heading"
+                        : "border-hairline text-ink hover:border-primary/30 hover:bg-surface-sunken"
+                    )}
+                  >
+                    {option.name}
+                    <span
+                      className={cn(
+                        "grid h-5 w-5 place-items-center rounded-full border-2 transition-all duration-150",
+                        selected
+                          ? "border-primary bg-primary scale-100"
+                          : "border-hairline"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "h-2 w-2 rounded-full bg-on-primary transition-transform duration-150",
+                          selected ? "scale-100" : "scale-0"
+                        )}
+                      />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
             <button
               onClick={() => setIsPricePopupOpen(false)}
-              className="mt-4 w-full rounded-lg bg-primary py-2 px-4 text-center text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="mt-5 w-full rounded-2xl bg-primary py-3 px-4 text-center font-semibold text-on-primary shadow-card transition-all hover:bg-primary-hover hover:shadow-card-hover active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
-              Close
+              Show results
             </button>
           </div>
         </div>

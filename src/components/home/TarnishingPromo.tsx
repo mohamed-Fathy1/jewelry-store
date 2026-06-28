@@ -1,17 +1,55 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 const traits = ["Won't tarnish", "Water-safe", "Skin-friendly"];
 
-// Resolved server-side (admin-set video) and passed down from the homepage; the
-// service already falls back to the bundled video, so this is always set.
-interface TarnishingPromoProps {
-  videoUrl: string;
-}
+// Default video, shown immediately and used whenever the admin hasn't uploaded
+// one (or the API is unreachable). Keeping it as the initial state means the
+// promo always has a playing video — no blank box while the fetch resolves.
+const FALLBACK_VIDEO = "https://d1xdt7gkixoxw1.cloudfront.net/IMG_1602.mp4";
 
-const TarnishingPromo: React.FC<TarnishingPromoProps> = ({ videoUrl }) => {
+const TarnishingPromo: React.FC = () => {
+  const [videoUrl, setVideoUrl] = useState(FALLBACK_VIDEO);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Fetch the admin-set promo video from the public endpoint (visible in the
+  // browser Network tab). Falls back silently to FALLBACK_VIDEO on any failure.
+  useEffect(() => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    if (!API_URL) return;
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch(`${API_URL}/public/video/get`, {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (active && json?.success && json?.data?.video?.mediaUrl) {
+          setVideoUrl(json.data.video.mediaUrl);
+        }
+      } catch {
+        // keep the fallback
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // React doesn't always apply the `muted` attribute before the first play
+  // attempt, which makes the browser block muted autoplay. Force it via the ref
+  // and (re)start playback whenever the source changes.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    const played = v.play();
+    if (played) played.catch(() => {});
+  }, [videoUrl]);
+
   return (
     <section className="bg-noir text-on-primary">
       <div className="mx-auto grid max-w-7xl items-center gap-14 px-4 py-[var(--section-y)] sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-8">
@@ -51,6 +89,9 @@ const TarnishingPromo: React.FC<TarnishingPromoProps> = ({ videoUrl }) => {
         <div className="relative order-1 mx-auto w-full max-w-md lg:order-2 lg:mx-0 lg:ml-auto">
           <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-card-hover ring-1 ring-white/10">
             <video
+              ref={videoRef}
+              key={videoUrl}
+              src={videoUrl}
               className="absolute inset-0 h-full w-full object-cover"
               autoPlay
               muted
@@ -59,9 +100,7 @@ const TarnishingPromo: React.FC<TarnishingPromoProps> = ({ videoUrl }) => {
               preload="metadata"
               poster="/images/IMG_3645.jpg"
               aria-label="Stainless steel jewelry collection"
-            >
-              <source src={videoUrl} type="video/mp4" />
-            </video>
+            />
           </div>
         </div>
       </div>

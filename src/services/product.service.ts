@@ -24,13 +24,14 @@ export const sort = {
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 // Backend GET /products accepts: category, isBestSeller, isSale, minPrice,
-// maxPrice, color, size, sort, page, limit. sort: "price" (asc) | "soldItems"
-// | (default) createdAt desc. Map the storefront's filter labels onto that.
+// maxPrice, color, size, sort, page, limit. sort: "price" (asc) | "price_desc"
+// | "soldItems" | (default) createdAt desc. Map the storefront's labels onto that.
 function mapSort(label?: string): string | undefined {
   if (!label) return undefined;
   if (label === sort.priceLowToHigh || label === "priceLowToHigh" || label === "price")
     return "price";
-  if (label === sort.priceHighToLow || label === "priceHighToLow") return "price"; // backend has no price-desc
+  if (label === sort.priceHighToLow || label === "priceHighToLow" || label === "price_desc")
+    return "price_desc";
   if (label === "soldItems") return "soldItems";
   return undefined; // Newest → default (createdAt desc)
 }
