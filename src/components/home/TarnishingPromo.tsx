@@ -5,7 +5,13 @@ import Link from "next/link";
 
 const traits = ["Won't tarnish", "Water-safe", "Skin-friendly"];
 
-const TarnishingPromo: React.FC = () => {
+// Resolved server-side (admin-set video) and passed down from the homepage; the
+// service already falls back to the bundled video, so this is always set.
+interface TarnishingPromoProps {
+  videoUrl: string;
+}
+
+const TarnishingPromo: React.FC<TarnishingPromoProps> = ({ videoUrl }) => {
   return (
     <section className="bg-noir text-on-primary">
       <div className="mx-auto grid max-w-7xl items-center gap-14 px-4 py-[var(--section-y)] sm:px-6 lg:grid-cols-2 lg:gap-20 lg:px-8">
@@ -54,10 +60,7 @@ const TarnishingPromo: React.FC = () => {
               poster="/images/IMG_3645.jpg"
               aria-label="Stainless steel jewelry collection"
             >
-              <source
-                src="https://d1xdt7gkixoxw1.cloudfront.net/WhatsApp+Video+2026-06-28+at+3.24.55+PM.mp4"
-                type="video/mp4"
-              />
+              <source src={videoUrl} type="video/mp4" />
             </video>
           </div>
         </div>

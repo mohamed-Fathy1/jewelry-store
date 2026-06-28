@@ -10,6 +10,51 @@ import SortDropdown from "@/components/shop/SortDropdown";
 import Pagination from "@/components/common/Pagination";
 import { useRouter } from "next/navigation";
 
+type MobileCols = 1 | 2;
+
+/** Mobile-only control to switch the product grid between 1 and 2 columns. */
+function MobileViewToggle({
+  value,
+  onChange,
+}: {
+  value: MobileCols;
+  onChange: (cols: MobileCols) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1 rounded-full bg-surface-sunken p-1 md:hidden">
+      <button
+        type="button"
+        onClick={() => onChange(2)}
+        aria-label="Show two products per row"
+        aria-pressed={value === 2}
+        className={`grid h-8 w-8 place-items-center rounded-full transition-colors ${
+          value === 2 ? "bg-surface text-heading shadow-soft" : "text-ink-muted"
+        }`}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="1.5" y="1.5" width="5" height="5" rx="1.2" fill="currentColor" />
+          <rect x="9.5" y="1.5" width="5" height="5" rx="1.2" fill="currentColor" />
+          <rect x="1.5" y="9.5" width="5" height="5" rx="1.2" fill="currentColor" />
+          <rect x="9.5" y="9.5" width="5" height="5" rx="1.2" fill="currentColor" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange(1)}
+        aria-label="Show one product per row"
+        aria-pressed={value === 1}
+        className={`grid h-8 w-8 place-items-center rounded-full transition-colors ${
+          value === 1 ? "bg-surface text-heading shadow-soft" : "text-ink-muted"
+        }`}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="1.5" y="1.5" width="13" height="13" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 export default function ShopPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -25,6 +70,23 @@ export default function ShopPage() {
   const [sortConfig, setSortConfig] = useState({
     sortBy: "",
   });
+  // Mobile-only: how many products to show per row (persisted so the choice
+  // survives navigation between shop / sale / bestseller / category views).
+  const [mobileCols, setMobileCols] = useState<MobileCols>(2);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("shopMobileCols");
+    if (saved === "1" || saved === "2") setMobileCols(Number(saved) as MobileCols);
+  }, []);
+
+  const handleMobileColsChange = (cols: MobileCols) => {
+    setMobileCols(cols);
+    localStorage.setItem("shopMobileCols", String(cols));
+  };
+
+  const gridClass = `grid gap-3 sm:gap-6 ${
+    mobileCols === 1 ? "grid-cols-1" : "grid-cols-2"
+  } sm:grid-cols-2 lg:grid-cols-3`;
   const isSale = searchParams.get("sale") === "true";
   const isBestSeller = searchParams.get("bestseller") === "true";
   // Curated lists (sale / best sellers) come pre-filtered from the backend, so
@@ -144,10 +206,11 @@ export default function ShopPage() {
 
         {/* Products Grid */}
         <div className="lg:col-span-3">
-          {/* Sort Dropdown */}
-          <div className="flex items-center justify-between md:justify-end mb-6">
+          {/* Toolbar: mobile view toggle + sort */}
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <MobileViewToggle value={mobileCols} onChange={handleMobileColsChange} />
             {!isCuratedList && (
-              <>
+              <div className="flex items-center gap-3 md:w-full md:justify-end">
                 <div className="flex items-center justify-center md:hidden">
                   <FilterSidebar
                     activeFilters={activeFilters}
@@ -155,12 +218,12 @@ export default function ShopPage() {
                   />
                 </div>
                 <SortDropdown value={sortConfig} onChange={handleSortChange} />
-              </>
+              </div>
             )}
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={gridClass}>
               {Array(6)
                 .fill(0)
                 .map((_, index) => (
@@ -180,7 +243,7 @@ export default function ShopPage() {
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className={gridClass}>
                     {products.map((product) => (
                       <ProductCard key={product._id} product={product} />
                     ))}
