@@ -13,7 +13,7 @@ export default function BestSellers({ products, isLoading }: BestSellersProps) {
     <ProductRailSection
       title="Best Sellers"
       description="The pieces our community returns to, again and again."
-      link={{ href: "/shop", label: "Shop all" }}
+      link={{ href: "/shop?bestseller=true", label: "Shop all" }}
       products={products}
       isLoading={isLoading}
       badge="bestseller"

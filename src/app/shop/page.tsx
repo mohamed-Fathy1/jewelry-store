@@ -25,7 +25,11 @@ export default function ShopPage() {
   const [sortConfig, setSortConfig] = useState({
     sortBy: "",
   });
-  const isSale = searchParams.get("sale");
+  const isSale = searchParams.get("sale") === "true";
+  const isBestSeller = searchParams.get("bestseller") === "true";
+  // Curated lists (sale / best sellers) come pre-filtered from the backend, so
+  // the storefront filters and sort don't apply to them.
+  const isCuratedList = isSale || isBestSeller;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,9 +68,12 @@ export default function ShopPage() {
               priceRange: price,
             }
           );
-        } else if (isSale === "true") {
+        } else if (isSale) {
           // If we're viewing sale items
           response = await productService.getAllSaleProducts(currentPageValue);
+        } else if (isBestSeller) {
+          // If we're viewing best sellers
+          response = await productService.getAllBestSellerProducts(currentPageValue);
         } else if (
           Object.values(currentFilters).some((filter) =>
             Array.isArray(filter) ? filter.length > 0 : filter !== ""
@@ -100,7 +107,7 @@ export default function ShopPage() {
     };
 
     fetchData();
-  }, [searchParams, isSale]);
+  }, [searchParams, isSale, isBestSeller]);
 
   const handleFilterChange = (filters: typeof activeFilters) => {
     const newSearchParams = new URLSearchParams(searchParams.toString());
@@ -127,7 +134,7 @@ export default function ShopPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Filters Sidebar */}
         <div className="hidden md:block lg:col-span-1">
-          {!isSale && (
+          {!isCuratedList && (
             <FilterSidebar
               activeFilters={activeFilters}
               onFilterChange={handleFilterChange}
@@ -139,7 +146,7 @@ export default function ShopPage() {
         <div className="lg:col-span-3">
           {/* Sort Dropdown */}
           <div className="flex items-center justify-between md:justify-end mb-6">
-            {!isSale && (
+            {!isCuratedList && (
               <>
                 <div className="flex items-center justify-center md:hidden">
                   <FilterSidebar
