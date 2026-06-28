@@ -5,53 +5,34 @@ import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { offersService } from "@/services/offers.service";
-import { heroService } from "@/services/hero.service";
 import { OFFER_TYPE_LABELS } from "@/components/admin/offers/offerMeta";
 import type { Offer } from "@/types/offer.types";
 import Hero from "./Hero";
 
-// Hero imagery doubles as the banner backdrop (admin-swappable slider → local).
-const FALLBACK_DESKTOP = "/hero/hero-desktop.jpg";
-const FALLBACK_MOBILE = "/hero/hero-mobile.jpg";
 const ROTATE_MS = 4500;
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 // `null` = still deciding (fetch in flight); [] = decided, no offers → hero.
 type Phase = Offer[] | null;
 
-export default function PromoBanner() {
+// Hero imagery (admin-swappable slider) doubles as the banner backdrop. It is
+// resolved on the SERVER and handed in as props so the correct CloudFront URL
+// is in the first paint — no client fetch, no flash of the local stock image.
+interface PromoBannerProps {
+  initialDesktop: string;
+  initialMobile: string;
+}
+
+export default function PromoBanner({
+  initialDesktop,
+  initialMobile,
+}: PromoBannerProps) {
   const reduce = useReducedMotion();
   const [offers, setOffers] = useState<Phase>(null);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [desktop, setDesktop] = useState(FALLBACK_DESKTOP);
-  const [mobile, setMobile] = useState(FALLBACK_MOBILE);
-
-  // Pull the hero slider images for the backdrop (same source as <Hero/>).
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const res = await heroService.getHeroImages();
-        if (!active || !res?.success) return;
-        const slide = (res.data.imageSlider || []).find(
-          (s) => s?.images?.image2?.mediaUrl || s?.images?.image1?.mediaUrl
-        );
-        if (!slide) return;
-        const d =
-          slide.images?.image2?.mediaUrl || slide.images?.image1?.mediaUrl;
-        const m =
-          slide.images?.image1?.mediaUrl || slide.images?.image2?.mediaUrl;
-        if (d) setDesktop(d);
-        if (m) setMobile(m);
-      } catch {
-        /* keep local fallbacks */
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
+  const desktop = initialDesktop;
+  const mobile = initialMobile;
 
   useEffect(() => {
     let active = true;
@@ -86,7 +67,9 @@ export default function PromoBanner() {
   );
 
   // Decided there are no live offers → the regular hero (graceful fallback).
-  if (offers && offers.length === 0) return <Hero />;
+  // Pass the server-resolved images so the Hero doesn't flash either.
+  if (offers && offers.length === 0)
+    return <Hero initialDesktop={desktop} initialMobile={mobile} />;
 
   // offers === null → still fetching: render the banner shell + a skeleton so
   // the Hero never flashes in before the offer copy arrives.
