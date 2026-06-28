@@ -113,6 +113,28 @@ export default function Footer() {
             Stainless steel · Won&rsquo;t tarnish
           </p>
         </div>
+
+        {/* Developer credit */}
+        <div className="mt-6 text-center">
+          <p className="text-xs text-on-primary/40">
+            Developed &amp; designed by{" "}
+            <Link
+              href="/developers"
+              className="font-medium text-on-primary/70 transition-colors hover:text-accent"
+            >
+              Tiqni
+            </Link>
+            <span className="mx-2 text-on-primary/25" aria-hidden="true">
+              ·
+            </span>
+            <Link
+              href="/developers"
+              className="underline-offset-4 transition-colors hover:text-accent hover:underline"
+            >
+              Meet the developers →
+            </Link>
+          </p>
+        </div>
       </div>
     </footer>
   );
