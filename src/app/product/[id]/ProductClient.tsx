@@ -1,37 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import ProductDetails from "@/components/product/ProductDetails";
 import RelatedProducts from "@/components/product/RelatedProducts";
 import { productService } from "@/services/product.service";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function ProductClient({ id }: { id: string }) {
+  const router = useRouter();
   const [productData, setProductData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await productService.getOneProduct(id);
-        if (response?.success) {
+        if (response?.success && response.data?.product) {
           setProductData(response.data.product);
         } else {
-          setError("Failed to load product");
+          // Product no longer exists / failed to load — send the user home.
+          router.replace("/");
         }
       } catch (err) {
-        setError("Error loading product");
+        // Same for network/404 errors — redirect instead of showing an error.
+        router.replace("/");
       } finally {
         setLoading(false);
       }
     };
 
     fetchProduct();
-  }, [id]);
+  }, [id, router]);
 
-  if (loading) return <LoadingSpinner />;
-  if (error) return <div>{error}</div>;
+  if (loading || !productData) return <LoadingSpinner />;
   if (!productData?.category) return <div>Product category not found</div>;
 
   return (
