@@ -19,10 +19,14 @@ const TarnishingPromo: React.FC = () => {
   useEffect(() => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
     if (!API_URL) return;
+    // Strip any trailing slash so we never produce `//public/...` — a double
+    // slash doesn't match the `/public` mount and falls through to the auth
+    // middleware, which 401s. (NEXT_PUBLIC_API_URL ends with `/` in prod.)
+    const base = API_URL.replace(/\/+$/, "");
     let active = true;
     (async () => {
       try {
-        const res = await fetch(`${API_URL}/public/video/get`, {
+        const res = await fetch(`${base}/public/video/get`, {
           cache: "no-store",
         });
         if (!res.ok) return;
