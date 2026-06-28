@@ -55,7 +55,7 @@ const TarnishingPromo: React.FC = () => {
               aria-label="Stainless steel jewelry collection"
             >
               <source
-                src="https://d1xdt7gkixoxw1.cloudfront.net/IMG_1602.mp4"
+                src="https://d1xdt7gkixoxw1.cloudfront.net/WhatsApp+Video+2026-06-28+at+3.24.55+PM.mp4"
                 type="video/mp4"
               />
             </video>
