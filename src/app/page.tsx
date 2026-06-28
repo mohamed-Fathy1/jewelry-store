@@ -1,33 +1,17 @@
-"use client";
-
-import { useHome } from "@/hooks/useHome";
+import { getHeroImagesServer } from "@/services/hero.server";
 import PromoBanner from "@/components/home/PromoBanner";
-import CategoryStrip from "@/components/home/CategoryStrip";
-import FlashSale from "@/components/home/FlashSale";
-import BestSellers from "@/components/home/BestSellers";
-import OnSale from "@/components/home/OnSale";
-import WaysToSave from "@/components/home/WaysToSave";
-import FeaturedCategories from "@/components/home/FeaturedCategories";
-import TarnishingPromo from "@/components/home/TarnishingPromo";
-import NewArrivals from "@/components/home/NewArrivals";
-import WhatsAppIcon from "@/components/home/WhatsAppIcon";
+import HomeSections from "@/components/home/HomeSections";
 
-export default function HomePage() {
-  // Single /home fetch; slices flow to sections as props.
-  const { bestSellers, onSale, newArrivals, flashSale, isLoading } = useHome();
+export default async function HomePage() {
+  // Resolve the hero image on the server so the correct (admin-set) CloudFront
+  // URL is in the first paint — no client fetch, no flash of the local stock
+  // image. The rest of the homepage stays client-rendered via <HomeSections />.
+  const hero = await getHeroImagesServer();
 
   return (
     <div>
-      <PromoBanner />
-      <CategoryStrip />
-      <FlashSale flashSales={flashSale} isLoading={isLoading} />
-      <BestSellers products={bestSellers} isLoading={isLoading} />
-      <OnSale products={onSale} isLoading={isLoading} />
-      <WaysToSave />
-      <FeaturedCategories />
-      <TarnishingPromo />
-      <NewArrivals products={newArrivals} isLoading={isLoading} />
-      <WhatsAppIcon />
+      <PromoBanner initialDesktop={hero.desktop} initialMobile={hero.mobile} />
+      <HomeSections />
     </div>
   );
 }

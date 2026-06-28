@@ -69,20 +69,24 @@ export default function HeroModal({ isOpen, onClose, slider }: HeroModalProps) {
     }
   };
 
+  // uploadImages resolves to the presign objects; each one's `mediaUrl` is the
+  // final public (CloudFront) URL we store and send — not the whole object.
   const handleSmallImageUpload = (urls: string[]) => {
-    if (urls.length > 0) {
+    const media = urls as unknown as { mediaUrl: string }[];
+    if (media[0]?.mediaUrl) {
       setFormData((prev) => ({
         ...prev,
-        smallImage: urls[0],
+        smallImage: media[0].mediaUrl,
       }));
     }
   };
 
   const handleLargeImageUpload = (urls: string[]) => {
-    if (urls.length > 0) {
+    const media = urls as unknown as { mediaUrl: string }[];
+    if (media[0]?.mediaUrl) {
       setFormData((prev) => ({
         ...prev,
-        largeImage: urls[0],
+        largeImage: media[0].mediaUrl,
       }));
     }
   };

@@ -1,48 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { heroService } from "@/services/hero.service";
 
-// Local fallbacks (shown immediately + if the slider is empty / fetch fails).
+// Local fallbacks — used when the caller can't resolve the admin-set slider.
 const FALLBACK_DESKTOP = "/hero/hero-desktop.jpg";
 const FALLBACK_MOBILE = "/hero/hero-mobile.jpg";
 const EASE = [0.22, 1, 0.36, 1] as const;
 const ALT =
   "A flat-lay of fine gold jewelry — necklaces, bangles, hoops and rings on cream";
 
-export default function Hero() {
-  const reduce = useReducedMotion();
-  // image2 = large (desktop), image1 = small (mobile) — admin-swappable.
-  const [desktop, setDesktop] = useState(FALLBACK_DESKTOP);
-  const [mobile, setMobile] = useState(FALLBACK_MOBILE);
+// image2 = large (desktop), image1 = small (mobile). Images are resolved on the
+// server and passed in, so the correct CloudFront URL is in the first paint (no
+// client fetch, no flash). Defaults keep the component usable standalone.
+interface HeroProps {
+  initialDesktop?: string;
+  initialMobile?: string;
+}
 
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const res = await heroService.getHeroImages();
-        if (!active || !res?.success) return;
-        const slide = (res.data.imageSlider || []).find(
-          (s) => s?.images?.image2?.mediaUrl || s?.images?.image1?.mediaUrl
-        );
-        if (!slide) return;
-        const d =
-          slide.images?.image2?.mediaUrl || slide.images?.image1?.mediaUrl;
-        const m =
-          slide.images?.image1?.mediaUrl || slide.images?.image2?.mediaUrl;
-        if (d) setDesktop(d);
-        if (m) setMobile(m);
-      } catch {
-        /* keep local fallbacks */
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
+export default function Hero({
+  initialDesktop = FALLBACK_DESKTOP,
+  initialMobile = FALLBACK_MOBILE,
+}: HeroProps) {
+  const reduce = useReducedMotion();
+  const desktop = initialDesktop;
+  const mobile = initialMobile;
 
   const rise = (delay: number) =>
     reduce
