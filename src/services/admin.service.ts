@@ -9,6 +9,7 @@ import {
   Shipping,
 } from "@/types/shipping.types";
 import { HeroResponse, CreateHeroResponse } from "@/types/hero.types";
+import { VideoResponse } from "@/types/video.types";
 import { WishlistResponse } from "@/types/wishlist.types";
 
 interface DashboardAnalysis {
@@ -315,6 +316,35 @@ export const adminService = {
       await api.post(`/slider/delete/${id}`);
     } catch (error) {
       console.error("Error deleting hero slider:", error);
+      throw error;
+    }
+  },
+
+  async getVideo(): Promise<VideoResponse> {
+    try {
+      const response = await api.get("/public/video/get");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching promo video:", error);
+      throw error;
+    }
+  },
+
+  async createVideo(videoUrl: string): Promise<VideoResponse> {
+    try {
+      const response = await api.post("/admin/video/create", { videoUrl });
+      return response.data;
+    } catch (error) {
+      console.error("Error creating promo video:", error);
+      throw error;
+    }
+  },
+
+  async deleteVideo(id: string): Promise<void> {
+    try {
+      await api.post(`/admin/video/delete/${id}`);
+    } catch (error) {
+      console.error("Error deleting promo video:", error);
       throw error;
     }
   },

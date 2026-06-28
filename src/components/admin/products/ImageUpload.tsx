@@ -9,9 +9,23 @@ import toast from "react-hot-toast";
 interface ImageUploadProps {
   onUpload: (urls: string[]) => void;
   folder?: string;
+  // Accept attribute + matching MIME prefix. Defaults preserve the original
+  // image-only behaviour; pass `accept="video/*"` and `mediaPrefix="video/"`
+  // to reuse this uploader for videos. `multiple` defaults to true.
+  accept?: string;
+  mediaPrefix?: string;
+  multiple?: boolean;
+  prompt?: string;
 }
 
-export default function ImageUpload({ onUpload, folder }: ImageUploadProps) {
+export default function ImageUpload({
+  onUpload,
+  folder,
+  accept = "image/*",
+  mediaPrefix = "image/",
+  multiple = true,
+  prompt,
+}: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,24 +54,25 @@ export default function ImageUpload({ onUpload, folder }: ImageUploadProps) {
     }
   };
 
-  const uploadFiles = async (files: File[]) => {
-    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+  const mediaLabel = mediaPrefix.replace("/", "");
 
-    if (imageFiles.length === 0) {
-      toast.error("Please select image files only");
+  const uploadFiles = async (files: File[]) => {
+    const validFiles = files.filter((file) => file.type.startsWith(mediaPrefix));
+
+    if (validFiles.length === 0) {
+      toast.error(`Please select ${mediaLabel} files only`);
       return;
     }
 
     setIsUploading(true);
 
     try {
-      const urls = await adminService.uploadImages(imageFiles, folder);
-      console.log(urls);
+      const urls = await adminService.uploadImages(validFiles, folder);
 
       onUpload(urls);
-      toast.success("Images uploaded successfully");
+      toast.success(`${mediaLabel} uploaded successfully`);
     } catch (error) {
-      toast.error("Failed to upload images");
+      toast.error(`Failed to upload ${mediaLabel}`);
     } finally {
       setIsUploading(false);
     }
@@ -77,8 +92,8 @@ export default function ImageUpload({ onUpload, folder }: ImageUploadProps) {
         type="file"
         ref={fileInputRef}
         onChange={handleFileSelect}
-        multiple
-        accept="image/*"
+        multiple={multiple}
+        accept={accept}
         className="hidden"
       />
       <CloudArrowUpIcon
@@ -88,7 +103,7 @@ export default function ImageUpload({ onUpload, folder }: ImageUploadProps) {
       <p className="text-sm text-gray-600">
         {isUploading
           ? "Uploading..."
-          : "Drag and drop images here, or click to select files"}
+          : prompt ?? "Drag and drop images here, or click to select files"}
       </p>
     </div>
   );
