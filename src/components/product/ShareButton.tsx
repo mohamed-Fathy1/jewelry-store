@@ -18,6 +18,15 @@ type ShareButtonProps = {
    * Falls back to the current page URL.
    */
   shareUrl?: string;
+  /** Optional text label rendered next to the icon. */
+  label?: string;
+  /**
+   * Visual weight of the trigger:
+   * - "pill" (default): bordered, full-width button.
+   * - "ghost": a quiet inline link that doesn't compete with primary actions.
+   */
+  variant?: "pill" | "ghost";
+  /** Applied to the wrapper so callers control layout (e.g. flex-1). */
   className?: string;
 };
 
@@ -25,8 +34,11 @@ export default function ShareButton({
   title,
   text,
   shareUrl: shareUrlProp,
+  label,
+  variant = "pill",
   className,
 }: ShareButtonProps) {
+  const isGhost = variant === "ghost";
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareUrl, setShareUrl] = useState(shareUrlProp ?? "");
@@ -111,7 +123,7 @@ export default function ShareButton({
   ];
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className={cn("relative", className)} ref={containerRef}>
       <button
         type="button"
         onClick={handleShare}
@@ -119,32 +131,56 @@ export default function ShareButton({
         aria-haspopup="menu"
         aria-expanded={open}
         className={cn(
-          "rounded-lg border border-hairline bg-surface p-3 text-ink transition-colors duration-200 hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-          className
+          "group inline-flex items-center gap-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+          isGhost
+            ? "rounded-full py-1.5 text-sm font-medium text-ink-muted hover:text-heading"
+            : cn(
+                "w-full justify-center rounded-full border border-hairline bg-surface py-3 text-sm font-medium text-ink hover:border-hairline-strong hover:bg-surface-muted",
+                label ? "px-5" : "px-3"
+              )
         )}
       >
-        <Share2 className="h-6 w-6" />
+        <Share2
+          className={cn(
+            "transition-transform duration-200 group-hover:scale-110 group-active:scale-90",
+            isGhost ? "h-4 w-4" : "h-5 w-5"
+          )}
+        />
+        {label && <span>{label}</span>}
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-20 mt-2 w-48 overflow-hidden rounded-xl border border-hairline bg-surface shadow-lg"
+          className={cn(
+            "absolute z-20 w-56 overflow-hidden rounded-2xl border border-hairline bg-surface shadow-card-hover ring-1 ring-noir/5 motion-safe:animate-[sheetUp_180ms_cubic-bezier(0.22,1,0.36,1)]",
+            isGhost
+              ? "bottom-full left-1/2 mb-2 -translate-x-1/2 origin-bottom"
+              : "right-0 mt-2 origin-top-right"
+          )}
         >
-          {links.map((l) => (
-            <a
-              key={l.label}
-              href={l.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              role="menuitem"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 text-sm text-ink transition-colors hover:bg-surface-muted"
-            >
-              {l.icon}
-              <span>{l.label}</span>
-            </a>
-          ))}
+          <p className="px-4 pt-3 pb-2 text-xs font-medium uppercase tracking-wide text-ink-muted">
+            مشاركة المنتج
+          </p>
+          <div className="grid grid-cols-4 gap-1 px-3 pb-2">
+            {links.map((l) => (
+              <a
+                key={l.label}
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                role="menuitem"
+                title={l.label}
+                aria-label={l.label}
+                onClick={() => setOpen(false)}
+                className="flex flex-col items-center gap-1.5 rounded-xl py-2.5 text-ink transition-colors hover:bg-surface-muted"
+              >
+                <span className="grid h-9 w-9 place-items-center rounded-full bg-surface-muted transition-transform duration-200 hover:scale-110">
+                  {l.icon}
+                </span>
+              </a>
+            ))}
+          </div>
           <button
             type="button"
             role="menuitem"

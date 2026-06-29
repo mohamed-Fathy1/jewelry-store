@@ -51,6 +51,9 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const sliderRef = useRef<NodeJS.Timeout | null>(null);
   const { wishlist, toggleWishlist } = useWishlist();
   const [isInWishlist, setIsInWishlist] = useState(false);
+  // Bumped on every wishlist toggle to remount the heart icon and replay its
+  // pop animation (a key change is the simplest way to restart a CSS keyframe).
+  const [heartKey, setHeartKey] = useState(0);
   const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
   const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
   // Live flash-sale offer for this product (applied by the backend at checkout).
@@ -264,6 +267,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
     if (!currentProduct) return;
 
     toggleWishlist(currentProduct._id);
+    setHeartKey((k) => k + 1);
   };
 
   if (isLoading || !currentProduct) {
@@ -332,7 +336,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
       {/* Image gallery */}
       <div className="space-y-2">
         {/* Main image */}
-        <div className="relative aspect-[2.25/3] md:aspect-[4/3] rounded-2xl overflow-hidden bg-surface-muted">
+        <div className="relative aspect-square md:aspect-[4/3] rounded-2xl overflow-hidden bg-surface-muted">
           <SmartImage
             src={galleryImages[safeActiveImage]?.mediaUrl}
             alt={`${currentProduct.productName} - Main View`}
@@ -505,68 +509,85 @@ export default function ProductDetails({ productId }: { productId: string }) {
           </div>
         )}
 
-        {/* Quantity Selector */}
-        <div className="flex items-center space-x-4">
-          <span className="text-ink-muted">Quantity:</span>
-          <div className="flex items-center rounded-lg border border-hairline">
-            <button
-              onClick={decrementQuantity}
-              aria-label="Decrease quantity"
-              className="px-3 py-1 text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              -
-            </button>
-            <span
-              className={cn(
-                "px-4 py-1 border-x border-hairline tabular-nums",
-                quantity >= effectiveAvailable ? "text-ink-muted" : "text-ink"
-              )}
-            >
-              {quantity}
-            </span>
-            <button
-              onClick={incrementQuantity}
-              aria-label="Increase quantity"
-              className="px-3 py-1 text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              disabled={quantity >= effectiveAvailable}
-            >
-              +
-            </button>
+        {/* Quantity stepper + wishlist — the heart sits opposite the stepper so
+            it stays a compact, tactile icon instead of stealing a whole row. */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center space-x-4">
+            <span className="text-ink-muted">Quantity:</span>
+            <div className="flex items-center rounded-lg border border-hairline">
+              <button
+                onClick={decrementQuantity}
+                aria-label="Decrease quantity"
+                className="px-3 py-1 text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                -
+              </button>
+              <span
+                className={cn(
+                  "px-4 py-1 border-x border-hairline tabular-nums",
+                  quantity >= effectiveAvailable ? "text-ink-muted" : "text-ink"
+                )}
+              >
+                {quantity}
+              </span>
+              <button
+                onClick={incrementQuantity}
+                aria-label="Increase quantity"
+                className="px-3 py-1 text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                disabled={quantity >= effectiveAvailable}
+              >
+                +
+              </button>
+            </div>
           </div>
+
+          <button
+            onClick={addToWishlist}
+            aria-label={
+              isInWishlist ? "Remove from wishlist" : "Add to wishlist"
+            }
+            aria-pressed={isInWishlist}
+            title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+            className={cn(
+              "group relative grid h-12 w-12 shrink-0 place-items-center rounded-full border transition-all duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+              isInWishlist
+                ? "border-primary/30 bg-accent-soft"
+                : "border-hairline bg-surface hover:border-primary/40 hover:bg-surface-muted"
+            )}
+          >
+            <HeartIcon
+              key={heartKey}
+              className={cn(
+                "h-[1.35rem] w-[1.35rem] transition-colors duration-200 group-active:scale-90",
+                // Only replay the pop after a real toggle, never on first paint.
+                heartKey > 0 &&
+                  "motion-safe:animate-[heartPop_420ms_cubic-bezier(0.22,1,0.36,1)]",
+                isInWishlist ? "fill-primary text-primary" : "text-ink"
+              )}
+            />
+          </button>
         </div>
 
-        <div className="flex items-center justify-between">
+        {/* Availability — a small status dot reads faster than a sentence. */}
+        <div className="flex items-center gap-2 text-sm">
+          <span
+            className={cn(
+              "inline-flex h-2 w-2 rounded-full",
+              needsSelection && !matchedVariant
+                ? "bg-ink-muted"
+                : effectiveAvailable > 0
+                ? "bg-emerald-500"
+                : "bg-rose-500"
+            )}
+            aria-hidden="true"
+          />
           <p className="text-ink-muted">
-            Availability:{" "}
             {needsSelection && !matchedVariant
               ? "Select a color and size"
               : effectiveAvailable > 0
               ? `${effectiveAvailable} in stock`
               : "Out of Stock"}
           </p>
-
-          <div className="flex items-center gap-2">
-            <ShareButton
-              title={currentProduct.productName}
-              text={shareText}
-              shareUrl={shareUrl}
-            />
-            <button
-              onClick={addToWishlist}
-              aria-label={
-                isInWishlist ? "Remove from wishlist" : "Add to wishlist"
-              }
-              aria-pressed={isInWishlist}
-              className="rounded-lg border border-hairline bg-surface p-3 text-ink transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <HeartIcon
-                className={cn(
-                  "w-6 h-6",
-                  isInWishlist && "fill-primary text-primary"
-                )}
-              />
-            </button>
-          </div>
         </div>
 
         {productSoldOut && (
@@ -611,6 +632,18 @@ export default function ProductDetails({ productId }: { productId: string }) {
             />
           )}
           <ProductPerks />
+        </div>
+
+        {/* Share — kept low-emphasis: a quiet link that never competes with the
+            primary buy actions, set off by a hairline divider. */}
+        <div className="flex justify-center border-t border-hairline pt-4">
+          <ShareButton
+            title={currentProduct.productName}
+            text={shareText}
+            shareUrl={shareUrl}
+            label="Share this piece"
+            variant="ghost"
+          />
         </div>
       </div>
     </div>
