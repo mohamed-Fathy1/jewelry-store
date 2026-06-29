@@ -321,7 +321,11 @@ export default function ProductDetails({ productId }: { productId: string }) {
   // Share the backend OG-preview endpoint (server-rendered) — social crawlers
   // can't read meta tags from this client app, so the storefront URL would show
   // a bare link. The endpoint JS-redirects real users back to this page.
-  const shareUrl = `${process.env.NEXT_PUBLIC_API_URL}/products/share/${currentProduct._id}`;
+  // NOTE: strip any trailing slash off the API base, otherwise we'd build
+  // "…com//products/share/…" — the double slash fails to match the Express
+  // "/products" mount and falls through to the auth middleware (401).
+  const apiBase = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
+  const shareUrl = `${apiBase}/products/share/${currentProduct._id}`;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
