@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { ShoppingBagIcon } from "@heroicons/react/24/outline";
+import { HeartIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import SmartImage from "@/components/ui/SmartImage";
 import { Product } from "@/types/product.types";
 import { useCart } from "@/contexts/CartContext";
 import { CartItem } from "@/types/cart.types";
+import { useWishlist } from "@/contexts/WishlistContext";
 import Badge from "@/components/ui/Badge";
 import { analytics } from "@/lib";
 
@@ -19,7 +21,7 @@ interface ProductCardProps {
   /** Responsive sizes hint for next/image. */
   sizes?: string;
   /** Optional accent badge. */
-  badge?: "bestseller" | "sale" | null;
+  badge?: "bestseller" | "sale" | "new" | null;
   /** Light text treatment for placement on a dark surface (e.g. flash sale). */
   onDark?: boolean;
 }
@@ -45,6 +47,7 @@ function ProductCard({
   onDark = false,
 }: ProductCardProps) {
   const { addToCart } = useCart();
+  const { wishlist, toggleWishlist } = useWishlist();
   const reduceMotion = useReducedMotion();
   const router = useRouter();
 
@@ -53,6 +56,7 @@ function ProductCard({
   const inStock =
     !product.isSoldOut &&
     (product.availableItems === undefined || product.availableItems > 0);
+  const liked = wishlist.includes(product._id);
   const hasDiscount = (product.discountPercentage ?? 0) > 0;
   const onSale = !!product.salePrice && product.salePrice > 0;
   const displayPrice = onSale ? product.salePrice! : product.price;
@@ -177,7 +181,11 @@ function ProductCard({
           interactive controls re-enable pointer events on themselves. */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 aspect-square">
         <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
-          {hasDiscount ? (
+          {badge === "new" ? (
+            <Badge variant="new" size="sm">
+              New
+            </Badge>
+          ) : hasDiscount ? (
             <Badge variant="discount" size="sm">
               −{Math.round(product.discountPercentage!)}%
             </Badge>
@@ -189,6 +197,25 @@ function ProductCard({
             <Badge variant="sale">Sale</Badge>
           ) : null}
         </div>
+
+        <button
+          type="button"
+          onClick={() => toggleWishlist(product._id)}
+          aria-label={
+            liked
+              ? `Remove ${product.productName} from wishlist`
+              : `Add ${product.productName} to wishlist`
+          }
+          aria-pressed={liked}
+          className="pointer-events-auto absolute right-3 top-1.5 grid h-9 w-9 place-items-center transition-transform hover:scale-110 focus-visible:outline-none"
+        >
+          <HeartIcon
+            className={cn(
+              "h-5 w-5 transition-colors",
+              liked ? "fill-primary text-primary" : "fill-transparent text-ink"
+            )}
+          />
+        </button>
 
         {inStock ? (
           <>

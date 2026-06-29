@@ -71,6 +71,7 @@ export default function NewArrivals({ products, isLoading }: NewArrivalsProps) {
                   <ProductCard
                     product={product}
                     sizes="240px"
+                    badge="new"
                   />
                 </div>
               ))}
