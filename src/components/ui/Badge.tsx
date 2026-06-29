@@ -1,12 +1,19 @@
 import { cn } from "@/lib/cn";
 
-type BadgeVariant = "discount" | "sale" | "bestseller" | "flash" | "soldout";
+type BadgeVariant =
+  | "discount"
+  | "sale"
+  | "bestseller"
+  | "new"
+  | "flash"
+  | "soldout";
 type BadgeSize = "sm" | "md";
 
 const variantMap: Record<BadgeVariant, string> = {
   discount: "bg-primary text-on-primary",
   sale: "bg-accent-soft text-heading",
   bestseller: "bg-surface/90 text-heading ring-1 ring-hairline backdrop-blur",
+  new: "bg-ink text-on-primary",
   flash: "bg-accent text-ink",
   soldout: "bg-ink/80 text-on-primary",
 };
