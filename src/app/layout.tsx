@@ -52,6 +52,50 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${hanken.variable} ${marcellus.variable}`}>
       <head>
+        {/* ── Brand-level social share (Open Graph / Twitter) ──────────────
+            Shown when the bare site link (atozaccessory.com) is shared on
+            WhatsApp/Facebook/etc. These are STATIC site defaults rendered into
+            the SSR'd <head> so crawlers (which don't run JS) can read them.
+            Per-product cards come from the backend share endpoint instead, since
+            the metadata API can't run while this root layout is a client
+            component. */}
+        <title>A to Z Accessories</title>
+        <meta
+          name="description"
+          content="تسوّقي أحدث تشكيلات الإكسسوارات والمجوهرات من A to Z Accessories"
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="A to Z Accessories" />
+        <meta property="og:title" content="A to Z Accessories" />
+        <meta
+          property="og:description"
+          content="تسوّقي أحدث تشكيلات الإكسسوارات والمجوهرات من A to Z Accessories"
+        />
+        <meta property="og:url" content="https://www.atozaccessory.com" />
+        <meta
+          property="og:image"
+          content="https://www.atozaccessory.com/logo.jpg"
+        />
+        <meta
+          property="og:image:secure_url"
+          content="https://www.atozaccessory.com/logo.jpg"
+        />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:image:width" content="500" />
+        <meta property="og:image:height" content="500" />
+        <meta property="og:image:alt" content="A to Z Accessories" />
+        <meta property="og:locale" content="ar_EG" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="A to Z Accessories" />
+        <meta
+          name="twitter:description"
+          content="تسوّقي أحدث تشكيلات الإكسسوارات والمجوهرات من A to Z Accessories"
+        />
+        <meta
+          name="twitter:image"
+          content="https://www.atozaccessory.com/logo.jpg"
+        />
+
         {/* Google Analytics 4 (gtag.js) */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
