@@ -318,6 +318,11 @@ export default function ProductDetails({ productId }: { productId: string }) {
     .filter(Boolean)
     .join(" · ");
 
+  // Share the backend OG-preview endpoint (server-rendered) — social crawlers
+  // can't read meta tags from this client app, so the storefront URL would show
+  // a bare link. The endpoint JS-redirects real users back to this page.
+  const shareUrl = `${process.env.NEXT_PUBLIC_API_URL}/products/share/${currentProduct._id}`;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* Image gallery */}
@@ -540,6 +545,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
             <ShareButton
               title={currentProduct.productName}
               text={shareText}
+              shareUrl={shareUrl}
             />
             <button
               onClick={addToWishlist}
