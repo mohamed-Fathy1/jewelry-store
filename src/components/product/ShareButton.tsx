@@ -11,20 +11,36 @@ type ShareButtonProps = {
   title: string;
   /** Short description shared alongside the link (image/desc come from OG tags). */
   text?: string;
+  /**
+   * The URL to share. Should be the backend OG-preview endpoint
+   * (…/products/share/:id), NOT the storefront page — social crawlers don't run
+   * the client app, so only the server-rendered endpoint yields a rich card.
+   * Falls back to the current page URL.
+   */
+  shareUrl?: string;
   className?: string;
 };
 
-export default function ShareButton({ title, text, className }: ShareButtonProps) {
+export default function ShareButton({
+  title,
+  text,
+  shareUrl: shareUrlProp,
+  className,
+}: ShareButtonProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [shareUrl, setShareUrl] = useState("");
+  const [shareUrl, setShareUrl] = useState(shareUrlProp ?? "");
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // The canonical product URL is whatever the visitor is currently viewing —
-  // social platforms read the page's Open Graph tags from it for the preview.
+  // Prefer the explicit share endpoint; fall back to the current page URL only
+  // when none was provided (keeps the component usable elsewhere).
   useEffect(() => {
-    if (typeof window !== "undefined") setShareUrl(window.location.href);
-  }, []);
+    if (shareUrlProp) {
+      setShareUrl(shareUrlProp);
+    } else if (typeof window !== "undefined") {
+      setShareUrl(window.location.href);
+    }
+  }, [shareUrlProp]);
 
   // Close the menu on outside click / Escape.
   useEffect(() => {
