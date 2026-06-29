@@ -4,13 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { ShoppingBagIcon } from "@heroicons/react/24/outline";
-import { HeartIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import SmartImage from "@/components/ui/SmartImage";
 import { Product } from "@/types/product.types";
 import { useCart } from "@/contexts/CartContext";
 import { CartItem } from "@/types/cart.types";
-import { useWishlist } from "@/contexts/WishlistContext";
 import Badge from "@/components/ui/Badge";
 import { analytics } from "@/lib";
 
@@ -47,7 +45,6 @@ function ProductCard({
   onDark = false,
 }: ProductCardProps) {
   const { addToCart } = useCart();
-  const { wishlist, toggleWishlist } = useWishlist();
   const reduceMotion = useReducedMotion();
   const router = useRouter();
 
@@ -56,7 +53,6 @@ function ProductCard({
   const inStock =
     !product.isSoldOut &&
     (product.availableItems === undefined || product.availableItems > 0);
-  const liked = wishlist.includes(product._id);
   const hasDiscount = (product.discountPercentage ?? 0) > 0;
   const onSale = !!product.salePrice && product.salePrice > 0;
   const displayPrice = onSale ? product.salePrice! : product.price;
@@ -194,25 +190,6 @@ function ProductCard({
           ) : null}
         </div>
 
-        <button
-          type="button"
-          onClick={() => toggleWishlist(product._id)}
-          aria-label={
-            liked
-              ? `Remove ${product.productName} from wishlist`
-              : `Add ${product.productName} to wishlist`
-          }
-          aria-pressed={liked}
-          className="pointer-events-auto absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-surface/80 ring-1 ring-hairline/50 backdrop-blur transition-all hover:scale-110 hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          <HeartIcon
-            className={cn(
-              "h-[18px] w-[18px] transition-colors",
-              liked ? "fill-primary text-primary" : "text-ink-muted"
-            )}
-          />
-        </button>
-
         {inStock ? (
           <>
             <button
@@ -224,15 +201,6 @@ function ProductCard({
             >
               <ShoppingBagIcon className="h-[18px] w-[18px]" />
               Add to Bag
-            </button>
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              aria-label={`Add ${product.productName} to cart`}
-              style={{ touchAction: "manipulation" }}
-              className="pointer-events-auto absolute bottom-3 right-3 grid h-10 w-10 place-items-center rounded-full bg-primary text-on-primary shadow-card-hover transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent md:hidden"
-            >
-              <ShoppingBagIcon className="h-5 w-5" />
             </button>
           </>
         ) : null}
