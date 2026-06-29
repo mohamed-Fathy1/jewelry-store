@@ -16,7 +16,6 @@ export default function BestSellers({ products, isLoading }: BestSellersProps) {
       link={{ href: "/shop?bestseller=true", label: "Shop all" }}
       products={products}
       isLoading={isLoading}
-      badge="bestseller"
     />
   );
 }
