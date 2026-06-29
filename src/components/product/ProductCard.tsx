@@ -180,9 +180,9 @@ function ProductCard({
           pointer-events-none lets clicks fall through to the link; the
           interactive controls re-enable pointer events on themselves. */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 aspect-square">
-        <div className="absolute left-3 top-3 flex flex-col gap-1.5">
+        <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
           {hasDiscount ? (
-            <Badge variant="discount">
+            <Badge variant="discount" size="sm">
               −{Math.round(product.discountPercentage!)}%
             </Badge>
           ) : null}
