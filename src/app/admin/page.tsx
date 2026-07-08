@@ -13,6 +13,7 @@ import {
   ClipboardDocumentListIcon,
   ScaleIcon,
   TrophyIcon,
+  ArchiveBoxIcon,
 } from "@heroicons/react/24/outline";
 import { format, parseISO } from "date-fns";
 import { formatPrice } from "@/utils/format";
@@ -47,7 +48,7 @@ function DashboardSkeleton() {
     <div>
       <Skeleton className="mb-8 h-9 w-44" />
       <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 9 }).map((_, i) => (
+        {Array.from({ length: 10 }).map((_, i) => (
           <Card key={i} className="flex items-center gap-4">
             <Skeleton className="h-11 w-11 rounded-lg" />
             <div className="flex-1 space-y-2">
@@ -117,6 +118,7 @@ export default function AdminDashboard() {
   const statCards = [
     { name: "Total Products", value: products?.total ?? 0, icon: CubeIcon },
     { name: "Sold Out", value: products?.soldOut ?? 0, icon: ExclamationTriangleIcon },
+    { name: "Total Wholesale Value", value: formatPrice(products?.totalWholesalePrice ?? 0), icon: ArchiveBoxIcon },
     { name: "Total Categories", value: categories?.total ?? 0, icon: Squares2X2Icon },
     { name: "Total Customers", value: customers?.total ?? 0, icon: UserGroupIcon },
     { name: "Total Orders", value: orders?.total ?? 0, icon: ShoppingBagIcon },
