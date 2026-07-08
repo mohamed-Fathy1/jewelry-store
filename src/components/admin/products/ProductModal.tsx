@@ -472,7 +472,10 @@ export default function ProductModal({
 
                 <div>
                   <label className={`${labelClass} mb-2`}>Album Images</label>
-                  <ImageUpload onUpload={handleAlbumImagesUpload} />
+                  <ImageUpload
+                    onUpload={handleAlbumImagesUpload}
+                    prompt="Drag and drop or click to select multiple images at once"
+                  />
 
                   {albumImages.length === 0 ? (
                     <p className="text-xs text-admin-ink-muted mt-2">
