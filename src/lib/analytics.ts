@@ -54,7 +54,7 @@ export const GA_MEASUREMENT_ID =
 // without touching code. Exactly one pixel is initialized (see app/layout.tsx),
 // so every fbq('track', ...) call goes to this pixel only — no duplicate events.
 export const META_PIXEL_ID =
-  process.env.NEXT_PUBLIC_META_PIXEL_ID || "1389492105728089";
+  process.env.NEXT_PUBLIC_META_PIXEL_ID || "1617903932237399";
 
 type GaItem = {
   item_id: string;

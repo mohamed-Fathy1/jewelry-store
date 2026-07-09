@@ -1,5 +1,6 @@
 import api from "@/lib/axios";
 import {
+  ClarityInsights,
   OverviewReport,
   TopPagesReport,
   TrafficSourcesReport,
@@ -41,6 +42,14 @@ export const adminAnalyticsService = {
   ): Promise<TrafficSourcesReport> {
     const res = await api.get("/admin/analytics/traffic-sources", {
       params: buildParams(range),
+    });
+    return res.data.data;
+  },
+
+  // Microsoft Clarity behavioral insights. numOfDays is 1..3 (Clarity limit).
+  async getClarityInsights(numOfDays = 3): Promise<ClarityInsights> {
+    const res = await api.get("/admin/analytics/clarity-insights", {
+      params: { numOfDays },
     });
     return res.data.data;
   },

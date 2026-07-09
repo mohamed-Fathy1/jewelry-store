@@ -20,6 +20,7 @@ import {
   ShieldCheckIcon,
   ChartBarIcon,
   VideoCameraIcon,
+  CursorArrowRaysIcon,
 } from "@heroicons/react/24/outline";
 import { IconButton } from "@/components/admin/ui";
 
@@ -37,6 +38,7 @@ const navigation = [
   { name: "Promo Video", href: "/admin/video", icon: VideoCameraIcon },
   { name: "Wishlists", href: "/admin/wishlists", icon: HeartIcon },
   { name: "Analytics", href: "/admin/analytics", icon: ChartBarIcon },
+  { name: "Behavior", href: "/admin/clarity", icon: CursorArrowRaysIcon },
   { name: "Backups", href: "/admin/backups", icon: ShieldCheckIcon },
 ];
 
