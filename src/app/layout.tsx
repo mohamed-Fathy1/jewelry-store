@@ -16,6 +16,7 @@ import LayoutWrapper from "@/components/layout/LayoutWrapper";
 import Script from "next/script";
 import { Suspense } from "react";
 import AnalyticsRouteTracker from "@/components/analytics/AnalyticsRouteTracker";
+import ClarityAnalytics from "@/components/analytics/ClarityAnalytics";
 import { GA_MEASUREMENT_ID, META_PIXEL_ID } from "@/lib/analytics";
 
 const hanken = Hanken_Grotesk({
@@ -143,6 +144,8 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <AnalyticsRouteTracker />
         </Suspense>
+        {/* Microsoft Clarity — storefront only; skips /admin (see component). */}
+        <ClarityAnalytics />
         <AuthProvider>
           <UserProvider>
             <CategoryProvider>
