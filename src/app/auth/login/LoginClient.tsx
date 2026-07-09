@@ -125,7 +125,7 @@ export function LoginClient() {
               disabled={isLoading}
               className="w-full rounded-full bg-primary px-4 py-3 font-medium text-on-primary shadow-card transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isLoading ? "Sending..." : "Send Code"}
+              {isLoading ? "Sending..." : "Continue"}
             </button>
           </form>
         ) : (

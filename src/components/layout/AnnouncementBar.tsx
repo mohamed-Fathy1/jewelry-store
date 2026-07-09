@@ -14,7 +14,7 @@ export default function AnnouncementBar() {
 
   const messages = useMemo(
     () => [
-      "Complimentary returns within 14 days",
+      "Open & check before payment",
       minCost != null
         ? `Nationwide delivery from EGP ${minCost.toLocaleString()}`
         : "Nationwide delivery across Egypt",
