@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { trackPageView } from "@/lib/analytics";
+import { trackPageView, trackMetaPageView } from "@/lib/analytics";
 
 /**
  * Sends a GA4 page_view on every client-side route change (the App Router does
@@ -17,7 +17,10 @@ export default function AnalyticsRouteTracker() {
   useEffect(() => {
     if (!pathname) return;
     const query = searchParams?.toString();
-    trackPageView(query ? `${pathname}?${query}` : pathname);
+    const path = query ? `${pathname}?${query}` : pathname;
+    // Two independent systems, no shared data:
+    trackPageView(path); // Google Analytics (gtag)
+    trackMetaPageView(); // Meta Pixel (fbq)
   }, [pathname, searchParams]);
 
   return null;

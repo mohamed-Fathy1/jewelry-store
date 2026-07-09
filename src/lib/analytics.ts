@@ -26,7 +26,10 @@ declare global {
     fbq?: (
       method: "track" | "trackCustom",
       event: string,
-      params?: FbqParams
+      params?: FbqParams,
+      // 4th arg carries eventID — used to deduplicate against the server-side
+      // Conversions API event that shares the same id (see trackPurchase).
+      eventData?: { eventID?: string }
     ) => void;
     gtag?: (
       command: "event" | "config" | "js" | "set",
@@ -45,6 +48,13 @@ type FbqParams = Record<string, AnalyticsValue>;
 // queues events into dataLayer until gtag.js finishes loading.
 export const GA_MEASUREMENT_ID =
   process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-W105BCK4MN";
+
+// ─── Meta Pixel ──────────────────────────────────────────────────────────────
+// Single pixel ID, sourced from env so the media buyer can swap it in one place
+// without touching code. Exactly one pixel is initialized (see app/layout.tsx),
+// so every fbq('track', ...) call goes to this pixel only — no duplicate events.
+export const META_PIXEL_ID =
+  process.env.NEXT_PUBLIC_META_PIXEL_ID || "1389492105728089";
 
 type GaItem = {
   item_id: string;
@@ -102,6 +112,7 @@ const pendingQueue: Array<{
   method: FbqMethod;
   event: string;
   payload: FbqParams;
+  eventID?: string;
 }> = [];
 let checkTimer: number | undefined;
 const CHECK_INTERVAL_MS = 250;
@@ -121,7 +132,13 @@ function startFbqWatcher(): void {
       if (hasFbq()) {
         // Flush queued events
         for (const item of pendingQueue.splice(0, pendingQueue.length)) {
-          window.fbq!(item.method, item.event, item.payload);
+          if (item.eventID) {
+            window.fbq!(item.method, item.event, item.payload, {
+              eventID: item.eventID,
+            });
+          } else {
+            window.fbq!(item.method, item.event, item.payload);
+          }
         }
       } else {
         // Give up quietly after timeout
@@ -131,21 +148,42 @@ function startFbqWatcher(): void {
   }, CHECK_INTERVAL_MS);
 }
 
-function emit(method: FbqMethod, eventName: string, payload: FbqParams): void {
+function emit(
+  method: FbqMethod,
+  eventName: string,
+  payload: FbqParams,
+  eventID?: string
+): void {
   if (hasFbq()) {
-    window.fbq!(method, eventName, payload);
+    if (eventID) {
+      window.fbq!(method, eventName, payload, { eventID });
+    } else {
+      window.fbq!(method, eventName, payload);
+    }
     return;
   }
-  pendingQueue.push({ method, event: eventName, payload });
+  pendingQueue.push({ method, event: eventName, payload, eventID });
   startFbqWatcher();
 }
 
-function trackStandard(eventName: string, payload: FbqParams): void {
-  emit("track", eventName, payload);
+function trackStandard(
+  eventName: string,
+  payload: FbqParams,
+  eventID?: string
+): void {
+  emit("track", eventName, payload, eventID);
 }
 
 function trackCustom(eventName: string, payload: FbqParams): void {
   emit("trackCustom", eventName, payload);
+}
+
+/** Meta Pixel PageView — completely independent of Google Analytics. The init
+ *  script in the layout no longer fires PageView, so this is the sole source
+ *  on both the initial load and every SPA route change: one PageView per
+ *  navigation, no double counting. */
+export function trackMetaPageView(): void {
+  trackStandard("PageView", {});
 }
 
 function clampNumber(n: number): number {
@@ -263,14 +301,20 @@ export function trackPurchase(
   const value = clampNumber(args.value);
   const currency = args.currency || "EGP";
 
-  trackStandard("Purchase", {
-    currency,
-    value,
-    num_items: numItems,
-    contents,
-    content_type: "product",
-    checkout_complete: true,
-  });
+  // Pass the order id as eventID so Meta deduplicates this browser Purchase
+  // against the server-side Conversions API Purchase (which uses the same id).
+  trackStandard(
+    "Purchase",
+    {
+      currency,
+      value,
+      num_items: numItems,
+      contents,
+      content_type: "product",
+      checkout_complete: true,
+    },
+    args.transactionId
+  );
   gaEvent("purchase", {
     transaction_id: args.transactionId,
     currency,

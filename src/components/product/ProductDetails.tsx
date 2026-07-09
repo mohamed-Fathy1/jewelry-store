@@ -56,6 +56,10 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const [heartKey, setHeartKey] = useState(0);
   const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
   const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
+  // Flashes a ring around the variant pickers when the shopper tries to buy
+  // before choosing — a visible nudge instead of a dead-looking disabled button.
+  const [selectionHint, setSelectionHint] = useState(false);
+  const variantRef = useRef<HTMLDivElement>(null);
   // Live flash-sale offer for this product (applied by the backend at checkout).
   const flashSale = useProductFlashSale(currentProduct);
 
@@ -160,9 +164,14 @@ export default function ProductDetails({ productId }: { productId: string }) {
   // Effective stock the buy controls should respect.
   const effectiveAvailable = matchedVariant?.availableItems ?? 0;
   const selectionComplete = Boolean(matchedVariant);
-  const canPurchase = selectionComplete && effectiveAvailable > 0;
   // Whole product is unbuyable when nothing is in stock at all.
   const productSoldOut = variants.every((v) => v.availableItems <= 0);
+  // Keep the buy buttons clickable while a selection is still pending — a click
+  // then nudges the shopper to the pickers instead of the button looking dead
+  // (which readers mistake for "sold out"). Truly disabled only when nothing can
+  // be bought: the product is fully out, or the chosen variant has no stock.
+  const buyDisabled =
+    productSoldOut || (selectionComplete && effectiveAvailable <= 0);
   // e.g. "color and size", "color", or "size" — used in prompts.
   const optionsLabel = [hasColors && "color", hasSizes && "size"]
     .filter(Boolean)
@@ -172,16 +181,46 @@ export default function ProductDetails({ productId }: { productId: string }) {
     setSelectedColorId(colorId);
     setSelectedSizeId(null);
     setQuantity(1);
+    setSelectionHint(false);
   };
   const selectSize = (sizeId: string) => {
     setSelectedSizeId(sizeId);
     setQuantity(1);
+    setSelectionHint(false);
+  };
+
+  // Auto-select any dimension that has exactly one choice, so single-color /
+  // "free size" products arrive ready to buy (no confusing disabled state).
+  // Genuine multi-option products are left untouched for the shopper to choose.
+  useEffect(() => {
+    if (hasColors && !selectedColorId && colorOptions.length === 1) {
+      setSelectedColorId(colorOptions[0]._id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasColors, selectedColorId, colorOptions.length]);
+
+  useEffect(() => {
+    if (!hasSizes || selectedSizeId) return;
+    if (hasColors && !selectedColorId) return;
+    const inStock = sizeOptions.filter((o) => o.availableItems > 0);
+    if (inStock.length === 1) setSelectedSizeId(inStock[0].size._id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasSizes, hasColors, selectedColorId, selectedSizeId, sizeOptions.length]);
+
+  // Point the shopper at the pickers when they try to buy without choosing.
+  const nudgeSelection = () => {
+    setSelectionHint(true);
+    variantRef.current?.scrollIntoView({
+      behavior: reduceMotion ? "auto" : "smooth",
+      block: "center",
+    });
   };
 
   const handleAddToCart = () => {
     if (!currentProduct) return;
     if (needsSelection && !matchedVariant) {
       toast.error(`Please select a ${optionsLabel}`);
+      nudgeSelection();
       return;
     }
 
@@ -218,6 +257,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
     if (!currentProduct) return;
     if (needsSelection && !matchedVariant) {
       toast.error(`Please select a ${optionsLabel}`);
+      nudgeSelection();
       return;
     }
 
@@ -436,7 +476,14 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
         {/* Variant selectors */}
         {needsSelection && (
-          <div className="space-y-4">
+          <div
+            ref={variantRef}
+            className={cn(
+              "space-y-4 rounded-xl transition-all duration-300",
+              selectionHint &&
+                "ring-2 ring-primary/70 ring-offset-4 ring-offset-surface"
+            )}
+          >
             {/* Colors */}
             {hasColors && (
               <div className="space-y-2">
@@ -574,7 +621,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
             className={cn(
               "inline-flex h-2 w-2 rounded-full",
               needsSelection && !matchedVariant
-                ? "bg-ink-muted"
+                ? "bg-amber-400"
                 : effectiveAvailable > 0
                 ? "bg-emerald-500"
                 : "bg-rose-500"
@@ -583,7 +630,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
           />
           <p className="text-ink-muted">
             {needsSelection && !matchedVariant
-              ? "Select a color and size"
+              ? `Choose your ${optionsLabel}`
               : effectiveAvailable > 0
               ? `${effectiveAvailable} in stock`
               : "Out of Stock"}
@@ -599,12 +646,18 @@ export default function ProductDetails({ productId }: { productId: string }) {
           </div>
         )}
 
+        {needsSelection && matchedVariant && (
+          <p className="text-xs text-ink-muted">
+            Please confirm your {optionsLabel} before checkout.
+          </p>
+        )}
+
         <div className="flex flex-col gap-3">
           <Button
             variant="primary"
             size="lg"
             onClick={handleAddToCart}
-            disabled={!canPurchase}
+            disabled={buyDisabled}
             className="w-full gap-2"
           >
             <ShoppingBagIcon className="w-5 h-5" />
@@ -615,7 +668,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
             variant="secondary"
             size="lg"
             onClick={handleBuyNow}
-            disabled={!canPurchase}
+            disabled={buyDisabled}
             className="w-full gap-2"
           >
             <span>{productSoldOut ? "Sold Out" : "Buy Now"}</span>
