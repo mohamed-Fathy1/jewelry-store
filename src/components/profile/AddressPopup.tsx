@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Address } from "@/types/address.types";
 import { userService } from "@/services/user.service";
 import { toast } from "react-hot-toast";
@@ -64,8 +64,10 @@ const validators: Record<FieldKey, (v: string) => string> = {
     v.trim() === "" || isValidPhone(v) ? "" : "That doesn’t look like a valid Egyptian mobile.",
 };
 
+// text-[16px]: iOS Safari auto-zooms into any field whose font-size is < 16px,
+// which distorts the page's padding/margins. 16px keeps the zoom from firing.
 const inputBase =
-  "w-full appearance-none rounded-[11px] border-[1.5px] bg-bg px-[0.9rem] py-[0.72rem] text-[0.95rem] text-ink transition-colors placeholder:text-ink-subtle focus-visible:border-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent/20";
+  "w-full appearance-none rounded-[11px] border-[1.5px] bg-bg px-[0.9rem] py-[0.72rem] text-[16px] text-ink transition-colors placeholder:text-ink-subtle focus-visible:border-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent/20";
 const labelClass = "mb-[0.4rem] block text-[0.82rem] font-semibold text-ink";
 const hintClass = "mt-[0.35rem] text-[0.76rem] text-ink-subtle";
 const errClass = "mt-[0.35rem] text-[0.76rem] text-red-600";
@@ -175,6 +177,17 @@ export default function AddressPopup({
     () => regions.find((r) => r._id === shipping),
     [regions, shipping]
   );
+
+  // Street address grows with the text (starts at 2 lines).
+  const streetRef = useRef<HTMLTextAreaElement>(null);
+  const autoGrow = (el: HTMLTextAreaElement | null) => {
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  };
+  useEffect(() => {
+    if (view === "form") autoGrow(streetRef.current);
+  }, [view, street]);
 
   const validateField = (key: FieldKey) =>
     setErrors((prev) => ({ ...prev, [key]: validators[key](values[key]) }));
@@ -455,18 +468,23 @@ export default function AddressPopup({
               <label className={labelClass} htmlFor="street">
                 Street address
               </label>
-              <input
+              <textarea
                 id="street"
-                type="text"
+                ref={streetRef}
+                rows={2}
                 autoComplete="street-address"
                 placeholder="Building no., street, area"
                 value={street}
                 onChange={(e) => {
                   setStreet(e.target.value);
                   clearIfFixed("address", e.target.value);
+                  autoGrow(e.target);
                 }}
                 onBlur={() => validateField("address")}
-                className={`${inputBase} ${borderState(errors.address, isFieldValid("address"))}`}
+                className={`${inputBase} block max-h-40 min-h-[3.5rem] resize-none leading-snug ${borderState(
+                  errors.address,
+                  isFieldValid("address")
+                )}`}
               />
               {errors.address && <p className={errClass}>{errors.address}</p>}
             </div>
@@ -476,7 +494,7 @@ export default function AddressPopup({
                 Governorate
               </label>
               <div
-                className={`relative flex w-full items-center justify-between gap-2 rounded-[11px] border-[1.5px] bg-bg px-[0.9rem] py-[0.72rem] text-[0.95rem] transition-colors focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20 ${borderState(
+                className={`relative flex w-full items-center justify-between gap-2 rounded-[11px] border-[1.5px] bg-bg px-[0.9rem] py-[0.72rem] text-[16px] transition-colors focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20 ${borderState(
                   errors.shipping,
                   !!shipping
                 )}`}
@@ -636,7 +654,7 @@ function PhoneField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
-        className="min-w-0 flex-1 border-0 bg-transparent px-[0.9rem] py-[0.72rem] text-[0.95rem] tracking-[0.03em] tabular-nums text-ink outline-none placeholder:text-ink-subtle"
+        className="min-w-0 flex-1 border-0 bg-transparent px-[0.9rem] py-[0.72rem] text-[16px] tracking-[0.03em] tabular-nums text-ink outline-none placeholder:text-ink-subtle"
       />
       {valid && (
         <span className="flex items-center pr-[0.85rem] text-emerald-600">
