@@ -6,6 +6,7 @@ import { useUser } from "@/contexts/UserContext";
 import AddressManager from "@/components/profile/AddressManager";
 import AddressPopup from "@/components/profile/AddressPopup";
 import { useAuth } from "@/contexts/AuthContext";
+import { customerName } from "@/utils/customerName";
 
 export default function AccountProfile() {
   const { user, getProfile, defaultAddressId, setDefaultAddressId } = useUser();
@@ -28,15 +29,19 @@ export default function AccountProfile() {
     const addressList = (user as any) ?? null;
     if (!addressList) return null;
 
-    if (defaultAddressId) {
-      return addressList.find((addr: any) => addr._id === defaultAddressId);
-    }
-    return addressList.length > 0 ? addressList[0] : null;
+    // Prefer the DB-persisted default, then the local cache, then the first.
+    return (
+      addressList.find((addr: any) => addr.isDefault) ||
+      (defaultAddressId
+        ? addressList.find((addr: any) => addr._id === defaultAddressId)
+        : null) ||
+      (addressList.length > 0 ? addressList[0] : null)
+    );
   }, [user, defaultAddressId]);
 
   useEffect(() => {
     setCurrentDefaultAddress(getDefaultAddress());
-  }, [defaultAddressId]);
+  }, [defaultAddressId, user, getDefaultAddress]);
 
   if (!mounted) {
     return null;
@@ -49,8 +54,7 @@ export default function AccountProfile() {
         <h2 className="font-display text-xl text-heading">User Information</h2>
         <p className="text-ink-muted">Email: {authUser?.email}</p>
         <p className="text-ink-muted">
-          Name: {currentDefaultAddress?.firstName}{" "}
-          {currentDefaultAddress?.lastName}
+          Name: {currentDefaultAddress ? customerName(currentDefaultAddress) : "—"}
         </p>
         <Button className="mt-3" onClick={() => setIsPopupOpen(true)}>
           Manage Addresses
@@ -60,16 +64,12 @@ export default function AccountProfile() {
       {/* Address Manager */}
       <AddressManager addresses={user as any} />
 
-      {/* Address Popup */}
+      {/* Address Popup — opens the saved-address manager (list + add/edit) */}
       {mounted && isPopupOpen && (
         <AddressPopup
           isOpen={isPopupOpen}
           onClose={() => setIsPopupOpen(false)}
-          address={currentDefaultAddress}
-          onAddressUpdated={() => {
-            setEditingAddress(null);
-            setIsPopupOpen(false);
-          }}
+          onChanged={getProfile}
           makeDefault={setDefaultAddressId}
         />
       )}

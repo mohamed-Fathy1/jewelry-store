@@ -227,7 +227,7 @@ function ProductCard({
               className="pointer-events-auto absolute inset-x-3 bottom-3 hidden translate-y-2 items-center justify-center gap-2 rounded-full bg-surface/95 py-2.5 text-sm font-semibold text-heading opacity-0 shadow-card-hover backdrop-blur transition-all duration-300 hover:bg-primary hover:text-on-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent group-hover:translate-y-0 group-hover:opacity-100 md:flex"
             >
               <ShoppingBagIcon className="h-[18px] w-[18px]" />
-              Add to Bag
+              Add to Cart
             </button>
           </>
         ) : null}

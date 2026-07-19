@@ -1,7 +1,10 @@
 interface UserInformation {
   _id?: string;
-  firstName: string;
-  lastName: string;
+  // New orders carry `fullName`; legacy first/last/postalCode remain optional so
+  // historical order snapshots (never migrated) still display correctly.
+  fullName?: string;
+  firstName?: string;
+  lastName?: string;
   country: string;
   address: string;
   governorate?: string;
