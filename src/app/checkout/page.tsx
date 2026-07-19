@@ -376,9 +376,9 @@ export default function CheckoutPage() {
   }
 
   return cart.items.length || orderSummaryPreview?.items.length ? (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-28 md:pb-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-28 md:pt-12 md:pb-12">
       {/* Checkout Progress */}
-      <div className="mb-12">
+      <div className="mb-8 md:mb-12">
         <div className="flex items-center justify-center">
           {["shipping", "payment", "confirmation"].map((step, index) => {
             const currentIndex = [

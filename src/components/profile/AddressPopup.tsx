@@ -294,9 +294,12 @@ export default function AddressPopup({
 
   const inner = (
     <>
-      <h2 className="mb-[0.3rem] font-display text-[1.3rem] text-heading">
-        {editingId ? "Edit address" : "Add address"}
-      </h2>
+      {/* Inline (checkout) sits under the "Ship to" heading, so skip the title. */}
+      {!inline && (
+        <h2 className="mb-[0.3rem] font-display text-[1.3rem] text-heading">
+          {editingId ? "Edit address" : "Add address"}
+        </h2>
+      )}
       <p className="mb-[1.25rem] text-[0.85rem] text-ink-muted">
         Cash on delivery — we only need where to send it and how to reach you.
       </p>
@@ -578,13 +581,10 @@ export default function AddressPopup({
     </>
   );
 
-  // Inline (checkout empty-state): render the form right in the page flow.
+  // Inline (checkout empty-state): render flush in the "Ship to" section — no
+  // extra card/border, so it doesn't look like a card inside a card.
   if (inline) {
-    return (
-      <div className="rounded-2xl border border-hairline bg-surface p-4 sm:p-5">
-        {inner}
-      </div>
-    );
+    return <div>{inner}</div>;
   }
 
   // Default: modal overlay.

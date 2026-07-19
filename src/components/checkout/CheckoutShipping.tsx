@@ -31,7 +31,9 @@ export default function CheckoutShipping({
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
-  const [isAccountOpen, setIsAccountOpen] = useState(true);
+  // Account is secondary (just the email) — start collapsed so the address
+  // section is the first thing the customer lands on.
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isShipToOpen, setIsShipToOpen] = useState(true);
   const { authUser } = useAuth();
   const { getProfile, setDefaultAddressId } = useUser();
@@ -91,8 +93,16 @@ export default function CheckoutShipping({
     return selectedAddress.shipping;
   }, [selectedAddress]);
 
+  // The fixed "Continue" bar only shows once at least one address exists — so
+  // pad the bottom for it only then (the empty-state form has its own button).
+  const hasAddresses = Array.isArray(addresses) && addresses.length > 0;
+
   return (
-    <div className="max-w-2xl mx-auto px-1 pb-28 sm:px-2 md:p-4 md:pb-4">
+    <div
+      className={`max-w-2xl mx-auto px-1 sm:px-2 md:p-4 md:pb-4 ${
+        hasAddresses ? "pb-28" : "pb-6"
+      }`}
+    >
       {/* Account Section */}
       <div className="mb-4 border border-hairline rounded-2xl">
         <div
@@ -289,7 +299,11 @@ export default function CheckoutShipping({
 
       {/* Mobile: a fixed action bar showing the live total next to the CTA, so
           both stay in view after the form scrolls. Desktop: inline (the total
-          already lives in the Order Summary), so the button fills the width. */}
+          already lives in the Order Summary), so the button fills the width.
+          Only shown once an address exists — while adding the first address the
+          form's own "Save address" button is the action, so this stays hidden
+          to avoid two competing CTAs. */}
+      {hasAddresses && (
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-surface/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-4px_16px_rgba(74,67,60,0.06)] backdrop-blur md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none">
         <div className="mx-auto flex max-w-2xl items-center gap-3">
           {/* Total — mobile only (desktop shows it in the Order Summary). */}
@@ -320,6 +334,7 @@ export default function CheckoutShipping({
           </Button>
         </div>
       </div>
+      )}
 
       {/* Address Popup */}
       {isAddressPopupOpen ? (
