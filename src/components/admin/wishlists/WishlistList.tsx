@@ -8,6 +8,7 @@ import { useAllWishlist } from "@/hooks/useAdminWishlists";
 import { WishlistEntry } from "@/types/admin-wishlist.types";
 import { formatEGP } from "@/utils/format";
 import { getApiErrorMessage } from "@/utils/apiError";
+import { customerName } from "@/utils/customerName";
 import {
   TableShell,
   Thead,
@@ -157,7 +158,7 @@ function WishlistRow({ entry }: { entry: WishlistEntry }) {
         {info ? (
           <div className="space-y-0.5">
             <div className="text-sm font-medium text-admin-ink">
-              {info.firstName} {info.lastName}
+              {customerName(info)}
             </div>
             <div className="text-xs text-admin-ink-muted">
               {entry.user?.email}

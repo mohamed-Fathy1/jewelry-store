@@ -85,7 +85,7 @@ export default function ShippingAddressSelector({
                         className="inline text-ink-muted"
                       >
                         <span>
-                          {address.city}, {address.state} {address.postalCode}
+                          {address.city}, {address.state}
                         </span>
                         <span className="block">{address.country}</span>
                       </RadioGroup.Description>

@@ -38,14 +38,15 @@ export interface WishlistShipping {
 
 export interface WishlistUserInformation {
   _id: string;
-  firstName: string;
-  lastName: string;
+  fullName?: string;
+  // Kept optional for any not-yet-migrated legacy profile rendering.
+  firstName?: string;
+  lastName?: string;
   primaryPhone: string;
   secondaryPhone?: string;
   country?: string;
   address: string;
-  apartmentSuite?: string;
-  postalCode?: string;
+  isDefault?: boolean;
   shipping: WishlistShipping | null;
   createdAt: string; // ISO date
 }

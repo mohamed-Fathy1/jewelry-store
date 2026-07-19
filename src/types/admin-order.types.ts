@@ -30,8 +30,11 @@ export interface OrderMedia {
 }
 
 export interface OrderUserInformation {
-  firstName: string;
-  lastName: string;
+  // New orders carry `fullName`; legacy first/last/postalCode kept optional so
+  // historical order snapshots (never migrated) still display correctly.
+  fullName?: string;
+  firstName?: string;
+  lastName?: string;
   address: string;
   primaryPhone: string;
   secondaryPhone?: string;

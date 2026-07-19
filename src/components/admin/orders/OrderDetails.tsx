@@ -11,6 +11,7 @@ import { Dialog } from "@headlessui/react";
 import { formatEGP } from "@/utils/format";
 import { useAdminOrder, useUpdateOrderStatus } from "@/hooks/useAdminOrders";
 import { getApiErrorMessage } from "@/utils/apiError";
+import { customerName } from "@/utils/customerName";
 import { Button, StatusBadge, Thumbnail } from "@/components/admin/ui";
 import {
   ORDER_FLOW,
@@ -135,7 +136,7 @@ export default function OrderDetails({ orderId }: { orderId: string }) {
               {info ? (
                 <div className="text-sm space-y-1 text-admin-ink">
                   <p>
-                    {info.firstName} {info.lastName}
+                    {customerName(info)}
                   </p>
                   <p className="text-admin-ink-muted tabular">
                     {info.primaryPhone}

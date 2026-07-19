@@ -11,6 +11,7 @@ import {
 } from "@/types/admin-order.types";
 import { useAdminOrders } from "@/hooks/useAdminOrders";
 import { getApiErrorMessage } from "@/utils/apiError";
+import { customerName } from "@/utils/customerName";
 import { ORDER_STATUS_LABELS, shortOrderId, orderTotal } from "./orderStatus";
 import {
   PageHeader,
@@ -236,8 +237,7 @@ export default function OrderList({ onViewDetails }: OrderListProps) {
                     <Td className="whitespace-nowrap">
                       {order.userInformation ? (
                         <span className="text-admin-ink">
-                          {order.userInformation.firstName}{" "}
-                          {order.userInformation.lastName}
+                          {customerName(order.userInformation)}
                         </span>
                       ) : (
                         <span className="text-admin-ink-muted">—</span>

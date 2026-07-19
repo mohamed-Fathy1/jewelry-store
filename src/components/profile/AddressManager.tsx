@@ -9,19 +9,7 @@ import { toast } from "sonner";
 import AddressPopup from "@/components/profile/AddressPopup";
 import { useUser } from "@/contexts/UserContext";
 import { userService } from "@/services/user.service";
-
-interface IAddress {
-  _id?: string;
-  firstName: string;
-  lastName: string;
-  apartmentSuite?: string;
-  governorate: string;
-  address: string;
-  postalCode: string;
-  primaryPhone: string;
-  secondaryPhone?: string;
-  isDefault?: boolean;
-}
+import { customerName } from "@/utils/customerName";
 
 export default function AddressManager({
   addresses,
@@ -101,13 +89,21 @@ export default function AddressManager({
   };
 
   const getDefaultAddressId = () => {
-    return defaultAddressId || (addresses.length > 0 ? addresses[0]._id : null);
+    const dbDefault = addresses?.find((a) => a.isDefault)?._id;
+    return (
+      dbDefault ||
+      defaultAddressId ||
+      (addresses && addresses.length > 0 ? addresses[0]._id : null)
+    );
   };
 
   const handleSetDefault = async (addressId: string) => {
     setIsLoading(true);
     try {
+      // Persist the default server-side so it follows the user across devices.
+      await userService.setDefaultAddress(addressId);
       setDefaultAddressId(addressId);
+      await getProfile();
       toast.success("Default address updated");
     } catch (error) {
       toast.error("Failed to update default address");
@@ -174,18 +170,17 @@ export default function AddressManager({
               </span>
             )}
             <div className="space-y-2">
-              <p className="text-ink">{address.street}</p>
-              <p className="text-ink-muted">
-                <p className="truncate">
-                  {address.firstName} {address.lastName} {address.governorate}
+              <div className="text-ink-muted">
+                <p className="truncate font-medium text-ink">
+                  {customerName(address)}
                 </p>
-
+                <p className="truncate">{address.address}</p>
                 <p className="truncate">
-                  {address.address}, {address.apartmentSuite}{" "}
-                  {address.postalCode}{" "}
-                  <span className="text-ink-muted">,{address.country}</span>
+                  {address.shipping?.category || address.governorate}
+                  {address.country ? `, ${address.country}` : ""}
                 </p>
-              </p>
+                <p className="truncate tabular-nums">{address.primaryPhone}</p>
+              </div>
             </div>
             <div className="mt-4 flex space-x-2">
               <Button
@@ -222,9 +217,10 @@ export default function AddressManager({
         <AddressPopup
           isOpen={isPopupOpen}
           onClose={() => setIsPopupOpen(false)}
-          address={editingAddress}
-          onAddressUpdated={handleEditAddress}
+          onChanged={getProfile}
           makeDefault={setDefaultAddressId}
+          initialEdit={editingAddress}
+          startInAddForm={!editingAddress}
         />
       ) : null}
     </div>

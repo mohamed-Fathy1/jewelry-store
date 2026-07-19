@@ -1,12 +1,9 @@
 export interface Address {
   _id?: string;
-  firstName: string;
-  lastName: string;
-  apartmentSuite?: string;
+  fullName: string;
   // Populated Shipping object on reads, id string on writes — varies by source.
   shipping: any;
   address: string;
-  postalCode: string;
   primaryPhone: string;
   secondaryPhone?: string;
   isDefault?: boolean;

@@ -3,11 +3,14 @@
 import { useState, useEffect, useMemo } from "react";
 import AddressPopup from "../profile/AddressPopup";
 import { Address } from "@/types/address.types";
-import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
+import { ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCheckout } from "@/contexts/CheckoutContext";
 import { Button } from "@/components/ui/Button";
+import { customerName } from "@/utils/customerName";
+import { userService } from "@/services/user.service";
+import { toast } from "react-hot-toast";
 
 interface ShippingRegion {
   _id: string;
@@ -19,6 +22,7 @@ export default function CheckoutShipping({ onSubmit }) {
   const [isAddressPopupOpen, setIsAddressPopupOpen] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const [isAccountOpen, setIsAccountOpen] = useState(true);
   const [isShipToOpen, setIsShipToOpen] = useState(true);
   const { authUser } = useAuth();
@@ -37,13 +41,15 @@ export default function CheckoutShipping({ onSubmit }) {
   const fetchAddresses = async () => {
     try {
       const response: any = await getProfile();
-      setAddresses(response.data.user);
-      // Set default address if available
-      const defaultAddress = response.data.user.find(
-        (addr: any) => addr._id === localStorage.getItem("defaultAddressId")
-      );
+      const list = response.data.user;
+      setAddresses(list);
+      // Prefer the DB-persisted default; fall back to the local cache, then first.
+      const cachedDefaultId = localStorage.getItem("defaultAddressId");
+      const defaultAddress =
+        list.find((addr: any) => addr.isDefault) ||
+        list.find((addr: any) => addr._id === cachedDefaultId);
 
-      setSelectedAddress(defaultAddress || response.data.user[0]);
+      setSelectedAddress(defaultAddress || list[0]);
     } catch (error) {
       console.error("Failed to fetch addresses:", error);
     }
@@ -52,6 +58,18 @@ export default function CheckoutShipping({ onSubmit }) {
   const handleEditAddress = (address: Address) => {
     setEditingAddress(address);
     setIsAddressPopupOpen(true);
+  };
+
+  const handleDeleteAddress = async (id?: string) => {
+    if (!id) return;
+    try {
+      await userService.deleteUserInformation(id);
+      setConfirmingDeleteId(null);
+      await fetchAddresses();
+      toast.success("Address deleted");
+    } catch {
+      toast.error("Couldn’t delete this address. Please try again.");
+    }
   };
 
   const handleAddressSelect = (address: Address) => {
@@ -102,57 +120,131 @@ export default function CheckoutShipping({ onSubmit }) {
         </div>
         {isShipToOpen && (
           <div className="p-4 border-t border-hairline">
+            {addresses.length === 0 ? (
+              // No saved address → show the add form directly (no button/popup).
+              <AddressPopup
+                inline
+                isOpen
+                onClose={() => {}}
+                onChanged={fetchAddresses}
+                onSelect={(a) => setSelectedAddress(a)}
+                makeDefault={setDefaultAddressId}
+              />
+            ) : (
+              <>
             {Array.isArray(addresses) &&
-              addresses.map((addr) => (
-                <label
-                  key={addr._id}
-                  className={`flex justify-between items-start mb-4 p-3 rounded cursor-pointer transition-colors duration-200 text-ink ${
-                    selectedAddress?._id === addr._id
-                      ? "bg-accent-soft"
-                      : "bg-surface"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
+              addresses.map((addr) => {
+                const selected = selectedAddress?._id === addr._id;
+                if (confirmingDeleteId === addr._id) {
+                  return (
+                    <div
+                      key={addr._id}
+                      className="mb-2 flex items-center justify-between gap-[0.6rem] rounded-[12px] border-[1.5px] border-red-400 bg-red-500/[0.06] p-[0.8rem]"
+                    >
+                      <span className="text-[0.84rem] font-semibold text-ink">
+                        Delete this address?
+                      </span>
+                      <div className="flex gap-[0.4rem]">
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingDeleteId(null)}
+                          className="rounded-[8px] border-[1.5px] border-hairline bg-surface px-[0.75rem] py-[0.35rem] text-[0.78rem] font-semibold text-ink transition-colors hover:border-hairline-strong"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAddress(addr._id)}
+                          className="rounded-[8px] border-[1.5px] border-red-600 bg-red-600 px-[0.75rem] py-[0.35rem] text-[0.78rem] font-semibold text-white transition hover:brightness-95"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <label
+                    key={addr._id}
+                    className={`mb-2 flex cursor-pointer items-start gap-[0.7rem] rounded-[12px] border-[1.5px] p-[0.8rem] transition-colors ${
+                      selected
+                        ? "border-primary bg-accent-soft"
+                        : "border-hairline bg-surface hover:border-hairline-strong"
+                    }`}
+                  >
                     <input
                       type="radio"
                       name="address"
-                      checked={selectedAddress?._id === addr._id}
+                      checked={selected}
                       onChange={() => setSelectedAddress(addr)}
-                      className="mt-1 invisible"
+                      className="sr-only"
                     />
-                    <div>
-                      <p className="font-medium">
-                        {addr.firstName} {addr.lastName}
-                      </p>
-                      <p className="text-sm">{addr.address}</p>
-                      <p className="text-sm">
-                        {[addr.governorate, addr.postalCode]
+                    <span
+                      className={`mt-[0.2rem] grid h-4 w-4 flex-none place-items-center rounded-full border-2 ${
+                        selected ? "border-primary" : "border-hairline-strong"
+                      }`}
+                    >
+                      {selected && (
+                        <span className="h-2 w-2 rounded-full bg-primary" />
+                      )}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-[0.9rem] font-semibold text-ink">
+                          {customerName(addr)}
+                        </p>
+                        {addr.isDefault && (
+                          <span className="ml-auto flex-none rounded-full bg-primary px-[0.5rem] py-[0.18rem] text-[0.62rem] font-bold uppercase tracking-[0.08em] text-on-primary">
+                            Default
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 truncate text-[0.82rem] text-ink-muted">
+                        {[
+                          addr.address,
+                          addr.shipping?.category || addr.governorate,
+                          addr.primaryPhone,
+                        ]
                           .filter(Boolean)
-                          .join(", ")}
+                          .join(" · ")}
                       </p>
                     </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleEditAddress(addr);
-                    }}
-                    aria-label="Edit address"
-                    className="p-2 hover:bg-surface-muted rounded-full transition-colors text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                  >
-                    <Pencil size={16} />
-                  </button>
-                </label>
-              ))}
+                    <div className="flex flex-none items-center gap-[0.1rem]">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleEditAddress(addr);
+                        }}
+                        aria-label="Edit address"
+                        className="grid h-7 w-7 place-items-center rounded-lg text-ink-subtle transition-colors hover:bg-ink/[0.07] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      >
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setConfirmingDeleteId(addr._id ?? null);
+                        }}
+                        aria-label="Delete address"
+                        className="grid h-7 w-7 place-items-center rounded-lg text-ink-subtle transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </label>
+                );
+              })}
             <button
-              className="text-sm hover:underline flex items-center gap-2 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="mt-1 flex w-full items-center justify-center gap-2 rounded-[12px] border-[1.5px] border-dashed border-hairline-strong px-3 py-[0.7rem] text-[0.85rem] font-semibold text-ink transition-colors hover:border-primary hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={() => {
                 setEditingAddress(null);
                 setIsAddressPopupOpen(true);
               }}
             >
-              + Use a different address
+              ＋ Add new address
             </button>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -198,10 +290,12 @@ export default function CheckoutShipping({ onSubmit }) {
         <AddressPopup
           isOpen={isAddressPopupOpen}
           onClose={() => setIsAddressPopupOpen(false)}
-          onAddressUpdated={fetchAddresses}
-          setAddresses={setAddresses}
-          address={editingAddress}
+          onChanged={fetchAddresses}
+          onSelect={(a) => setSelectedAddress(a)}
+          selectedId={selectedAddress?._id}
           makeDefault={setDefaultAddressId}
+          initialEdit={editingAddress}
+          startInAddForm={!editingAddress}
         />
       ) : null}
     </div>

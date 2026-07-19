@@ -2,15 +2,16 @@
 
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
+import { customerName } from "@/utils/customerName";
 
 interface ISelectedAddress {
   _id?: string;
-  firstName: string;
-  lastName: string;
-  apartmentSuite?: string;
+  fullName?: string;
+  firstName?: string;
+  lastName?: string;
   governorate?: string;
+  shipping?: any;
   address: string;
-  postalCode: string;
   primaryPhone: string;
   secondaryPhone?: string;
   isDefault?: boolean;
@@ -25,13 +26,10 @@ export default function OrderConfirmation({
   selectedAddress,
   shippingData,
 }: Props) {
-  const streetLine = [selectedAddress.address, selectedAddress.apartmentSuite]
-    .filter(Boolean)
-    .join(", ");
+  const streetLine = selectedAddress.address;
   const regionLine = [
     shippingData.shipping?.name,
-    selectedAddress.governorate,
-    selectedAddress.postalCode,
+    selectedAddress.shipping?.category || selectedAddress.governorate,
   ]
     .filter(Boolean)
     .join(", ");
@@ -68,9 +66,7 @@ export default function OrderConfirmation({
             Shipping address
           </dt>
           <dd className="mt-2 space-y-0.5 text-sm leading-relaxed text-ink">
-            <p className="font-medium">
-              {selectedAddress.firstName} {selectedAddress.lastName}
-            </p>
+            <p className="font-medium">{customerName(selectedAddress)}</p>
             {streetLine && <p>{streetLine}</p>}
             {regionLine && <p>{regionLine}</p>}
             {selectedAddress.primaryPhone && (

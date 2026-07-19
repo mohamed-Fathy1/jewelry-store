@@ -39,6 +39,13 @@ export const userService = {
     return response.data;
   },
 
+  async setDefaultAddress(id: string): Promise<UserResponse> {
+    const response = await api.patch<UserResponse>(
+      `/user/set-default-user-information/${id}`
+    );
+    return response.data;
+  },
+
   // Setup response interceptor for handling logout
   setupResponseInterceptor(logout: () => void) {
     // Note: We don't need this anymore as it's handled in AuthContext
