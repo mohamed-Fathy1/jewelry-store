@@ -376,7 +376,7 @@ export default function CheckoutPage() {
   }
 
   return cart.items.length || orderSummaryPreview?.items.length ? (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-28 md:pb-12">
       {/* Checkout Progress */}
       <div className="mb-12">
         <div className="flex items-center justify-center">
@@ -449,12 +449,16 @@ export default function CheckoutPage() {
       </div>
 
       {/* Main Content */}
-      <div className="relative h-fit overflow-visible grid grid-cols-1 lg:grid-cols-12 md:gap-12">
+      <div className="relative h-fit overflow-visible grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-12">
         {/* Forms */}
         <div className="lg:col-span-8">
           {currentStep === "shipping" && (
             <div className="container mx-auto py-4 md:py-8">
-              <CheckoutShipping onSubmit={handleShippingSubmit} />
+              <CheckoutShipping
+                onSubmit={handleShippingSubmit}
+                total={preview?.totalAmount ?? null}
+                previewLoading={previewLoading}
+              />
             </div>
           )}
           {currentStep === "payment" && (
@@ -473,7 +477,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Order Summary */}
-        <div className="sticky top-0 lg:col-span-4 z-10">
+        <div className="z-10 lg:sticky lg:top-6 lg:col-span-4">
           <OrderSummary
             orderSummaryPreview={orderSummaryPreview}
             preview={preview}

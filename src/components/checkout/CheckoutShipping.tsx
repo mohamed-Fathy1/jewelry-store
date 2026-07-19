@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import AddressPopup from "../profile/AddressPopup";
 import { Address } from "@/types/address.types";
-import { ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Pencil, Trash2, ArrowRight } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCheckout } from "@/contexts/CheckoutContext";
@@ -18,7 +18,15 @@ interface ShippingRegion {
   cost: number;
 }
 
-export default function CheckoutShipping({ onSubmit }) {
+export default function CheckoutShipping({
+  onSubmit,
+  total,
+  previewLoading,
+}: {
+  onSubmit: (data?: any) => void;
+  total?: number | null;
+  previewLoading?: boolean;
+}) {
   const [isAddressPopupOpen, setIsAddressPopupOpen] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
@@ -84,9 +92,9 @@ export default function CheckoutShipping({ onSubmit }) {
   }, [selectedAddress]);
 
   return (
-    <div className="max-w-2xl mx-auto px-2 md:p-4">
+    <div className="max-w-2xl mx-auto px-1 pb-28 sm:px-2 md:p-4 md:pb-4">
       {/* Account Section */}
-      <div className="mb-4 border border-hairline rounded-lg">
+      <div className="mb-4 border border-hairline rounded-2xl">
         <div
           className="flex justify-between items-center p-4 cursor-pointer text-ink"
           onClick={() => setIsAccountOpen(!isAccountOpen)}
@@ -110,7 +118,7 @@ export default function CheckoutShipping({ onSubmit }) {
       </div>
 
       {/* Ship To Section */}
-      <div className="mb-4 border border-hairline rounded-lg">
+      <div className="mb-4 border border-hairline rounded-2xl">
         <div
           className="flex justify-between items-center p-4 cursor-pointer text-ink"
           onClick={() => setIsShipToOpen(!isShipToOpen)}
@@ -250,13 +258,13 @@ export default function CheckoutShipping({ onSubmit }) {
       </div>
 
       {/* Shipping Method Section */}
-      <div className="mb-4 border border-hairline rounded-lg">
+      <div className="mb-4 border border-hairline rounded-2xl">
         <div className="flex justify-between items-center p-4 cursor-pointer text-ink">
           <h2 className="text-lg font-medium">Shipping method</h2>
         </div>
         {selectedShippingRegion && (
           <div className="p-4 border-t border-hairline">
-            <label className="flex items-center justify-between p-3 mb-2 cursor-pointer rounded transition-colors duration-200 bg-accent-soft text-ink">
+            <label className="flex items-center justify-between p-3 mb-2 cursor-pointer rounded-xl transition-colors duration-200 bg-accent-soft text-ink">
               <div className="flex items-center gap-3">
                 <span>{selectedShippingRegion.category}</span>
               </div>
@@ -279,10 +287,38 @@ export default function CheckoutShipping({ onSubmit }) {
         </label>
       </div>
 
-      <div className="sticky bottom-0 w-full md:static">
-        <Button type="submit" size="lg" onClick={onSubmit} className="w-full">
-          Continue to Payment
-        </Button>
+      {/* Mobile: a fixed action bar showing the live total next to the CTA, so
+          both stay in view after the form scrolls. Desktop: inline (the total
+          already lives in the Order Summary), so the button fills the width. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-surface/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-4px_16px_rgba(74,67,60,0.06)] backdrop-blur md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none">
+        <div className="mx-auto flex max-w-2xl items-center gap-3">
+          {/* Total — mobile only (desktop shows it in the Order Summary). */}
+          <div className="min-w-0 shrink-0 md:hidden">
+            <p className="text-[0.65rem] font-medium uppercase tracking-[0.1em] text-ink-muted">
+              Total
+            </p>
+            {typeof total === "number" ? (
+              <p className="text-lg font-semibold tabular-nums leading-tight text-heading">
+                EGP {total.toFixed(2)}
+              </p>
+            ) : (
+              <p className="text-lg font-semibold leading-tight text-ink-subtle">
+                {previewLoading ? "…" : "—"}
+              </p>
+            )}
+          </div>
+          <Button
+            type="submit"
+            size="lg"
+            onClick={onSubmit}
+            className="flex-1 md:w-full"
+          >
+            <span className="flex items-center justify-center gap-2">
+              Continue to Payment
+              <ArrowRight className="h-[18px] w-[18px]" />
+            </span>
+          </Button>
+        </div>
       </div>
 
       {/* Address Popup */}
