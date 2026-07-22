@@ -5,6 +5,11 @@ import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { offersService } from "@/services/offers.service";
+import { heroService } from "@/services/hero.service";
+import {
+  FALLBACK_DESKTOP,
+  FALLBACK_MOBILE,
+} from "@/services/hero.resolve";
 import { OFFER_TYPE_LABELS } from "@/components/admin/offers/offerMeta";
 import type { Offer } from "@/types/offer.types";
 import Hero from "./Hero";
@@ -31,8 +36,8 @@ export default function PromoBanner({
   const [offers, setOffers] = useState<Phase>(null);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const desktop = initialDesktop;
-  const mobile = initialMobile;
+  const [desktop, setDesktop] = useState(initialDesktop);
+  const [mobile, setMobile] = useState(initialMobile);
 
   useEffect(() => {
     let active = true;
@@ -43,6 +48,22 @@ export default function PromoBanner({
       setOffers(
         list.filter((o) => o.isActive && o.status === "active" && o.title?.trim())
       );
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Recover the admin-set hero images from the browser so the banner backdrop
+  // loads even when the server-side resolution fell back to the local default.
+  // Only real (non-fallback) results override the server props.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { desktop: d, mobile: m } = await heroService.getResolvedHeroImages();
+      if (!active) return;
+      if (d !== FALLBACK_DESKTOP) setDesktop(d);
+      if (m !== FALLBACK_MOBILE) setMobile(m);
     })();
     return () => {
       active = false;

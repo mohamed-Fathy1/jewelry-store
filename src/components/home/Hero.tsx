@@ -1,19 +1,23 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
+import { heroService } from "@/services/hero.service";
+import {
+  FALLBACK_DESKTOP,
+  FALLBACK_MOBILE,
+} from "@/services/hero.resolve";
 
-// Local fallbacks — used when the caller can't resolve the admin-set slider.
-const FALLBACK_DESKTOP = "/hero/hero-desktop.jpg";
-const FALLBACK_MOBILE = "/hero/hero-mobile.jpg";
 const EASE = [0.22, 1, 0.36, 1] as const;
 const ALT =
   "A flat-lay of fine gold jewelry — necklaces, bangles, hoops and rings on cream";
 
 // image2 = large (desktop), image1 = small (mobile). Images are resolved on the
 // server and passed in, so the correct CloudFront URL is in the first paint (no
-// client fetch, no flash). Defaults keep the component usable standalone.
+// flash). We also re-fetch on mount so the admin-set images still load in the
+// browser even when the server-side resolution fell back to the local defaults.
 interface HeroProps {
   initialDesktop?: string;
   initialMobile?: string;
@@ -24,8 +28,24 @@ export default function Hero({
   initialMobile = FALLBACK_MOBILE,
 }: HeroProps) {
   const reduce = useReducedMotion();
-  const desktop = initialDesktop;
-  const mobile = initialMobile;
+  const [desktop, setDesktop] = useState(initialDesktop);
+  const [mobile, setMobile] = useState(initialMobile);
+
+  // Recover the admin-set images from the browser. Only real (non-fallback)
+  // results override the server props, so a failed fetch never downgrades a
+  // correctly server-resolved image back to the local default.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { desktop: d, mobile: m } = await heroService.getResolvedHeroImages();
+      if (!active) return;
+      if (d !== FALLBACK_DESKTOP) setDesktop(d);
+      if (m !== FALLBACK_MOBILE) setMobile(m);
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const rise = (delay: number) =>
     reduce
