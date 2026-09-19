@@ -1,122 +1,81 @@
 # Deploying the storefront
 
-How to release the site, move the domain onto it, and undo that move. For what
-the stack is made of, see [Hosting](./hosting.md).
+How to release the site and how to change where the domain points. For what the
+stack is made of, see [Hosting](./hosting.md).
 
 ## Release a change
 
-Push to `main`. The `Deploy storefront` workflow builds the export, uploads it,
-and invalidates the CloudFront cache. A release is live about a minute after the
-workflow finishes.
+Push to `main`. The `Deploy storefront` workflow builds the static export,
+uploads it to S3, and invalidates the CloudFront cache. A release is live about
+a minute after the workflow finishes, and the whole run takes under two minutes.
 
 To release from your machine instead:
 
 ```bash
+nvm use
 ./scripts/deploy.sh
 ```
 
-The script refuses to build if `NEXT_PUBLIC_API_URL` ends in a slash, and it
-fails if the build does not produce the files the router expects. Both checks
-guard mistakes that are invisible until a customer hits them.
+The build requires Node 20. Node 21 and later fail to prerender
+`/activate-account` and `/admin/login`, so `deploy.sh` checks `.nvmrc` first and
+tells you rather than failing inside a stack trace.
 
-## Set up deploys from GitHub
+The script also refuses to build if `NEXT_PUBLIC_API_URL` ends in a slash, and
+it fails if the build does not produce the files the CloudFront router expects.
+Both guard mistakes that are otherwise invisible until a customer hits them.
 
-Run this once. It creates the GitHub OIDC provider and a role scoped to this
-repository's `main` branch, so no AWS access key is stored in GitHub.
-
-```bash
-./scripts/github-oidc.sh
-```
-
-Copy the role ARN it prints into the repository variable `AWS_DEPLOY_ROLE` under
-**Settings → Secrets and variables → Actions → Variables**.
-
-## Freeze Amplify before you merge this to main
-
-Do this first, before the static-export branch reaches `main`.
-
-Amplify's `main` branch still has auto-build on, so merging would make Amplify
-rebuild the app. The app no longer produces a server build, so that rebuild
-would replace the last working Amplify deployment with a broken one and take
-the rollback path with it. Turn auto-build off and Amplify keeps serving its
-last good deployment from 2026-07-22, which is what `scripts/rollback.sh`
-restores.
+## Check a deploy
 
 ```bash
-aws amplify update-branch --region eu-north-1 \
-  --app-id d3v4bqctfwhddx --branch-name main --no-enable-auto-build
+./scripts/verify.sh www.atozaccessory.com
 ```
 
-To undo it, run the same command with `--enable-auto-build`.
+This asserts every row of the URL mapping in [Hosting](./hosting.md), all three
+cache tiers, the content type of the RSC payloads, and that no page carries
+`noindex`. Pass no argument to check the CloudFront domain directly instead.
 
-## Move the domain onto CloudFront
+`scripts/cloudfront-function.test.mjs` asserts the router's rewrite rules
+without touching the network. CI runs it before it uploads anything.
 
-Read this section before you start it. The site goes down partway through.
+## Undo a bad release
 
-CloudFront refuses to register a domain alias that is live on another
-distribution, and Amplify's distribution holds both `atozaccessory.com` and
-`www.atozaccessory.com`. Amplify has to release the names before CloudFront
-accepts them, and the site is unreachable from that release until the new
-distribution finishes deploying. That window is usually 5 to 15 minutes. Run it
-during the overnight traffic low.
+Fix it forward. Correct the source and push to `main`, or run
+`./scripts/deploy.sh` from your machine. The invalidation takes effect in about
+a minute.
 
-1. Confirm the new distribution already serves the site:
+To serve a previous build, check out that commit and run `./scripts/deploy.sh`.
+The S3 bucket holds only the current build, so the repository is the only
+history.
 
-    ```bash
-    curl -sI https://d16rudrv92zfo9.cloudfront.net/ | head -1
-    ```
+There is no rollback to Amplify. The app was deleted on 2026-09-19.
 
-    If that is not `HTTP/2 200`, run `./scripts/deploy.sh` and try again.
+## Change where the domain points
 
-2. Release the names from Amplify and attach them to CloudFront:
-
-    ```bash
-    ./scripts/cutover.sh
-    ```
-
-    The script stops and prints the two DNS records to apply. It changes no DNS
-    itself. To have it update Route 53 as well, run `./scripts/cutover.sh
-    --with-dns`.
-
-3. Apply the DNS records it printed. Use alias A records rather than a CNAME:
-   they work at the apex, and Route 53 does not bill their queries.
-
-4. Confirm the site is back:
-
-    ```bash
-    curl -sI https://www.atozaccessory.com/ | head -1
-    curl -sI https://atozaccessory.com/ | head -2
-    ```
-
-    The second command must show a 302 to `https://www.atozaccessory.com/`.
-
-Nothing else in the hosted zone changes. The `api`, email, and
-certificate-validation records stay as they are.
-
-## Undo the move
-
-If the content is wrong, fix it forward. Correct the source, run
-`./scripts/deploy.sh`, and the invalidation takes effect in about a minute. That
-is faster than any rollback.
-
-If the domain move itself failed, run:
+Both names are Route 53 alias A records pointing at the distribution. To move
+them, change the alias target. CloudFront's hosted zone id is always
+`Z2FDTNDATAQYW2`.
 
 ```bash
-./scripts/rollback.sh
+aws route53 change-resource-record-sets --hosted-zone-id Z09414472OJJPPAHLU475 \
+  --change-batch '{"Changes":[
+    {"Action":"UPSERT","ResourceRecordSet":{"Name":"atozaccessory.com.","Type":"A",
+      "AliasTarget":{"HostedZoneId":"Z2FDTNDATAQYW2","DNSName":"<new>.cloudfront.net","EvaluateTargetHealth":false}}},
+    {"Action":"UPSERT","ResourceRecordSet":{"Name":"www.atozaccessory.com.","Type":"A",
+      "AliasTarget":{"HostedZoneId":"Z2FDTNDATAQYW2","DNSName":"<new>.cloudfront.net","EvaluateTargetHealth":false}}}
+  ]}'
 ```
 
-It detaches the aliases from CloudFront and re-associates the domain with
-Amplify. Amplify then re-issues its managed certificate. The validation CNAME
-from the original association is still in the hosted zone, so this usually takes
-minutes, but it is slower than the cutover was. Watch it with the command the
-script prints, then point DNS back at the Amplify distribution it reports.
+A distribution will not accept a domain alias that is live on another
+distribution, so detach the names from the old one before attaching them to the
+new one. That release is asynchronous and can take a minute to take effect.
 
-## Retire Amplify
+## Rebuild the infrastructure
 
-Do this only after the site has run on CloudFront long enough to trust, and only
-once you no longer want the rollback path. Deleting the Amplify app removes the
-rollback.
+`scripts/infra.sh` reconciles the bucket, the Origin Access Control, the
+`atozaccessory-router` function, and the distribution. It is idempotent, so
+running it against the existing stack changes nothing.
 
-```bash
-aws amplify delete-app --region eu-north-1 --app-id d3v4bqctfwhddx
-```
+`scripts/github-oidc.sh` creates the role GitHub Actions assumes. Run it once
+and put the ARN it prints in the repository variable `AWS_DEPLOY_ROLE` under
+**Settings → Secrets and variables → Actions → Variables**. No AWS access key
+is stored in GitHub.
