@@ -14,8 +14,10 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # URLs by string concatenation in places, and a trailing slash produces a double
 # slash that the backend answers with 401.
 export NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-https://api.atozaccessory.com}"
+# Matches what Amplify had. src/lib/analytics.ts falls back to the same value,
+# and NEXT_PUBLIC_GA_MEASUREMENT_ID is deliberately unset here because Amplify
+# never set it either; the fallback G-W105BCK4MN is the live property.
 export NEXT_PUBLIC_META_PIXEL_ID="${NEXT_PUBLIC_META_PIXEL_ID:-1617903932237399}"
-export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-https://www.atozaccessory.com}"
 
 say() { printf '\n== %s\n' "$*"; }
 

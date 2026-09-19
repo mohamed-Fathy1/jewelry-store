@@ -40,4 +40,3 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: https://api.atozaccessory.com
           NEXT_PUBLIC_META_PIXEL_ID: ${{ vars.NEXT_PUBLIC_META_PIXEL_ID || '1617903932237399' }}
-          NEXT_PUBLIC_SITE_URL: https://www.atozaccessory.com

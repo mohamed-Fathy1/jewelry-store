@@ -57,10 +57,24 @@ cfg["ViewerCertificate"] = {
 }
 json.dump(cfg, open(out, "w"))
 PY
-aws cloudfront update-distribution --id "$DIST_ID" --if-match "$ETAG" \
-  --distribution-config "file://$TMP/new.json" >/dev/null
+# Amplify releases the names asynchronously, so CloudFront can still report
+# CNAMEAlreadyExists for a minute after the delete returns. Retry rather than
+# leave the site down on a race.
+for attempt in $(seq 1 20); do
+  if aws cloudfront update-distribution --id "$DIST_ID" --if-match "$ETAG" \
+       --distribution-config "file://$TMP/new.json" >/dev/null 2>"$TMP/err"; then
+    echo "   aliases attached on attempt ${attempt}"
+    break
+  fi
+  if ! grep -q 'CNAMEAlreadyExists' "$TMP/err"; then
+    cat "$TMP/err" >&2; rm -rf "$TMP"; exit 1
+  fi
+  [ "$attempt" = "20" ] && { echo "   still held after 20 attempts" >&2; cat "$TMP/err" >&2; rm -rf "$TMP"; exit 1; }
+  echo "   names not released yet, retrying in 15s (${attempt}/20)"
+  sleep 15
+  ETAG=$(aws cloudfront get-distribution-config --id "$DIST_ID" --query ETag --output text)
+done
 rm -rf "$TMP"
-echo "   aliases attached"
 
 say "waiting for the distribution to deploy"
 aws cloudfront wait distribution-deployed --id "$DIST_ID"
