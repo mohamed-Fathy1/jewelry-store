@@ -64,13 +64,13 @@ check /this-page-does-not-exist                  404
 
 echo
 echo "cache headers"
-check_header /                                   "cache-control: public, max-age=0, must-revalidate"
+check_header /                                   "cache-control: public, max-age=0, s-maxage=300, must-revalidate"
 check_header /logo.jpg                           "cache-control: public, max-age=86400"
 check_header /hero/hero-desktop.jpg              "cache-control: public, max-age=86400"
 
 # The flight payload must stay short-lived and it must stay text/plain. Serve it
 # as text/html and the client router rejects it and does a full page reload.
-check_header /product/6a7b855ebc29540b7ad47d61.txt "cache-control: public, max-age=0, must-revalidate"
+check_header /product/6a7b855ebc29540b7ad47d61.txt "cache-control: public, max-age=0, s-maxage=300, must-revalidate"
 check_header /product/6a7b855ebc29540b7ad47d61.txt "content-type: text/plain"
 
 CHUNK=$(curl -s "${BASE}/" | grep -o '/_next/static/chunks/[a-zA-Z0-9._-]*\.js' | head -1)

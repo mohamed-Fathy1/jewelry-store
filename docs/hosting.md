@@ -66,12 +66,16 @@ The deploy workflow runs it before it uploads anything.
 | Path | `Cache-Control` |
 |---|---|
 | `_next/static/**` | `public, max-age=31536000, immutable` |
-| `**/*.html` | `public, max-age=0, must-revalidate` |
+| `**/*.html` | `public, max-age=0, s-maxage=300, must-revalidate` |
 | everything else | `public, max-age=86400` |
 
-HTML carries `max-age=0` for the browser but CloudFront still caches it at the
-edge, so a page load is an edge hit rather than a trip to S3. Each deploy
-invalidates `/*`, which is what makes a release visible straight away.
+HTML carries two lifetimes on purpose. `max-age=0` keeps the browser
+revalidating, so a returning visitor always sees the current page. `s-maxage=300`
+lets the CloudFront edge hold it for five minutes; browsers ignore that
+directive and CloudFront honours it. Without the second one, a few requests in
+every handful pay a 440 ms revalidation round trip to S3 rather than a 35 ms
+edge hit. Each deploy invalidates `/*`, so a release is still visible straight
+away.
 
 Hashed assets under `_next/static` are never deleted on deploy. A visitor who
 loaded a page just before a release keeps working, and the leftover files cost

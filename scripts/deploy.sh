@@ -73,16 +73,22 @@ say "upload RSC payloads"
 # and falls back to a full page load.
 aws s3 cp out "s3://${BUCKET}" --recursive \
   --exclude "*" --include "*.txt" \
-  --cache-control "public, max-age=0, must-revalidate" \
+  --cache-control "public, max-age=0, s-maxage=300, must-revalidate" \
   --only-show-errors
 echo "   done"
 
 say "upload HTML last"
 # Last, so a visitor never receives new HTML that references an asset which has
 # not landed yet.
+#
+# max-age=0 keeps the BROWSER revalidating, so a returning visitor always sees
+# the current page. s-maxage=300 lets the EDGE hold it for five minutes, which
+# browsers ignore and CloudFront honours. Without it every few requests pay a
+# ~440ms revalidation round trip to S3 instead of a ~35ms edge hit. Each deploy
+# invalidates /*, so a release is still visible immediately.
 aws s3 cp out "s3://${BUCKET}" --recursive \
   --exclude "*" --include "*.html" \
-  --cache-control "public, max-age=0, must-revalidate" \
+  --cache-control "public, max-age=0, s-maxage=300, must-revalidate" \
   --content-type "text/html; charset=utf-8" \
   --only-show-errors
 echo "   done"
