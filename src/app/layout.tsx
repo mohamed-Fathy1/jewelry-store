@@ -146,21 +146,27 @@ export default function RootLayout({
         </Suspense>
         {/* Microsoft Clarity — storefront only; skips /admin (see component). */}
         <ClarityAnalytics />
-        <AuthProvider>
-          <UserProvider>
-            <CategoryProvider>
-              <ProductProvider>
-                <CartProvider>
-                  <CheckoutProvider>
-                    <WishlistProvider>
-                      <LayoutWrapper>{children}</LayoutWrapper>
-                    </WishlistProvider>
-                  </CheckoutProvider>
-                </CartProvider>
-              </ProductProvider>
-            </CategoryProvider>
-          </UserProvider>
-        </AuthProvider>
+        {/* AuthProvider reads the query string via useSearchParams. Without a
+            Suspense boundary Next deopts the whole export to client-side
+            rendering, so every page in out/ ships as the __next_error__ shell
+            with noindex and none of the <head> tags above. */}
+        <Suspense fallback={null}>
+          <AuthProvider>
+            <UserProvider>
+              <CategoryProvider>
+                <ProductProvider>
+                  <CartProvider>
+                    <CheckoutProvider>
+                      <WishlistProvider>
+                        <LayoutWrapper>{children}</LayoutWrapper>
+                      </WishlistProvider>
+                    </CheckoutProvider>
+                  </CartProvider>
+                </ProductProvider>
+              </CategoryProvider>
+            </UserProvider>
+          </AuthProvider>
+        </Suspense>
         <Toaster position="bottom-right" />
       </body>
     </html>

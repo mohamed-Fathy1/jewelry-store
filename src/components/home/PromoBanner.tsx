@@ -20,24 +20,16 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 // `null` = still deciding (fetch in flight); [] = decided, no offers → hero.
 type Phase = Offer[] | null;
 
-// Hero imagery (admin-swappable slider) doubles as the banner backdrop. It is
-// resolved on the SERVER and handed in as props so the correct CloudFront URL
-// is in the first paint — no client fetch, no flash of the local stock image.
-interface PromoBannerProps {
-  initialDesktop: string;
-  initialMobile: string;
-}
-
-export default function PromoBanner({
-  initialDesktop,
-  initialMobile,
-}: PromoBannerProps) {
+// Hero imagery (admin-swappable slider) doubles as the banner backdrop. The
+// browser fetches it on mount, starting from the bundled local fallback so the
+// first paint always has an image to show.
+export default function PromoBanner() {
   const reduce = useReducedMotion();
   const [offers, setOffers] = useState<Phase>(null);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [desktop, setDesktop] = useState(initialDesktop);
-  const [mobile, setMobile] = useState(initialMobile);
+  const [desktop, setDesktop] = useState(FALLBACK_DESKTOP);
+  const [mobile, setMobile] = useState(FALLBACK_MOBILE);
 
   useEffect(() => {
     let active = true;
@@ -54,9 +46,9 @@ export default function PromoBanner({
     };
   }, []);
 
-  // Recover the admin-set hero images from the browser so the banner backdrop
-  // loads even when the server-side resolution fell back to the local default.
-  // Only real (non-fallback) results override the server props.
+  // Load the admin-set hero from the browser. Only a real (non-fallback)
+  // result replaces the bundled default, so a failed fetch leaves the local
+  // image in place rather than blanking the backdrop.
   useEffect(() => {
     let active = true;
     (async () => {
@@ -88,7 +80,8 @@ export default function PromoBanner({
   );
 
   // Decided there are no live offers → the regular hero (graceful fallback).
-  // Pass the server-resolved images so the Hero doesn't flash either.
+  // Hand over the pair already resolved here so the Hero starts from it
+  // instead of flashing the local fallback first.
   if (offers && offers.length === 0)
     return <Hero initialDesktop={desktop} initialMobile={mobile} />;
 
