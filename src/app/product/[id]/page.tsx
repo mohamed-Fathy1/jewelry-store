@@ -1,5 +1,5 @@
 import ProductClient from "./ProductClient";
-import { SHELL_ID } from "@/lib/routeId";
+import { SHELL_ID } from "@/lib/shellId";
 
 // The catalog is live, so product ids cannot be enumerated at build time.
 // A single shell page is exported under the sentinel id and CloudFront rewrites

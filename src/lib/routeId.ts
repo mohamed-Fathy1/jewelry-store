@@ -2,15 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-
-/**
- * Build-time id of the single exported shell page for a dynamic route.
- * CloudFront rewrites every real `/product/<id>` and `/account/orders/<id>`
- * onto that shell, so the route param is never a real id. Product and order
- * ids are 24-character hex ObjectIds, so a double-underscored word cannot
- * collide with one.
- */
-export const SHELL_ID = "__shell__";
+import { SHELL_ID } from "./shellId";
 
 export type RouteId =
   | { status: "pending" }
