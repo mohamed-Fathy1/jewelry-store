@@ -25,6 +25,16 @@ esac
 
 say "build"
 cd "$ROOT"
+# Node 21 and later fail to prerender /activate-account and /admin/login with
+# "Cannot read properties of undefined (reading 'prototype')". package.json
+# pins the range; check it here so the failure names its cause.
+WANT=$(cat .nvmrc)
+HAVE=$(node -v | sed 's/^v//;s/\..*//')
+if [ "$HAVE" != "$WANT" ]; then
+  echo "this build needs Node ${WANT}.x, found $(node -v)." >&2
+  echo "run: nvm use" >&2
+  exit 1
+fi
 npm run build
 [ -d out ] || { echo "build produced no out/ directory" >&2; exit 1; }
 for required in index.html 404.html product/__shell__.html account/orders/__shell__.html; do

@@ -65,7 +65,37 @@ check /this-page-does-not-exist                  404
 echo
 echo "cache headers"
 check_header /                                   "cache-control: public, max-age=0, must-revalidate"
-check_header /images/logo.jpg                    "cache-control: public, max-age=86400"
+check_header /logo.jpg                           "cache-control: public, max-age=86400"
+check_header /hero/hero-desktop.jpg              "cache-control: public, max-age=86400"
+
+# The flight payload must stay short-lived and it must stay text/plain. Serve it
+# as text/html and the client router rejects it and does a full page reload.
+check_header /product/6a7b855ebc29540b7ad47d61.txt "cache-control: public, max-age=0, must-revalidate"
+check_header /product/6a7b855ebc29540b7ad47d61.txt "content-type: text/plain"
+
+CHUNK=$(curl -s "${BASE}/" | grep -o '/_next/static/chunks/[a-zA-Z0-9._-]*\.js' | head -1)
+if [ -n "$CHUNK" ]; then
+  check_header "$CHUNK"                          "cache-control: public, max-age=31536000, immutable"
+else
+  echo "  FAIL could not find a hashed chunk on the homepage"; fail=$((fail+1))
+fi
+
+echo
+echo "pages are indexable"
+# A useSearchParams call with no Suspense boundary above it makes Next emit
+# every page as the __next_error__ shell, with noindex and no head tags.
+for p in / /shop /about; do
+  body=$(curl -s "${BASE}${p}")
+  if printf '%s' "$body" | grep -q 'content="noindex"'; then
+    printf '  FAIL %-42s carries noindex\n' "$p"; fail=$((fail+1))
+  elif ! printf '%s' "$body" | grep -q '<title>'; then
+    printf '  FAIL %-42s has no title\n' "$p"; fail=$((fail+1))
+  elif ! printf '%s' "$body" | grep -q 'og:title'; then
+    printf '  FAIL %-42s has no og:title\n' "$p"; fail=$((fail+1))
+  else
+    printf '  ok   %-42s title and og tags, no noindex\n' "$p"; pass=$((pass+1))
+  fi
+done
 
 echo
 echo "${pass} passed, ${fail} failed"
