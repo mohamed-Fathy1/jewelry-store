@@ -5,10 +5,12 @@
 # Idempotent. Re-running reconciles whatever already exists and prints the same
 # summary, so it is safe to run after a partial failure.
 #
-# The distribution is deliberately created WITHOUT the atozaccessory.com
-# aliases. Amplify's own CloudFront distribution currently holds them, and
-# CloudFront refuses to register an alias that is live on another distribution.
-# scripts/cutover.sh performs that swap as a separate, deliberate step.
+# Creating a distribution does NOT attach the atozaccessory.com aliases, because
+# a distribution will not accept an alias that is live on another one. The
+# existing distribution already holds both names; re-running this script finds
+# it by its comment and leaves those names alone. Attaching them to a NEW
+# distribution means detaching them from the old one first. See
+# docs/deploying.md, "Change where the domain points".
 set -euo pipefail
 
 BUCKET="${BUCKET:-atozaccessory-storefront}"
@@ -157,7 +159,7 @@ cat <<SUMMARY
    bucket        s3://${BUCKET}
    distribution  ${DIST_ID}
    test URL      https://${DIST_DOMAIN}
-   aliases       none yet; scripts/cutover.sh attaches them
+   aliases       $(aws cloudfront get-distribution --id "$DIST_ID" --query 'join(`, `, Distribution.DistributionConfig.Aliases.Items)' --output text 2>/dev/null || echo none)
 
    next: scripts/deploy.sh
 SUMMARY
