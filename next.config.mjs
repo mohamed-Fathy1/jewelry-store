@@ -4,9 +4,11 @@
  *
  */
 const nextConfig = {
-  output: "standalone",
+  output: "export",
   images: {
-    unoptimized: false,
+    // The Next image optimizer runs on a server; a static export has none, so
+    // images are served at their original URL.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
